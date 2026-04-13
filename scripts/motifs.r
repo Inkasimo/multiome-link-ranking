@@ -118,7 +118,21 @@ opts <- list(
   species = opt$species
 )
 
+obj <- readRDS("checkpoint_after_clustering.rds")
+
+DefaultAssay(obj) <- "RNA"
+rna_mat <- GetAssayData(obj, layer = "data")
+
 pfm_list <- getMatrixSet(JASPAR2022, opts)
+
+tf_names <- vapply(pfm_list, name, character(1))
+
+expressed_tfs <- rownames(rna_mat)[rowMeans(rna_mat > 0) > 0.1]
+
+keep_idx <- tf_names %in% expressed_tfs
+
+pfm_list <- pfm_list[keep_idx]
+
 
 if (length(pfm_list) == 0) {
   stop("No JASPAR motifs returned. Check species/collection settings.")
@@ -138,6 +152,7 @@ motif_names <- vapply(
   character(1)
 )
 
+
 # ---------------------------
 # Match motifs to peaks
 # ---------------------------
@@ -148,9 +163,7 @@ motif_matches <- matchMotifs(
   subject = peak_gr,
   genome = BSgenome.Hsapiens.UCSC.hg38,
   out = "matches",
-  p.cutoff = NULL,
-  bg = "genome",
-  min.score = opt$min.score
+  bg = "genome"
 )
 
 motif_mat <- motifMatches(motif_matches)
@@ -168,8 +181,8 @@ if (nrow(motif_mat) != length(peak_gr)) {
 # ---------------------------
 # Summarize motif support per peak
 # ---------------------------
-peak_has_motif <- Matrix::rowSums(motif_mat) > 0
 peak_n_motifs  <- Matrix::rowSums(motif_mat)
+
 
 peak_top_names <- apply(motif_mat, 1, function(hit_row) {
   hit_idx <- which(hit_row)
@@ -178,7 +191,7 @@ peak_top_names <- apply(motif_mat, 1, function(hit_row) {
 
 peak_summary <- data.table(
   peak = names(peak_gr),
-  motif_present = as.integer(peak_has_motif),
+  motif_present = as.integer(peak_n_motifs >= 20),
   n_motifs = as.integer(peak_n_motifs),
   motif_names = unname(peak_top_names)
 )
@@ -197,13 +210,14 @@ results2 <- merge(
 results2[is.na(motif_present), motif_present := 0L]
 results2[is.na(n_motifs), n_motifs := 0L]
 
-# Simple soft motif modifier
-results2[, motif_modifier := ifelse(motif_present == 1L, opt$motif_boost, opt$motif_penalty)]
+# continuous motif score (0–1)
+results2[, motif_score := n_motifs / max(n_motifs)]
 
-# Example integrated motif-aware score
-# Keep this conservative for now
-results2[, final_v5_motif := final_v5 * motif_modifier]
+# safety (avoid division issues)
+results2[is.na(motif_score), motif_score := 0]
 
+# apply smooth penalty (no artificial boost)
+results2[, final_v5_motif := final_v5 * (0.7 + 0.3 * motif_score)]
 # Rank comparison
 results2[, rank_final_v5 := frank(-final_v5, ties.method = "average")]
 results2[, rank_final_v5_motif := frank(-final_v5_motif, ties.method = "average")]
@@ -230,3 +244,4 @@ print(
   results2[order(rank_diff_motif),
            .(gene, peak, final_v5, final_v5_motif, motif_present, n_motifs, motif_names)][1:20]
 )
+
