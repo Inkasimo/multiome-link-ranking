@@ -1,0 +1,36 @@
+# R
+.Rhistory
+.RData
+.Rproj.user/
+
+# Python
+__pycache__/
+*.pyc
+
+# Logs
+logs/
+*.log
+
+# OS
+.DS_Store
+
+# Data (IMPORTANT)
+data/
+results/
+*.h5
+*.h5ad
+*.rds
+*.loom
+*.mtx
+*.tsv.gz
+*.csv.gz
+
+# Large files
+*.bam
+*.bai
+*.fastq.gz
+*.fq.gz
+
+# Temp
+tmp/
+temp/
