@@ -26,5 +26,5 @@ opt <- list(
   tier_high_quantile = 0.90,
   tier_medium_quantile = 0.70,
 
-  output_prefix = "multiome_rie"
+  output_prefix = file.path("results", "multiome_rie")
 )

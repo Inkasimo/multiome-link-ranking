@@ -67,7 +67,7 @@ option_list <- list(
               help = "Quantile cutoff for High tier [default %default]"),
   make_option(c("--tier-medium-quantile"), type = "double", default = 0.70,
               help = "Quantile cutoff for Medium tier [default %default]"),
-  make_option(c("--output-prefix"), type = "character", default = "multiome_rie",
+  make_option(c("--output-prefix"), type = "character", default = file.path("results", "multiome_rie"),
               help = "Prefix for output files [default %default]")
 )
 
