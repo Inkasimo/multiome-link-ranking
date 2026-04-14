@@ -73,6 +73,8 @@ option_list <- list(
 
 opt <- parse_args(OptionParser(option_list = option_list))
 
+dir.create("results", showWarnings = FALSE, recursive = TRUE)
+
 # ============================================================
 # Helpers
 # ============================================================
