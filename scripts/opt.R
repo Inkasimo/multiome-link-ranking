@@ -5,7 +5,7 @@ opt <- list(
 
   candidate_top_k = 10000L,
   link_distance = 500000L,
-  distance_d0 = 50000,
+  distance_d0 = 75000,
   lambda_distance = 0.30, #0.2
   alpha_tf = 0.30, #0.2
 

@@ -442,6 +442,8 @@ msg("Number of peak-gene links: %d", nrow(links_df))
 
 saveRDS(obj, obj_final_rds)
 msg("Saved full multiome object: %s", obj_final_rds)
+obj<-readRDS(file.path(obj_final_rds))
+
 
 baseline_df <- links_df[, c("peak", "gene", "score")]
 baseline_df <- baseline_df[!is.na(baseline_df$score), ]
