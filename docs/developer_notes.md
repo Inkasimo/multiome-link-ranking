@@ -107,6 +107,8 @@ Yes, naive boosting will mostly boost proximal links
 That’s because distance is already your dominant signal
 
 ## Per cell type scores and make cell type annotations + cell type groups + all + comparissons
+### Here I would think I will annotate the cell types and probably make a noise reduction by making metacells (sort of pseudobulks) like in previous repo
+### so make the scoring based on metacells? Test if it is "more stablile" or is there any justification for it??? Maybe
  
 
 The good sign in your case
