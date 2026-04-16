@@ -840,3 +840,109 @@ msg("Top baseline genes (n=%d unique): %d", opt$ora_top_n, length(unique(baselin
 msg("Top final_v6 genes (n=%d unique): %d", opt$ora_top_n, length(unique(final_genes)))
 msg("Tier counts: %s", paste(capture.output(print(table(results$tier))), collapse = " "))
 msg("Main output: %s_ranked_links.csv", automatic_prefix)
+
+
+# =========================
+# Distance-only baseline
+# =========================
+
+cat("\n=== DISTANCE-ONLY BASELINE ===\n")
+
+# Rank by distance (smaller = better)
+results[, rank_distance_only := frank(distance_bp, ties.method = "average")]
+
+# Top sets
+top50_dist  <- results[order(rank_distance_only)][1:50]
+top100_dist <- results[order(rank_distance_only)][1:100]
+
+# Metrics
+distance_only_summary <- data.table(
+  metric = c(
+    "median_distance_top50_distance_only",
+    "distal_frac_top50_distance_only_gt50kb",
+    "n_unique_genes_top100_distance_only"
+  ),
+  value = c(
+    median(top50_dist$distance_bp, na.rm = TRUE),
+    mean(top50_dist$distance_bp > 50000, na.rm = TRUE),
+    uniqueN(top100_dist$gene)
+  )
+)
+
+print(distance_only_summary)
+
+# =========================
+# ORA (distance-only)
+# =========================
+
+genes_dist <- unique(top100_dist$gene)
+
+dist_map <- safe_bitr(genes_dist)
+dist_entrez <- unique(dist_map$ENTREZID)
+
+ora_dist <- safe_enrich_go(dist_entrez, background_entrez)
+
+dist_ora_df <- if (is.null(ora_dist)) data.frame() else as.data.frame(ora_dist)
+n_ora_dist <- nrow(dist_ora_df)
+
+cat("\nDistance-only ORA terms:", n_ora_dist, "\n")
+
+# Optional distance-only dotplot
+dist_dot <- make_dotplot_safe(
+  ora_dist,
+  "ORA: distance-only (top genes)",
+  opt$ora_show_category
+)
+
+ggsave(
+  sprintf("%s_distance_only_dotplot.png", automatic_prefix),
+  dist_dot,
+  width = 10,
+  height = 7,
+  dpi = 300
+)
+
+# =========================
+# Overlap vs full model
+# =========================
+
+top100_full <- results[order(rank_final_v6)][1:100]
+
+pair_id <- function(dt) paste(dt$peak, dt$gene, sep = "||")
+
+overlap_summary <- data.table(
+  metric = c(
+    "overlap_genes_top100_full_vs_distance_only",
+    "overlap_pairs_top100_full_vs_distance_only"
+  ),
+  value = c(
+    length(intersect(top100_full$gene, top100_dist$gene)),
+    length(intersect(pair_id(top100_full), pair_id(top100_dist)))
+  )
+)
+
+print(overlap_summary)
+
+# =========================
+# Save outputs
+# =========================
+
+fwrite(
+  distance_only_summary,
+  file = sprintf("%s_distance_only_summary.csv", automatic_prefix)
+)
+
+fwrite(
+  top100_dist,
+  file = sprintf("%s_distance_only_top100_links.csv", automatic_prefix)
+)
+
+fwrite(
+  dist_ora_df,
+  file = sprintf("%s_distance_only_ora.csv", automatic_prefix)
+)
+
+fwrite(
+  overlap_summary,
+  file = sprintf("%s_distance_only_overlap_vs_full.csv", automatic_prefix)
+)

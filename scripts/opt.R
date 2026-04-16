@@ -5,9 +5,9 @@ opt <- list(
 
   candidate_top_k = 10000L,
   link_distance = 500000L,
-  distance_d0 = 100000,
-  lambda_distance = 0.30, #0.2
-  alpha_tf = 0.30, #0.2
+  distance_d0 = 50000,
+  lambda_distance = 0.3, #0.3
+  alpha_tf = 0.3, # 0.3
 
   cluster_resolution = 0.5,
   pca_dims = 30L,
