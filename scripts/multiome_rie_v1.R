@@ -68,10 +68,14 @@ option_list <- list(
   make_option(c("--tier-medium-quantile"), type = "double", default = 0.70,
               help = "Quantile cutoff for Medium tier [default %default]"),
   make_option(c("--output-prefix"), type = "character", default = file.path("results", "multiome_rie"),
-              help = "Prefix for output files [default %default]")
+              help = "Prefix for output files [default %default]"),
+  make_option(c("--seed"), type = "integer", default = 42,
+            help = "Random seed [default %default]")
 )
 
 opt <- parse_args(OptionParser(option_list = option_list))
+
+set.seed(opt$seed)
 
 dir.create("results", showWarnings = FALSE, recursive = TRUE)
 
@@ -217,37 +221,70 @@ parse_peak_granges <- function(peak_vec) {
   gr
 }
 
-build_gene_coord_table <- function(annotations) {
-  gene_names <- mcols(annotations)$gene_name
-  seqs <- as.character(seqnames(annotations))
-  starts <- start(annotations)
-  ends <- end(annotations)
-  strands <- as.character(strand(annotations))
 
-  keep <- !is.na(gene_names) & nzchar(gene_names)
-
-  ann_df <- data.frame(
-    gene = gene_names[keep],
-    gene_chr = seqs[keep],
-    gene_start = starts[keep],
-    gene_end = ends[keep],
-    gene_strand = strands[keep],
-    stringsAsFactors = FALSE
+build_gene_tss_table <- function() {
+  tx <- ensembldb::transcripts(
+    EnsDb.Hsapiens.v86,
+    return.type = "DataFrame",
+    columns = c("gene_name", "seq_name", "tx_id", "tx_biotype", "start", "end", "strand")
   )
 
-  ann_df$tss <- ifelse(ann_df$gene_strand == "-", ann_df$gene_end, ann_df$gene_start)
+  tx <- as.data.frame(tx)
+  tx <- tx[!is.na(tx$gene_name) & nzchar(tx$gene_name), ]
 
-  gene_coord_df <- aggregate(
-    tss ~ gene + gene_chr,
-    data = ann_df,
-    FUN = function(x) {
-      ux <- unique(x)
-      ux[which.min(abs(ux - stats::median(ux)))]
-    }
+  tx$seq_name <- ifelse(grepl("^chr", tx$seq_name), tx$seq_name, paste0("chr", tx$seq_name))
+  tx <- tx[grepl("^chr", tx$seq_name), ]
+
+  tx$tss <- ifelse(tx$strand == "-", tx$end, tx$start)
+
+  # Prefer protein_coding if available, then longest transcript
+  tx$tx_len <- tx$end - tx$start + 1L
+  tx$is_pc <- tx$tx_biotype == "protein_coding"
+
+  tx <- tx[order(tx$gene_name, -tx$is_pc, -tx$tx_len), ]
+  tx <- tx[!duplicated(tx$gene_name), ]
+
+  data.table::data.table(
+    gene = tx$gene_name,
+    gene_chr = tx$seq_name,
+    tss = tx$tss,
+    tx_id = tx$tx_id,
+    tx_biotype = tx$tx_biotype
   )
-
-  gene_coord_df
 }
+
+
+#build_gene_coord_table <- function(annotations) {
+  #gene_names <- mcols(annotations)$gene_name
+  #seqs <- as.character(seqnames(annotations))
+  #starts <- start(annotations)
+  #ends <- end(annotations)
+  #strands <- as.character(strand(annotations))
+
+  #keep <- !is.na(gene_names) & nzchar(gene_names)
+
+  #ann_df <- data.frame(
+   # gene = gene_names[keep],
+    #gene_chr = seqs[keep],
+    #gene_start = starts[keep],
+    #gene_end = ends[keep],
+    #gene_strand = strands[keep],
+    #stringsAsFactors = FALSE
+  #)
+
+  #ann_df$tss <- ifelse(ann_df$gene_strand == "-", ann_df$gene_end, ann_df$gene_start)
+
+  #gene_coord_df <- aggregate(
+   # tss ~ gene + gene_chr,
+    #data = ann_df,
+    #FUN = function(x) {
+     # ux <- unique(x)
+      #ux[which.min(abs(ux - stats::median(ux)))]
+    #}
+  #)
+
+  #gene_coord_df
+#}
 
 extract_motif_score_matrix <- function(motif_obj, n_peaks, n_motifs) {
   # Try common extractors across motifmatchr / SummarizedExperiment versions.
@@ -364,6 +401,9 @@ frag_file <- file.path(data_dir, opt$frag_file)
 require_file(h5_file)
 require_file(frag_file)
 
+frag_index_file <- paste0(frag_file, ".tbi")
+require_file(frag_index_file)
+
 msg("Reading 10x multiome input...")
 data <- Read10X_h5(h5_file)
 msg("Matrices found: %s", paste(names(data), collapse = ", "))
@@ -385,7 +425,7 @@ genome(annotations) <- "hg38"
 
 automatic_prefix <- opt$output_prefix
 obj_checkpoint <- sprintf("%s_checkpoint_after_clustering.rds", automatic_prefix)
-obj_final_rds <- sprintf("%s_multiome_object.rds", automatic_prefix)
+obj_post_linkpeaks_rds <- sprintf("%s_post_linkpeaks_object.rds", automatic_prefix)
 
 msg("Creating Seurat object...")
 obj <- CreateSeuratObject(counts = data$`Gene Expression`, assay = "RNA")
@@ -440,22 +480,23 @@ links <- Links(obj)
 links_df <- as.data.frame(links)
 msg("Number of peak-gene links: %d", nrow(links_df))
 
-saveRDS(obj, obj_final_rds)
-msg("Saved full multiome object: %s", obj_final_rds)
-obj<-readRDS(file.path(obj_final_rds))
+saveRDS(obj, obj_post_linkpeaks_rds)
+msg("Saved post-LinkPeaks object: %s", obj_post_linkpeaks_rds)
+#obj<-readRDS(file.path(obj_final_rds))
 
 
-baseline_df <- links_df[, c("peak", "gene", "score")]
-baseline_df <- baseline_df[!is.na(baseline_df$score), ]
-baseline_df <- baseline_df[order(-baseline_df$score), ]
+baseline_df_full <- links_df[, c("peak", "gene", "score")]
+baseline_df_full <- baseline_df_full[!is.na(baseline_df_full$score), ]
+baseline_df_full <- as.data.table(baseline_df_full)
+setorder(baseline_df_full, peak, gene, -score)
+baseline_df_full <- baseline_df_full[, .SD[1], by = .(peak, gene)]
+setorder(baseline_df_full, -score)
 
-baseline_df <- as.data.table(baseline_df)
-setorder(baseline_df, peak, gene, -score)
-baseline_df <- baseline_df[, .SD[1], by = .(peak, gene)]
-setorder(baseline_df, -score)
-
-write.csv(baseline_df, sprintf("%s_baseline_links.csv", automatic_prefix), row.names = FALSE)
-
+write.csv(
+  baseline_df_full,
+  sprintf("%s_baseline_links_full.csv", automatic_prefix),
+  row.names = FALSE
+)
 # ============================================================
 # Access matrices
 # ============================================================
@@ -469,10 +510,23 @@ atac_mat <- safe_get_assay_data(obj, assay = "ATAC", what = "data")
 # Core reranking: additive, multiplicative, strict, adjusted
 # ============================================================
 msg("Scoring top %d baseline links...", opt$candidate_top_k)
-candidates <- head(baseline_df, opt$candidate_top_k)
+candidates <- head(baseline_df_full, opt$candidate_top_k)
 
 score_rows <- vector("list", nrow(candidates))
 keep_idx <- logical(nrow(candidates))
+
+candidate_genes <- unique(candidates$gene)
+candidate_peaks <- unique(candidates$peak)
+
+rna_list <- setNames(
+  lapply(candidate_genes, function(g) safe_scale(as.numeric(rna_mat[g, ]))),
+  candidate_genes
+)
+
+atac_list <- setNames(
+  lapply(candidate_peaks, function(p) safe_scale(as.numeric(atac_mat[p, ]))),
+  candidate_peaks
+)
 
 for (i in seq_len(nrow(candidates))) {
   peak <- candidates$peak[i]
@@ -481,11 +535,8 @@ for (i in seq_len(nrow(candidates))) {
   if (!(gene %in% rownames(rna_mat))) next
   if (!(peak %in% rownames(atac_mat))) next
 
-  rna <- as.numeric(rna_mat[gene, ])
-  atac <- as.numeric(atac_mat[peak, ])
-
-  rna_z <- safe_scale(rna)
-  atac_z <- safe_scale(atac)
+  rna_z <- rna_list[[gene]]
+  atac_z <- atac_list[[peak]]
 
   link_score <- candidates$score[i]
   score_add <- mean(pmax(rna_z, 0) + pmax(atac_z, 0), na.rm = TRUE)
@@ -524,7 +575,7 @@ msg("Scored candidate links retained: %d", nrow(results))
 # Distance prior
 # ============================================================
 msg("Adding distance prior...")
-gene_coord_df <- build_gene_coord_table(annotations)
+gene_coord_df <- build_gene_tss_table()
 peak_df <- parse_peak_table(results$peak)
 peak_df$peak_mid <- (peak_df$peak_start + peak_df$peak_end) / 2
 
@@ -547,6 +598,24 @@ results[, distance_score := ifelse(
   is.finite(distance_bp),
   1 / (1 + (distance_bp / opt$distance_d0)^2),
   0
+)]
+
+baseline_peak_df <- parse_peak_table(baseline_df_full$peak)
+baseline_peak_df$peak_mid <- (baseline_peak_df$peak_start + baseline_peak_df$peak_end) / 2
+
+baseline_dist <- merge(baseline_df_full, baseline_peak_df, by = "peak", all.x = TRUE, sort = FALSE)
+baseline_dist <- merge(
+  baseline_dist,
+  gene_coord_df[, c("gene", "gene_chr", "tss")],
+  by = "gene",
+  all.x = TRUE,
+  sort = FALSE
+)
+
+baseline_dist[, distance_bp := ifelse(
+  is.na(gene_chr) | peak_chr != gene_chr,
+  Inf,
+  abs(peak_mid - tss)
 )]
 
 results[, final_v5 := mul_weigh * ((1 - opt$lambda_distance) + opt$lambda_distance * distance_score)]
@@ -614,13 +683,16 @@ colnames(motif_score_mat) <- motif_names
 
 # Rescale each motif column to 0-1 to reduce motif-specific scale effects.
 if (ncol(motif_score_mat) > 0) {
-  motif_score_mat <- apply(motif_score_mat, 2, rescale01)
-  motif_score_mat <- as.matrix(motif_score_mat)
-  if (nrow(motif_score_mat) != length(peak_gr)) {
-    motif_score_mat <- t(motif_score_mat)
-  }
-  rownames(motif_score_mat) <- names(peak_gr)
-  colnames(motif_score_mat) <- motif_names
+  scaled_cols <- lapply(seq_len(ncol(motif_score_mat)), function(j) {
+    rescale01(motif_score_mat[, j])
+  })
+  motif_score_mat <- do.call(cbind, scaled_cols)
+  motif_score_mat <- matrix(
+    motif_score_mat,
+    nrow = length(peak_gr),
+    ncol = length(motif_names),
+    dimnames = list(names(peak_gr), motif_names)
+  )
 }
 
 # TF expression vector aligned to motif columns.
@@ -654,14 +726,12 @@ peak_summary <- data.table(
   peak = rownames(motif_score_mat),
   motif_score = unname(peak_best_motif_score),
   tf_score = unname(peak_tf_score),
-  motif_tf_score = unname(peak_tf_score),
   motif_names = unname(peak_top_names)
 )
 
 results <- merge(results, peak_summary, by = "peak", all.x = TRUE, sort = FALSE)
 results[is.na(motif_score), motif_score := 0]
 results[is.na(tf_score), tf_score := 0]
-results[is.na(motif_tf_score), motif_tf_score := 0]
 
 # compute final_v6 first
 results[, final_v6 := final_v5 * (1 + opt$alpha_tf * tf_score)]
@@ -708,7 +778,7 @@ write.csv(tier_summary, sprintf("%s_tier_summary.csv", automatic_prefix), row.na
 # ORA: baseline vs final combined ranking
 # ============================================================
 msg("Running ORA on top %d genes...", opt$ora_top_n)
-baseline_genes <- unique(head(results[order(-link_score)]$gene, opt$ora_top_n))
+baseline_genes <- unique(head(baseline_df_full$gene, opt$ora_top_n))
 final_genes <- unique(head(results[order(-final_v6)]$gene, opt$ora_top_n))
 background_genes <- unique(results$gene)
 
@@ -786,7 +856,7 @@ summary_dt <- data.table(
     suppressWarnings(cor(results$link_score, results$mul_weigh, use = "complete.obs")),
     suppressWarnings(cor(results$link_score, results$final_v5, use = "complete.obs")),
     suppressWarnings(cor(results$link_score, results$final_v6, use = "complete.obs")),
-    median(head(results[order(-link_score)]$distance_bp, 50), na.rm = TRUE),
+    median(baseline_dist[is.finite(distance_bp)][order(-score)][1:50]$distance_bp, na.rm = TRUE),
     median(head(results[order(-final_v6)]$distance_bp, 50), na.rm = TRUE),
     mean(head(results[order(-final_v6)]$distance_bp, 50) > 50000, na.rm = TRUE),
     length(unique(baseline_genes)),
@@ -799,7 +869,7 @@ write.csv(summary_dt, sprintf("%s_summary_metrics.csv", automatic_prefix), row.n
 
 # Top-N overlap summary
 noverlap <- lapply(c(10, 20, 50, 100, 200), function(n) {
-  top_link_n <- unique(head(results[order(-link_score), .(peak, gene)], n))
+  top_link_n <- unique(head(baseline_df_full[, .(peak, gene)], n))
   top_final_n <- unique(head(results[order(-final_v6), .(peak, gene)], n))
 
   overlap_n <- nrow(merge(
@@ -849,11 +919,11 @@ msg("Main output: %s_ranked_links.csv", automatic_prefix)
 cat("\n=== DISTANCE-ONLY BASELINE ===\n")
 
 # Rank by distance (smaller = better)
-results[, rank_distance_only := frank(distance_bp, ties.method = "average")]
+baseline_dist_finite <- baseline_dist[is.finite(distance_bp)]
+baseline_dist_finite[, rank_distance_only := frank(distance_bp, ties.method = "average")]
 
-# Top sets
-top50_dist  <- results[order(rank_distance_only)][1:50]
-top100_dist <- results[order(rank_distance_only)][1:100]
+top50_dist  <- baseline_dist_finite[order(rank_distance_only)][1:50]
+top100_dist <- baseline_dist_finite[order(rank_distance_only)][1:100]
 
 # Metrics
 distance_only_summary <- data.table(
