@@ -109,6 +109,37 @@ That’s because distance is already your dominant signal
 ## Per cell type scores and make cell type annotations + cell type groups + all + comparissons
 ### Here I would think I will annotate the cell types and probably make a noise reduction by making metacells (sort of pseudobulks) like in previous repo
 ### so make the scoring based on metacells? Test if it is "more stablile" or is there any justification for it??? Maybe
+
+#  AAAAAAAA
+
+The recent revision improves both the biological validity and the evaluation integrity of the reranking pipeline. 
+The most important change is the replacement of the old gene-coordinate collapse logic with a dedicated transcript-derived TSS table. 
+Previously, gene TSS positions were approximated by aggregating coordinates from the Signac annotation object, 
+which could mix multiple transcript-derived positions and distort peak-to-gene distances. The updated implementation now derives 
+one explicit TSS per gene directly from EnsDb transcript annotations, with a preference for protein-coding and longer transcripts. 
+Because distance is a central component of the scoring function, this change makes the distance prior substantially more trustworthy 
+and reduces the risk that links were promoted or penalized due to an artifact of annotation collapse rather than real genomic proximity.
+
+The second major improvement is the correction of the baseline evaluation framing. Earlier, some “baseline” summaries were effectively
+ being computed within the reranked candidate subset, which made the baseline comparison cleaner than it really was. The revised script
+ now separates the full LinkPeaks baseline from the reranked candidate table. Full baseline links are deduplicated once, retained as their own object, 
+ and used for baseline ORA, overlap summaries, and baseline distance calculations. In addition, a dedicated baseline_dist table is now built so that
+ baseline distance summaries are computed from the true full baseline rather than from the restricted reranking results. This makes the comparisons 
+ against the reranked model much more honest: the baseline is now a real baseline, not a conditional subset of the method’s candidate space.
+
+Several robustness and reproducibility fixes were also added. The script now sets a random seed from the CLI, which improves reproducibility
+ for steps such as clustering and neighborhood construction. Fragment index validation was added, so the workflow now fails early if the required
+ .tbi file is missing instead of breaking later in a less interpretable way. The motif-score rescaling step was also made safer by replacing
+ dimension-dropping apply() behavior with a more stable column-wise reconstruction. In parallel, some unnecessary or misleading logic was removed or 
+ cleaned up, including the pointless save/reload cycle of the Seurat object, the duplicate motif_tf_score field, and old unused TSS code.
+
+The net effect of these changes is that the script is now much better aligned with the scientific questions it is trying to answer. 
+The reranking formula itself did not fundamentally change, but the biological inputs to the distance prior are now more defensible, 
+and the baseline-vs-reranked comparisons are now methodologically sound. In practice, this means future results from the pipeline should
+ be interpreted as more reliable: if the reranked model still outperforms the baseline after these corrections, that improvement will carry substantially
+more weight. The script remains a research prototype rather than a production workflow, but it is now markedly stronger as a publication-grade analysis foundation. 
+
+
  
 
 The good sign in your case
