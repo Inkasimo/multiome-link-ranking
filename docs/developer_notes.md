@@ -140,6 +140,134 @@ and the baseline-vs-reranked comparisons are now methodologically sound. In prac
 more weight. The script remains a research prototype rather than a production workflow, but it is now markedly stronger as a publication-grade analysis foundation. 
 
 
+### De novo model
+
+That makes sense.
+
+That is a good progression:
+
+Phase 1
+
+Prove the current method has value:
+
+benchmark current reranker
+clean up evaluation
+show it improves over baseline
+Phase 2
+
+Turn it into a more complete pipeline:
+
+start from raw FASTQ
+standard preprocessing
+candidate generation
+reranking
+evaluation
+Phase 3
+
+Move toward standalone inference:
+
+replace LinkPeaks candidate generation
+use your own candidate builder
+then later add cell-type-aware / metacell logic
+
+That is a sane order.
+
+Important point
+
+Starting from raw FASTQ does not by itself make it more de novo.
+
+It makes it a more complete and usable pipeline, which is good for:
+
+repo quality
+reproducibility
+publication packaging
+
+But the real step toward de novo is still:
+
+own candidate generation instead of LinkPeaks top-K
+
+So I would separate those mentally:
+
+FASTQ pipeline = engineering/completeness upgrade
+own candidate generation = methodological upgrade
+
+Both matter, but they are different.
+
+Best practical route
+
+If benchmarking looks good, I would do:
+
+1. Repo / pipeline upgrade
+raw FASTQ → counts/fragments
+standardized run config
+reproducible outputs
+2. Candidate generator v2
+
+Replace LinkPeaks candidates with:
+
+same chromosome
+within distance window
+minimum gene expression prevalence
+minimum peak accessibility prevalence
+
+That is the easiest first standalone version.
+
+3. Keep LinkPeaks mode too
+
+Do not throw it away.
+
+Support both:
+
+candidate_mode = "linkpeaks"
+candidate_mode = "window"
+
+That gives you:
+
+backward compatibility
+cleaner benchmarking
+a path to show how much your own candidate generation changes results
+Why this is a good journey
+
+Because each stage has value on its own:
+
+current reranker = useful method prototype
+raw FASTQ pipeline = strong portfolio/repo
+own candidate generation = more novel method
+cell-type/metacells = stronger biological specificity
+
+That is a real roadmap, not random feature creep.
+
+One caution
+
+Do not jump from current reranker straight into:
+
+raw FASTQ
+own candidate generation
+cell-type specificity
+NB model
+
+all at once.
+
+That would make it impossible to know what improved anything.
+
+Better sequence
+finish current benchmark
+freeze reranker version
+build end-to-end pipeline
+swap candidate generator
+benchmark again
+only then move to cell-type-aware extension
+Bottom line
+
+Yes — that is a good path.
+
+If current benchmarking is reasonable, an end-to-end pipeline from raw FASTQ is a strong next step. Just keep in mind that:
+
+FASTQ support makes it more complete
+own candidate generation makes it more de novo
+
+Those are the two separate upgrades.
+
  
 
 The good sign in your case
