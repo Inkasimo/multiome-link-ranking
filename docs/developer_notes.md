@@ -110,7 +110,7 @@ That’s because distance is already your dominant signal
 ### Here I would think I will annotate the cell types and probably make a noise reduction by making metacells (sort of pseudobulks) like in previous repo
 ### so make the scoring based on metacells? Test if it is "more stablile" or is there any justification for it??? Maybe
 
-#  AAAAAAAA
+#  transcript-derived TSS table
 
 The recent revision improves both the biological validity and the evaluation integrity of the reranking pipeline. 
 The most important change is the replacement of the old gene-coordinate collapse logic with a dedicated transcript-derived TSS table. 
