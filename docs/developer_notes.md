@@ -303,3 +303,485 @@ simplified ablations
 If it does, then you likely have something real.
 
 
+# 260417
+
+Thought for a couple of seconds
+
+Yes — the screenshot matches the code’s intent.
+
+Your current scoring function is essentially:
+
+S
+pg
+	​
+
+=(
+∣C∣
+1
+	​
+
+c∈C
+∑
+	​
+
+max(z
+gc
+RNA
+	​
+
+,0)max(z
+pc
+ATAC
+	​
+
+,0))⋅[(1−λ)+λ
+1+(d
+pg
+	​
+
+/d
+0
+	​
+
+)
+2
+1
+	​
+
+]⋅(1+αt
+p
+	​
+
+)
+
+So the pipeline is already in the right shape for a prototype reranker:
+
+term 1 = joint RNA/ATAC support
+term 2 = distance prior
+term 3 = TF/motif support
+
+That is a clean starting point for a gradual move toward a de novo model.
+
+What I would do next
+
+Do not jump straight to a new model class yet. First, make this reranker into a proper benchmark harness.
+
+Phase 1: lock down the current reranker
+
+Before changing the model, test whether each term is actually helping.
+
+Run these ablations:
+
+coactivity only
+S=mul_weigh
+coactivity + distance
+S=final_v5
+coactivity + TF
+S=mul_weigh(1+αt
+p
+	​
+
+)
+distance only
+TF only
+full model
+S=final_v6
+
+This tells you whether the distance term and TF term add signal or just add plausibility bias.
+
+Benchmarking targets to add
+
+You need at least four benchmark layers.
+
+1. Internal ranking stability
+
+Test whether results are stable across:
+
+random seeds
+downsampling cells
+downsampling fragments
+different clustering resolutions
+different candidate_top_k values
+
+Useful metrics:
+
+top-100 / top-500 overlap
+Spearman rank correlation
+stability of promoted links
+stability of top genes per cell type
+
+If the ranking changes wildly, the model is not ready for de novo expansion.
+
+2. Biological plausibility
+
+Your current ORA is fine as a first pass, but it is weak as a primary benchmark.
+
+Add:
+
+promoter vs distal composition
+known marker-gene proximal peaks
+motif consistency by lineage
+TF–target coherence
+
+Examples:
+
+in hematopoietic data, GATA / SPI1 / CEBP family peaks should enrich near expected lineage genes
+in neural data, NEUROD / SOX / OLIG families should behave sensibly
+
+This is still soft evidence, but much better than GO alone.
+
+3. External truth sets
+
+This is the main step.
+
+Benchmark against datasets with some orthogonal regulatory evidence:
+
+CRISPR perturbation enhancer–gene maps
+promoter capture Hi-C / pcHi-C
+ABC or EpiMap enhancer-gene references
+validated enhancer databases
+eQTL-linked regulatory regions, where applicable
+
+Do not treat any of these as absolute truth. Treat them as noisy positives and compare enrichment.
+
+Recommended metrics:
+
+AUROC
+AUPRC
+recall@K
+enrichment of supported links in top-N vs baseline
+odds ratio in top decile vs all candidates
+
+For sparse truth sets, precision-recall and recall@K matter more than AUROC.
+
+4. Baseline comparisons
+
+Your real baseline set should be larger than:
+
+LinkPeaks
+distance only
+
+Also compare against:
+
+nearest-gene
+correlation only
+cicero / co-accessibility-style baseline if possible
+ABC-style score approximation if you can construct one
+simple logistic or rank-sum ensemble using the same features
+
+If a linear/logistic baseline beats your handcrafted score, that is useful information.
+
+Best next model step
+
+APPLY: move from hand-tuned multiplicative scoring to a supervised or weakly supervised ranker.
+
+Good next options:
+
+Option A: logistic regression / gradient boosting on link features
+
+Build one row per candidate link with features like:
+
+LinkPeaks score
+RNA–ATAC coactivity metrics
+distance
+GC content
+peak accessibility mean
+gene expression mean
+motif score
+TF score
+promoter indicator
+same-cluster specificity
+pseudobulk correlation
+cell-type-specific correlation
+
+Then train:
+
+logistic regression
+XGBoost / LightGBM ranker
+pairwise ranking model
+
+This is the fastest serious upgrade.
+
+Option B: pseudobulk-aware de novo score
+
+Instead of cell-level z-product only, compute within-cluster or pseudobulk summaries:
+
+peak accessibility by cluster
+gene expression by cluster
+correlation across clusters
+specificity matching
+
+That often works better than cell-level noise for enhancer–gene ranking.
+
+Option C: graph-based model later
+
+Once features and benchmarks are solid, then move to:
+
+bipartite peak–gene graph
+GNN or message passing
+latent variable model over peak/gene/cell-type nodes
+
+SKIP this for now unless you already have strong training labels and reproducible feature wins.
+
+What to fix in the current prototype before scaling
+1. Separate candidate generation from ranking
+
+Right now LinkPeaks is the gateway.
+
+For a de novo model, create candidate sets independently, such as:
+
+all peaks within 1 Mb of TSS
+all peaks within TAD if available
+promoter and distal handled separately
+
+Then let the model rank them.
+
+This is the single most important architectural shift.
+
+2. Add cell-type-aware scoring
+
+Your current TF score is global. Better:
+
+compute TF expression per cluster
+compute motif support per cluster
+score peak–gene links within matched cellular contexts
+
+That will help a lot.
+
+3. Stop using one transcript/TSS per gene as the long-term design
+
+For prototyping it is fine. For a better model:
+
+use canonical transcript set or gene-level promoter windows
+maybe multiple TSSs per gene
+distinguish promoter-proximal vs distal links
+4. Add negative controls
+
+You need deliberate false links:
+
+cross-chromosome links
+far-distance matched negatives
+shuffled peak–gene pairs preserving marginals
+
+These are critical for debugging whether the score is learning biology or just distance.
+
+Concrete benchmark plan
+
+I would structure the next work like this.
+
+Sprint 1
+freeze current pipeline
+add ablation runs
+add stability metrics
+add candidate-independent nearest-gene baseline
+add shuffled negatives
+Sprint 2
+build feature table for every candidate link
+run logistic regression and XGBoost baselines
+compare against current formula with recall@K and PR-AUC
+Sprint 3
+add external truth sets
+benchmark by distance bins:
+promoter
+0–50 kb
+50–200 kb
+200–500 kb
+500 kb+
+
+This matters because many models look good only because they win near promoters.
+
+Sprint 4
+replace LinkPeaks candidate generation
+generate full cis windows
+retrain/retest
+only then call it de novo-ish
+What success should look like
+
+A strong next milestone is not “new model.”
+It is:
+
+full model beats LinkPeaks and distance-only on recall@K
+improvements persist after ablations
+gains hold across seeds and downsampling
+gains are strongest in distal bins, not only promoter bins
+a simple learned ranker on your features performs at least as well as the hand-designed formula
+
+If you get that, you have a real platform to build a de novo model from.
+
+Recommendation
+
+APPLY:
+
+turn this into a benchmarked reranking framework first
+add ablations, negatives, external truth sets, and feature-based baselines
+then move to candidate-independent ranking
+
+SKIP:
+
+GNNs, VAEs, or complex de novo architectures right now
+claiming de novo inference while LinkPeaks still defines the candidate universe
+
+Your current prototype is good enough to justify the next step. The immediate priority is not a fancier score. It is a harder benchmark.
+
+I can help you turn this into a concrete benchmark matrix with exact metrics, baselines, and output tables.
+
+
+I know. I am doing this shit you list
+
+Good — then you’re on the right track. Next step is tightening execution so you don’t waste cycles.
+
+What to focus on now (high ROI)
+1. Lock a minimal benchmark suite
+
+Do not keep expanding. Fix a small, repeatable set:
+
+Datasets (2–3 max)
+
+1 clean multiome (good depth)
+1 noisier dataset
+optionally 1 with known regulatory signal (e.g., hematopoietic)
+
+Truth sources (pick 1–2)
+
+ABC / EpiMap-style enhancer–gene
+pcHi-C or CRISPR if available
+
+Metrics (don’t exceed these)
+
+recall@50 / @100
+AUPRC
+enrichment vs distance baseline (odds ratio top decile)
+
+Anything beyond this is noise at this stage.
+
+2. Make your current model diagnosable
+
+Right now your score is clean but opaque.
+
+Add these columns and inspect distributions:
+
+coactivity = mul_weigh
+distance_score
+tf_score
+final_v6
+
+Then compute:
+
+correlation matrix of features
+feature contribution to top-N (mean feature value in top 100 vs all)
+
+If TF or distance barely shifts ranking → drop or rescale.
+
+3. Run controlled ablations once, not repeatedly
+
+Run exactly this matrix and freeze it:
+
+model	components
+M1	coactivity
+M2	coactivity + distance
+M3	coactivity + TF
+M4	full
+M5	distance only
+M6	LinkPeaks
+
+Export one CSV summarizing:
+
+recall@K
+AUPRC
+distal recall (>50kb)
+
+Do not re-run unless you change features.
+
+4. Add one simple learned baseline
+
+This is critical.
+
+Build a table:
+
+features = [
+  link_score,
+  mul_weigh,
+  distance_score,
+  tf_score,
+  motif_score
+]
+
+Train:
+
+logistic regression
+or XGBoost (depth 3–5 max)
+
+If this beats your hand formula → switch immediately.
+
+APPLY if better
+SKIP hand-tuning further
+
+5. Check distance leakage
+
+Very common failure mode.
+
+Do this:
+
+bucket links by distance:
+0–10kb
+10–50kb
+50–200kb
+200–500kb
+
+500kb
+
+Then compute recall@K per bucket.
+
+If all gains are in <50kb → your model is just a distance proxy.
+
+6. Kill weak components early
+
+Use this rule:
+
+If adding TF score improves <5% recall@100 → drop or rethink
+If distance term dominates ranking (>0.8 correlation with final score) → reduce λ
+If LinkPeaks still dominates → your reranker isn’t adding signal
+7. Prepare for de novo (but don’t switch yet)
+
+You only move when:
+
+learned baseline ≥ your current model
+gains persist in distal bins
+results stable across seeds
+
+Then:
+
+Replace candidate set
+
+all peaks within 1 Mb of TSS
+optionally TAD-restricted
+
+Everything else stays the same initially.
+
+Quick sanity checklist
+
+You’re ready to move forward if:
+
+ full model beats LinkPeaks on recall@100
+ beats distance-only clearly
+ gains not confined to promoters
+ feature importance is not dominated by one term
+ results stable under downsampling
+
+If any of these fail → fix before expanding.
+
+Bottom line
+
+You don’t need more ideas right now. You need:
+
+a fixed benchmark
+one learned baseline
+strict ablation discipline
+
+Do that once, cleanly, and you’ll know exactly whether your formulation is worth scaling into a de novo model or not.
+
+If you want, next step I can:
+
+sketch the exact feature table + training code (R or Python)
+or define a minimal evaluation script so you stop rewriting analysis each run
+

@@ -780,7 +780,7 @@ write.csv(tier_summary, sprintf("%s_tier_summary.csv", automatic_prefix), row.na
 msg("Running ORA on top %d genes...", opt$ora_top_n)
 baseline_genes <- unique(head(baseline_df_full$gene, opt$ora_top_n))
 final_genes <- unique(head(results[order(-final_v6)]$gene, opt$ora_top_n))
-background_genes <- unique(results$gene)
+background_genes <- unique(baseline_df_full$gene)
 
 baseline_map <- safe_bitr(baseline_genes)
 final_map <- safe_bitr(final_genes)
