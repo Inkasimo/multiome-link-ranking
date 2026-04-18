@@ -787,4 +787,232 @@ or define a minimal evaluation script so you stop rewriting analysis each run
 
 One clean sentence for your writeup
 
-A distance-only ranking collapsed to promoter-proximal links (median ~11 bp) and yielded no significant enrichment, indicating that genomic proximity alone is insufficient to recover biologically coherent regulatory programs.
+A distance-only ranking collapsed to promoter-proximal links (median ~11 bp) and yielded no significant enrichment, 
+indicating that genomic proximity alone is insufficient to recover biologically coherent regulatory programs.
+
+# Benchmarking Notes
+
+What to actually run (practical set)
+Core (DO THESE)
+
+APPLY
+
+LinkPeaks
+ArchR Peak2GeneLinks
+SCENT
+
+These are enough to establish credibility.
+
+Add 1 strong modern method
+
+Conditional APPLY
+
+scMultiMap → only if setup time < ~1–2 days
+
+Reason:
+
+It’s strong, but setup/integration cost is non-trivial
+If it slows you down, it’s not worth it right now
+Simple baselines (MANDATORY)
+
+APPLY
+
+distance-only ✅ (you already have it)
+nearest-gene
+correlation-only (your mul or mul_weigh ≈ already this)
+
+These are critical for reviewers.
+
+Optional / secondary
+
+APPLY (optional)
+
+Cicero → include, but label clearly as co-accessibility
+
+If time is tight:
+SKIP Cicero initially
+
+Clean benchmark tiers
+Minimum viable (what you should do now)
+distance-only
+nearest-gene
+LinkPeaks
+ArchR
+SCENT
+your model
+
+This is already a publishable benchmark set.
+
+Expanded (only if time allows)
+scMultiMap
+Cicero
+What this person got right
+
+Correct:
+
+distinguishing same-task vs related-task (Cicero)
+insisting on simple baselines
+prioritizing multimodal methods (SCENT, scMultiMap)
+What they slightly overreach on
+Including everything at once
+→ slows you down massively
+scMultiMap as “must-have”
+→ not true for first pass
+Your current position (based on your results)
+
+You already have:
+
+strong improvement over LinkPeaks (ORA ↑, diversity ↑)
+distance behaving correctly (not dominating)
+TF adding signal (ORA 34 → 52 = real effect)
+
+You are ready for benchmarking now, not after building a massive panel.
+
+Execution plan (do this)
+Step 1 (immediate)
+
+Run:
+
+nearest-gene
+correlation-only (reuse mul_weigh)
+LinkPeaks (done)
+your model
+Step 2
+
+Add:
+
+ArchR Peak2GeneLinks
+SCENT
+Step 3 (optional)
+
+Try:
+
+scMultiMap
+Bottom line
+
+APPLY:
+
+LinkPeaks
+ArchR
+SCENT
+distance-only
+nearest-gene
+correlation baseline
+
+OPTIONAL:
+
+scMultiMap
+Cicero
+
+SKIP (for now):
+
+trying to include everything at once
+
+If you want, I can give you a minimal benchmarking table schema + plotting plan so you don’t waste time structuring results.
+
+Step 2
+
+Add:
+
+ArchR Peak2GeneLinks
+SCENT
+
+Ok. I will do these for now. And if those are somehow reasonable try with breastcancer and put scMultiMap in backlog if it is heavy
+
+Good plan. This is the right level of scope.
+
+What you should do next (tight)
+1. Implement ArchR + SCENT
+
+Run them on the exact same dataset + gene universe.
+
+Do NOT change:
+
+filtering
+genome build
+gene naming
+
+Keep everything aligned.
+
+2. Standardize outputs immediately
+
+Before you go too far, enforce this structure for every method:
+
+peak | gene | score | method
+
+You will save a lot of pain later.
+
+3. Evaluate with the same metrics
+
+For each method compute:
+
+top-N genes (same N as yours)
+ORA
+median distance (top50)
+distal fraction (>50kb)
+overlap with your model (optional)
+
+No custom metrics per method.
+
+4. What you are looking for
+
+You want to answer:
+
+A. Do you beat LinkPeaks?
+
+(already yes)
+
+B. Do you match or beat ArchR / SCENT?
+
+Outcomes:
+
+You win clearly → strong result
+You match them → still good (simpler method)
+You lose slightly but add interpretability → still defensible
+You lose badly → revisit model (don’t move to new dataset)
+5. Only after that → new dataset
+
+Your plan is correct:
+
+“if those are reasonable → try breast cancer”
+
+Do NOT jump earlier.
+
+6. scMultiMap handling
+
+Your idea is correct:
+
+put in backlog
+only implement if:
+your method is already competitive
+and you need a stronger comparator
+One practical warning
+
+ArchR and SCENT can differ in output format:
+
+ArchR → often returns peak–gene links already aggregated
+SCENT → may output statistical associations per pair
+
+You must convert both into:
+
+peak | gene | score
+
+before ranking.
+
+Minimal success criterion
+
+After Step 2, you should be able to say:
+
+“Our method improves over LinkPeaks and performs comparably or better than ArchR/SCENT in enrichment while maintaining biologically plausible distances.”
+
+If you can say that, you’re in a strong position.
+
+Bottom line
+
+Proceed exactly as you described.
+
+ArchR + SCENT now
+Breast cancer only after validation
+scMultiMap later if needed
+
+This is efficient and defensible.

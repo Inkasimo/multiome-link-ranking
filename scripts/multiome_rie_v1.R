@@ -225,34 +225,41 @@ parse_peak_granges <- function(peak_vec) {
 build_gene_tss_table <- function() {
   tx <- ensembldb::transcripts(
     EnsDb.Hsapiens.v86,
-    return.type = "DataFrame",
-    columns = c("gene_name", "seq_name", "tx_id", "tx_biotype", "start", "end", "strand")
+    return.type = "GRanges",
+    columns = c("gene_name", "tx_id", "tx_biotype")
   )
 
-  tx <- as.data.frame(tx)
-  tx <- tx[!is.na(tx$gene_name) & nzchar(tx$gene_name), ]
+  tx_df <- data.frame(
+    gene = mcols(tx)$gene_name,
+    gene_chr = as.character(seqnames(tx)),
+    tx_id = mcols(tx)$tx_id,
+    tx_biotype = mcols(tx)$tx_biotype,
+    start = start(tx),
+    end = end(tx),
+    strand = as.character(strand(tx)),
+    stringsAsFactors = FALSE
+  )
 
-  tx$seq_name <- ifelse(grepl("^chr", tx$seq_name), tx$seq_name, paste0("chr", tx$seq_name))
-  tx <- tx[grepl("^chr", tx$seq_name), ]
+  tx_df <- tx_df[!is.na(tx_df$gene) & nzchar(tx_df$gene), ]
+  tx_df$gene_chr <- ifelse(grepl("^chr", tx_df$gene_chr), tx_df$gene_chr, paste0("chr", tx_df$gene_chr))
+  tx_df <- tx_df[grepl("^chr", tx_df$gene_chr), ]
 
-  tx$tss <- ifelse(tx$strand == "-", tx$end, tx$start)
+  tx_df$tss <- ifelse(tx_df$strand == "-", tx_df$end, tx_df$start)
 
-  # Prefer protein_coding if available, then longest transcript
-  tx$tx_len <- tx$end - tx$start + 1L
-  tx$is_pc <- tx$tx_biotype == "protein_coding"
+  tx_df$tx_len <- tx_df$end - tx_df$start + 1L
+  tx_df$is_pc <- tx_df$tx_biotype == "protein_coding"
 
-  tx <- tx[order(tx$gene_name, -tx$is_pc, -tx$tx_len), ]
-  tx <- tx[!duplicated(tx$gene_name), ]
+  tx_df <- tx_df[order(tx_df$gene, -tx_df$is_pc, -tx_df$tx_len), ]
+  tx_df <- tx_df[!duplicated(tx_df$gene), ]
 
-  data.table::data.table(
-    gene = tx$gene_name,
-    gene_chr = tx$seq_name,
-    tss = tx$tss,
-    tx_id = tx$tx_id,
-    tx_biotype = tx$tx_biotype
+  data.table(
+    gene = tx_df$gene,
+    gene_chr = tx_df$gene_chr,
+    tss = tx_df$tss,
+    tx_id = tx_df$tx_id,
+    tx_biotype = tx_df$tx_biotype
   )
 }
-
 
 #build_gene_coord_table <- function(annotations) {
   #gene_names <- mcols(annotations)$gene_name
@@ -482,7 +489,7 @@ msg("Number of peak-gene links: %d", nrow(links_df))
 
 saveRDS(obj, obj_post_linkpeaks_rds)
 msg("Saved post-LinkPeaks object: %s", obj_post_linkpeaks_rds)
-#obj<-readRDS(file.path(obj_final_rds))
+obj<-readRDS(file.path(obj_post_linkpeaks_rds))
 
 
 baseline_df_full <- links_df[, c("peak", "gene", "score")]
@@ -571,12 +578,20 @@ if (nrow(results) == 0) {
 write.csv(results, sprintf("%s_test_scores.csv", automatic_prefix), row.names = FALSE)
 msg("Scored candidate links retained: %d", nrow(results))
 
+drop_cols <- c("peak_chr", "peak_start", "peak_end", "peak_mid", "gene_chr", "tss", "distance_bp", "distance_score", "final_v5", "rank_link", "rank_final_v5", "rank_diff_v5")
+drop_cols <- intersect(drop_cols, names(results))
+if (length(drop_cols) > 0) results[, (drop_cols) := NULL]
+
+drop_cols2 <- c("peak_chr", "peak_start", "peak_end", "peak_mid", "gene_chr", "tss", "distance_bp")
+drop_cols2 <- intersect(drop_cols2, names(baseline_df_full))
+if (length(drop_cols2) > 0) baseline_df_full[, (drop_cols2) := NULL]
+
 # ============================================================
 # Distance prior
 # ============================================================
 msg("Adding distance prior...")
 gene_coord_df <- build_gene_tss_table()
-peak_df <- parse_peak_table(results$peak)
+peak_df <- unique(parse_peak_table(results$peak))
 peak_df$peak_mid <- (peak_df$peak_start + peak_df$peak_end) / 2
 
 results <- merge(results, peak_df, by = "peak", all.x = TRUE, sort = FALSE)
@@ -600,7 +615,7 @@ results[, distance_score := ifelse(
   0
 )]
 
-baseline_peak_df <- parse_peak_table(baseline_df_full$peak)
+baseline_peak_df <- unique(parse_peak_table(baseline_df_full$peak))
 baseline_peak_df$peak_mid <- (baseline_peak_df$peak_start + baseline_peak_df$peak_end) / 2
 
 baseline_dist <- merge(baseline_df_full, baseline_peak_df, by = "peak", all.x = TRUE, sort = FALSE)
