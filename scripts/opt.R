@@ -7,7 +7,7 @@ opt <- list(
   link_distance = 500000L,
   distance_d0 = 50000,
   lambda_distance = 0.3, #0.3
-  alpha_tf = 0, # 0.3
+  alpha_tf = 0.5, # 0.5
 
   cluster_resolution = 0.5,
   pca_dims = 30L,

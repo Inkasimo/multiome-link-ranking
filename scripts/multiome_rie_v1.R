@@ -578,6 +578,7 @@ if (nrow(results) == 0) {
 write.csv(results, sprintf("%s_test_scores.csv", automatic_prefix), row.names = FALSE)
 msg("Scored candidate links retained: %d", nrow(results))
 
+
 drop_cols <- c("peak_chr", "peak_start", "peak_end", "peak_mid", "gene_chr", "tss", "distance_bp", "distance_score", "final_v5", "rank_link", "rank_final_v5", "rank_diff_v5")
 drop_cols <- intersect(drop_cols, names(results))
 if (length(drop_cols) > 0) results[, (drop_cols) := NULL]
@@ -632,6 +633,9 @@ baseline_dist[, distance_bp := ifelse(
   Inf,
   abs(peak_mid - tss)
 )]
+
+results <- as.data.table(results)
+baseline_df_full <- as.data.table(baseline_df_full)
 
 results[, final_v5 := mul_weigh * ((1 - opt$lambda_distance) + opt$lambda_distance * distance_score)]
 results[, rank_link := frank(-link_score, ties.method = "average")]

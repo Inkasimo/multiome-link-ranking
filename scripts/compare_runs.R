@@ -4,10 +4,12 @@ suppressPackageStartupMessages({
   library(data.table)
 })
 
+setwd("/mnt/g/multiome_test/results")
+
 # =========================
 # Config
 # =========================
-run_dirs <- c("50000_03", "75000_03", "100000_03")
+run_dirs <- c("50_k_full_model_after_tss_table", "alpha_tf_05_after_tss", "alpa_tf_01_after_tss")
 
 ranked_file  <- "multiome_rie_ranked_links.csv"
 summary_file <- "multiome_rie_summary_metrics.csv"
@@ -43,6 +45,17 @@ pair_id <- function(dt) {
 
 top_n_dt <- function(dt, n = 100) {
   dt[order(rank_final_v6)][1:min(.N, n)]
+}
+
+check_required_cols <- function(dt, cols, label = "table") {
+  missing <- setdiff(cols, names(dt))
+  if (length(missing) > 0) {
+    stop(sprintf(
+      "Missing required columns in %s: %s",
+      label,
+      paste(missing, collapse = ", ")
+    ))
+  }
 }
 
 high_dist_high_rank_dt <- function(dt) {
@@ -138,9 +151,12 @@ compare_top_sets <- function(run_data, n = 100) {
 }
 
 top_examples <- function(dt, n = 20) {
-  keep <- c("gene", "peak", "link_score", "mul_weigh", "distance_bp",
-            "distance_score", "tf_score", "final_v6", "rank_link",
-            "rank_final_v6", "rank_diff_v6", "tier", "motif_names")
+  keep <- intersect(
+    c("gene", "peak", "link_score", "mul_weigh", "distance_bp",
+      "distance_score", "tf_score", "final_v6", "rank_link",
+      "rank_final_v6", "rank_diff_v6", "tier", "motif_names"),
+    names(dt)
+  )
   top_n_dt(dt, n)[, ..keep]
 }
 
@@ -161,6 +177,20 @@ for (run_name in run_dirs) {
     ranked = ranked_dt,
     summary = summary_dt
   )
+
+  check_required_cols(
+  ranked_dt,
+  c("gene", "peak", "link_score", "mul_weigh", "distance_bp",
+    "distance_score", "tf_score", "final_v6", "rank_link",
+    "rank_final_v6", "rank_diff_v6", "tier", "motif_names"),
+  label = ranked_path
+)
+
+check_required_cols(
+  summary_dt,
+  c("metric", "value"),
+  label = summary_path
+)
 
   summary_rows[[run_name]] <- summarize_run(run_name, ranked_dt, summary_dt)
 

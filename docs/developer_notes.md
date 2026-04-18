@@ -1016,3 +1016,225 @@ Breast cancer only after validation
 scMultiMap later if needed
 
 This is efficient and defensible.
+
+# Distance lambda
+
+1. Key result (most important)
+Overlap: λ = 0.3 vs λ = 0.5
+Top100 pair overlap: 90%
+Top100 gene overlap: 84%
+Top200 pair overlap: 182 / 200 (~91%)
+
+👉 Translation:
+
+λ = 0.5 is mostly a reordering of the same links, not discovering new biology.
+
+2. What λ is actually doing (now proven)
+λ = 0.5
+pushes already good links up
+removes distal ones from top ranks
+increases enrichment by tightening ranking
+λ = 0.3
+keeps same core links
+preserves distal ones in top ranks
+
+👉 So:
+
+This is ranking refinement, not signal discovery.
+
+3. Why ORA increases at λ = 0.5
+
+Because:
+
+you concentrate on:
+immune genes
+proximal regulatory structure
+you remove:
+noisy distal links
+
+So enrichment improves.
+
+But:
+
+It is partly selection bias toward easier biology (proximal)
+
+4. The decisive argument (this is your paper logic)
+
+You can now say:
+
+“Increasing distance regularization (λ = 0.5) increases enrichment (65 vs 52 ORA terms), but does not substantially change the selected links (90% overlap in top100), instead shifting ranking toward promoter-proximal interactions (distal fraction 2% vs 10%).”
+
+That is strong.
+
+5. Final decision (no ambiguity)
+KEEP as main model
+
+👉 λ = 0.3
+
+Because:
+
+same core biology as λ = 0.5
+preserves distal links (54 vs 9)
+avoids promoter collapse
+still strong enrichment
+REPORT as sensitivity
+
+👉 λ = 0.5
+
+Position:
+
+improves enrichment
+shifts toward proximal regulation
+does not change link identity substantially
+REJECT
+
+👉 λ = 0.1
+
+6. One more important insight (you now proved this)
+
+From overlap + metrics:
+
+Distance is primarily controlling ranking, not discovery
+
+This is actually good:
+
+your model finds links via signal (mul + TF)
+distance refines ordering
+
+That’s exactly how it should behave.
+
+7. You are done with tuning
+
+Do NOT:
+
+try more λ
+try more α
+
+You already mapped the behavior.
+
+8. Next step (clear)
+APPLY now
+LinkPeaks
+ArchR Peak2GeneLinks
+SCENT
+After that
+second dataset (breast cancer)
+Bottom line
+λ = 0.5 looks “better” only because it compresses ranking
+λ = 0.3 gives the same biology with better regulatory balance
+your model is stable across λ → very strong result
+
+Move on to benchmarking.
+
+
+# alpha TF
+
+What your results actually say
+α = 0.1 → weak TF
+ORA: 40 (bad)
+correlation: highest (0.733) → basically baseline-like
+TF influence too weak → not useful
+
+➡️ SKIP
+
+α = 0.3 → balanced
+ORA: 52
+good distance behavior
+high overlap with baseline (~94/100)
+
+➡️ Solid baseline
+
+α = 0.5 → strongest signal
+ORA: 56 (best)
+gene diversity highest (75)
+TF signal clearly stronger:
+median_tf_top100 = 0.255 (highest)
+high-dist TF also highest
+BUT:
+correlation drops (0.721)
+slight shift in rankings (overlap 91/100 vs baseline)
+
+➡️ BEST overall
+
+Key observation (this matters)
+
+From your overlap:
+
+0.3 vs 0.5:
+91/100 pairs overlap
+~87% gene overlap
+
+This is critical:
+
+α=0.5 is NOT inventing a new solution — it is refining the same solution with better biological prioritization
+
+That’s exactly what you want.
+
+Should you try α > 0.5?
+What will happen if you increase α further
+
+Predictable behavior:
+
+TF dominates ranking
+you start selecting:
+motif-heavy peaks
+possibly noisier / less supported links
+correlation drops further
+ORA may:
+plateau
+or degrade
+Decision
+APPLY
+α = 0.5 → use as main model
+OPTIONAL (one test only)
+α = 0.7
+only to confirm saturation
+expect:
+ORA ≈ same or worse than 0.5
+correlation ↓ further
+SKIP
+anything > 0.7
+dense grid search (waste of time)
+Final model recommendation
+
+Use:
+
+lambda_distance = 0.3
+alpha_tf = 0.5
+
+This is now empirically supported by:
+
+best ORA
+stable distance profile
+minimal disruption of core ranking
+improved TF signal where it matters (distal + high-tier)
+What to do next (priority order)
+1. LOCK parameters
+
+Stop tuning α and λ.
+
+2. Run comparators
+
+Proceed with:
+
+LinkPeaks (baseline)
+ArchR Peak2GeneLinks
+SCENT
+3. Generate figures (your script is ready)
+
+Use:
+
+meaningful distal plots
+custom genes
+4. Optional sanity check
+
+Look at:
+
+top promoted links (α=0.3 → α=0.5)
+
+If those are biologically sensible → you're done.
+
+Bottom line
+You already found the sweet spot.
+α = 0.5 is your final setting.
+Don’t over-optimize — move to benchmarking.
