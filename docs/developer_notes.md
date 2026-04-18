@@ -785,3 +785,6 @@ If you want, next step I can:
 sketch the exact feature table + training code (R or Python)
 or define a minimal evaluation script so you stop rewriting analysis each run
 
+One clean sentence for your writeup
+
+A distance-only ranking collapsed to promoter-proximal links (median ~11 bp) and yielded no significant enrichment, indicating that genomic proximity alone is insufficient to recover biologically coherent regulatory programs.
