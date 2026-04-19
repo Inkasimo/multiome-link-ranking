@@ -106,9 +106,234 @@ Bottom line
 Yes, naive boosting will mostly boost proximal links
 That’s because distance is already your dominant signal
 
+## Note 260418
+
+ArchR was attempted but excluded from the initial benchmark due to environment-specific LSI failures (ArchR 1.0.3, Linux/conda).
+### ArchR default IterativeLSI settings were unstable in this environment
+(subscript out-of-bounds during LSI). Use a conservative 1-iteration setup
+for benchmark robustness; revisit defaults later in containerized pipeline work.
+
+Will be reintroduced in a controlled containerized setup later
+
+## ArchR (Peak2GeneLinks) – benchmarking integration notes
+
+### Status
+
+Attempted integration of ArchR Peak2GeneLinks into the benchmark pipeline.
+Pipeline executes end-to-end after multiple adjustments, but output is currently not robust (empty link set under tested configuration).
+
+---
+
+### What works
+
+* Arrow file creation (`createArrowFiles`)
+* RNA integration (`addGeneExpressionMatrix`)
+* Dimensionality reduction (`addIterativeLSI`, constrained settings)
+* Clustering (requires subsampling to avoid pathological runtime)
+* Peak calling:
+
+  * `addGroupCoverages`
+  * `addReproduciblePeakSet`
+  * produces ~62k union peaks
+* Peak matrix construction (`addPeakMatrix`)
+* Peak2Gene computation step completes without runtime errors
+
+---
+
+### Required adjustments
+
+* Reduced LSI iterations to 1
+* Subsampled clustering (`sampleCells`)
+* Removed unsupported arguments (`resolution`, `force`) from `addPeak2GeneLinks`
+* Added explicit peak workflow (coverage → peaks → peak matrix)
+* Relaxed retrieval thresholds:
+
+  * `corCutOff = -1`
+  * `FDRCutOff = 1`
+  * `varCutOffATAC = 0`
+  * `varCutOffRNA = 0`
+
+---
+
+### Current issue
+
+* `getPeak2GeneLinks()` returns **zero links**
+
+  * both with `returnLoops = FALSE` (index-based output)
+  * and under relaxed thresholds
+* Indicates either:
+
+  * correlations are weak / filtered internally
+  * or this configuration does not produce usable links for this dataset
+
+---
+
+### Interpretation
+
+* The ArchR pipeline is operational but **not producing benchmarkable output**
+* Issue is not:
+
+  * peak calling
+  * matrix construction
+* Issue is specifically:
+
+  * **link recovery / usable signal generation**
+
+---
+
+### Practical implications
+
+* ArchR requires:
+
+  * tight coupling between steps
+  * version-sensitive behavior
+  * non-trivial parameter tuning
+* Compared to other methods in this benchmark:
+
+  * higher setup complexity
+  * lower robustness in ad hoc execution
+
+---
+
+### Decision (prototype phase)
+
+* ArchR is **deferred from the benchmark comparison**
+* Reason:
+
+  * output not reliably obtainable under current lightweight setup
+* Will revisit in:
+
+  * containerized environment
+  * fully controlled pipeline (versions + parameters fixed)
+
+---
+
+### Next step (optional check)
+
+* Test `returnLoops = TRUE` with relaxed thresholds
+* If still empty → stop further debugging
+
+---
+
+### Summary
+
+ArchR integration is partially successful at the pipeline level but currently fails to produce usable peak–gene links for benchmarking. Deferred for later, more controlled implementation.
+
+## ArchR Peak2GeneLinks benchmarking attempt — current outcome
+
+### Summary
+
+ArchR integration was implemented and debugged to the point where the pipeline completed all major preprocessing and peak-to-gene correlation steps. However, under the current lightweight benchmark configuration, ArchR did not yield usable peak–gene links for downstream comparison.
+
+### What worked
+
+The following ArchR steps completed successfully:
+
+* Arrow file creation
+* RNA import and addition of `GeneExpressionMatrix`
+* IterativeLSI (after switching to a conservative 1-iteration configuration)
+* clustering
+* group coverages
+* reproducible peak set generation
+* `PeakMatrix` construction
+* `addPeak2GeneLinks`
+
+This means the pipeline itself is operational.
+
+### What had to be changed
+
+Several non-default adjustments were required to make ArchR run at all in the current environment:
+
+* conservative `addIterativeLSI()` settings
+* clustering with subsampling
+* explicit peak workflow:
+
+  * `addGroupCoverages()`
+  * `addReproduciblePeakSet()`
+  * `addPeakMatrix()`
+* removal of unsupported `addPeak2GeneLinks()` arguments
+* relaxed retrieval thresholds in `getPeak2GeneLinks()`
+
+### Current result
+
+Despite successful execution of `addPeak2GeneLinks()`, `getPeak2GeneLinks()` returned zero links even under highly relaxed retrieval settings:
+
+* `corCutOff = -1`
+* `FDRCutOff = 1`
+* `varCutOffATAC = 0`
+* `varCutOffRNA = 0`
+
+This indicates that the issue is not merely downstream filtering or extraction logic. Under the tested configuration, ArchR is not producing a usable benchmark output on this dataset.
+
+### Interpretation
+
+The most likely explanation is that the current ArchR setup is too weak or too coarse to recover stable peak–gene signal in this run. Plausible contributors include:
+
+* conservative LSI/clustering settings
+* subsampling
+* use of `peakMethod = "Tiles"` rather than a more standard MACS2-based peak set
+* dataset/method sensitivity
+
+### Practical decision
+
+For the prototype benchmark, ArchR should be treated as **attempted but excluded** unless one final targeted test is run with:
+
+* `peakMethod = "Macs2"`
+
+If that still returns zero usable links, ArchR should be deferred until later pipeline hardening / containerized implementation.
+
+### Prototype-phase conclusion
+
+ArchR was made operational but did not yield benchmarkable peak–gene links under the current settings. For now, the benchmark should proceed with:
+
+* LinkPeaks
+* the reranker
+* co-activity baseline
+* distance-only baseline
+* SCENT
+
+ArchR can be revisited later under a more controlled and better-tuned setup.
+
+
+## ArchR MACS2 follow-up
+
+A final ArchR retry was attempted using `peakMethod = "Macs2"` to test whether the empty-link result from the tile-based peak workflow was due to coarse peak definition.
+
+### Outcome
+
+This retry did not proceed to peak calling because MACS2 was not available in the environment:
+
+* ArchR searched for MACS2 in `$PATH`
+* also checked `pip` / `pip3`
+* no executable was found
+
+Resulting error:
+
+> `Could Not Find Macs2!`
+
+### Interpretation
+
+This means the MACS2-based ArchR follow-up was not a biological negative result. It was a missing-dependency failure.
+
+### Practical takeaway
+
+At this point, ArchR has required multiple environment-specific fixes and still has not produced a clean benchmark output under the current setup. The MACS2 retry adds further evidence that ArchR should be deferred until later pipeline hardening / containerization.
+
+### Current ArchR status
+
+* Tile-based ArchR workflow: runs, but returns zero usable peak–gene links
+* MACS2-based retry: blocked by missing external dependency
+* Conclusion: ArchR excluded from the prototype benchmark for now
+
+“A constrained ArchR prototype pipeline executes under the current environment, but does not yet produce benchmarkable peak–gene links. The result should be treated as an integration status, not a comparative performance result.”
+
+ArchR integration was attempted, but under the current prototype environment it required multiple workflow-specific adjustments and still did not yield robust benchmarkable output. ArchR was therefore excluded from the prototype comparison and deferred to later containerized pipeline work.
+
 ## Per cell type scores and make cell type annotations + cell type groups + all + comparissons
 ### Here I would think I will annotate the cell types and probably make a noise reduction by making metacells (sort of pseudobulks) like in previous repo
 ### so make the scoring based on metacells? Test if it is "more stablile" or is there any justification for it??? Maybe
+
+
 
 #  transcript-derived TSS table
 
@@ -141,6 +366,139 @@ more weight. The script remains a research prototype rather than a production wo
 
 
 ### De novo model
+
+Full Model Plan (Post-Holiday)
+Goal
+
+Move from reranking LinkPeaks candidates → standalone peak–gene linking model
+
+Key shift:
+
+control candidate generation
+apply own scoring model
+reduce dependence on external methods
+Core Design
+1. Candidate generation (replace LinkPeaks)
+
+For each gene:
+
+same chromosome
+within cis window (start: 500 kb)
+filter:
+gene expression prevalence
+peak accessibility prevalence
+
+Output:
+
+candidate pairs: (gene, peak)
+2. Cluster-aware structure
+cluster cells (coarse is fine initially)
+optionally annotate later
+treat clusters as independent regulatory contexts
+3. Metacell construction (within cluster)
+
+Within each cluster:
+
+group cells → metacells
+aggregate:
+RNA expression
+ATAC accessibility
+
+Purpose:
+
+reduce sparsity
+stabilize co-activity signal
+improve distal link detection
+4. Scoring (per cluster)
+
+For each cluster k:
+
+Core model:
+
+A_pgk = coactivity (metacell-level)
+D_pg  = distance prior
+T_pgk = TF/motif support
+
+S_pgk = A_pgk × D_pg × (1 + α T_pgk)
+
+Where:
+
+coactivity = positive co-expression/accessibility coupling
+distance = smooth decay (not hard cutoff)
+TF = motif × TF expression (cluster-aware)
+5. Combine across clusters
+
+For each (peak, gene):
+
+Recommended first version:
+
+S_pg = max_k S_pgk
+best_cluster = argmax_k S_pgk
+
+Optional later:
+
+number of supporting clusters
+weighted average variants
+6. Output structure
+
+Per link:
+
+peak
+gene
+global_score
+best_cluster
+cluster_score
+distance_bp
+tf_score
+(optional: n_clusters_supported)
+Benchmark positioning
+
+Important:
+
+This model operates on its own candidate universe
+Not directly comparable by pair overlap unless peak sets are harmonized
+
+Comparison strategy:
+
+distance distribution
+distal fraction
+gene diversity
+enrichment (ORA)
+top-ranked behavior
+Known issues (from current work)
+Peak universes differ across methods → breaks pair overlap
+SCENT required fallback to native candidates
+ArchR unstable → exclude for now
+
+Conclusion:
+
+Do not enforce shared candidate universe for all methods at this stage
+Immediate next steps (after return)
+
+APPLY:
+
+implement cis candidate generation
+implement metacells within cluster
+port existing scoring formula to metacell level
+implement cluster-wise scoring + max aggregation
+
+SKIP:
+
+complex bias correction
+peak harmonization across methods
+ArchR reintegration
+advanced modeling (deep learning, GNN, etc.)
+Expected improvements
+
+If working correctly:
+
+more stable scores than raw-cell version
+better distal link recovery
+clearer cluster-specific regulation
+improved biological coherence
+One-line summary
+
+Build a standalone peak–gene linking model using cis candidates, cluster-aware metacells, and your current scoring formula applied per cluster, then aggregate across clusters.
 
 That makes sense.
 
@@ -1238,3 +1596,4 @@ Bottom line
 You already found the sweet spot.
 α = 0.5 is your final setting.
 Don’t over-optimize — move to benchmarking.
+
