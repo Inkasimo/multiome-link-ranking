@@ -1597,3 +1597,367 @@ You already found the sweet spot.
 α = 0.5 is your final setting.
 Don’t over-optimize — move to benchmarking.
 
+# Notes 260422
+
+## SCENT benchmark attempt — runtime outcome
+
+A prototype SCENT benchmark run was executed on the native cis candidate set after shared-universe intersection failed because the SCENT peak set and the LinkPeaks/reranker peak set had zero exact peak overlap.
+
+### Candidate scale
+
+* genes passing prevalence: 8475
+* peaks passing prevalence: 28894
+* cis candidate pairs after distance filter: 195426
+
+### Runtime behavior
+
+The run was computationally active and healthy throughout:
+
+* 4 worker processes remained CPU-saturated
+* memory use was high but stable
+* no major swap thrashing
+* no evidence of process hang
+
+However, total runtime became impractically long (~75 hours) for a prototype benchmark configuration.
+
+### Interpretation
+
+This is not a SCENT installation/runtime failure. It is a scaling/configuration failure: the current all-cells, ~195k-pair setup is too large to serve as the default benchmark run.
+
+### Decision
+
+The run was stopped and SCENT will be restructured later using a more practical execution strategy, likely:
+
+* per-chromosome runs
+* smaller cis windows
+* stronger candidate prefiltering
+* or smaller biological subsets
+
+### Takeaway
+
+SCENT is functional, but the current benchmark configuration is too expensive to be useful.
+Future SCENT benchmarking should focus on tractable subproblems rather than one monolithic all-cells run.
+
+## Post-Holiday Restart Plan (Peak–Gene Benchmark)
+
+### Goal
+
+Quickly regain context and resume development without re-debugging old issues.
+
+---
+
+### 1. Re-establish current state (1–2 hours)
+
+* Re-read:
+
+  * benchmark script (especially SCENT + ArchR blocks)
+  * latest notes on ArchR exclusion and SCENT runtime
+* Confirm:
+
+  * inputs (h5, fragments, outputs)
+  * working methods: LinkPeaks, Reranker, Coactivity, Distance
+* Do **not** rerun heavy jobs yet
+
+---
+
+### 2. Fix known structural issues (high priority)
+
+#### Peak mismatch (critical)
+
+* Problem:
+  SCENT peaks ≠ LinkPeaks/reranker peaks → zero overlap
+* Action:
+
+  * implement **GRanges overlap mapping**
+  * use **reciprocal overlap ≥ 0.5**
+* Do not use exact string matching anymore
+
+#### Benchmark logic
+
+* SCENT:
+
+  * run on **native candidate set**
+  * compare via summaries, not exact pair overlap (initially)
+* ArchR:
+
+  * keep **excluded (attempted)** unless fully stabilized
+
+---
+
+### 3. Redesign SCENT execution (core fix)
+
+#### Replace monolithic run
+
+SKIP:
+
+* ~200k pairs
+* all cells
+* single run
+
+APPLY:
+
+* **per chromosome runs**
+
+  * split candidate set by chr
+  * run SCENT per chr
+  * merge results
+
+Optional:
+
+* smaller cis window (100–200 kb for first pass)
+* test on subset before full run
+
+---
+
+### 4. Validate SCENT output (first successful run)
+
+After first successful run:
+
+* check:
+
+  * number of links
+  * score distribution
+  * runtime
+* compare:
+
+  * gene-level overlap with LinkPeaks / reranker
+  * distance distribution
+  * ORA behavior
+
+Do not focus on exact pair overlap yet
+
+---
+
+### 5. Benchmark framing (clean)
+
+Include:
+
+* LinkPeaks
+* Reranker
+* Coactivity
+* Distance
+* SCENT (native candidate space)
+
+Exclude:
+
+* ArchR → **attempted, not included**
+
+---
+
+### 6. Next development direction (after benchmark stabilizes)
+
+* integrate your model:
+
+  * cluster-aware / metacell-based linking
+  * add TF/motif features
+  * bias correction
+* treat current reranker as baseline
+
+---
+
+### Key takeaways to remember
+
+* Peak mismatch ≠ method failure
+* SCENT scaling issue = configuration problem
+* ArchR issue = integration complexity, not biology
+* Reranker = currently strongest stable component
+
+---
+
+### First command to run after holiday
+
+Do this before anything heavy:
+
+```r
+length(intersect(unique(cand$peak), unique(candidate_universe$peak)))
+```
+
+This confirms whether peak alignment is fixed.
+
+---
+
+### Stop conditions (important)
+
+If:
+
+* runtime > few hours for test runs
+* memory unstable
+* candidate count explodes
+
+→ reduce problem size immediately
+
+---
+
+### Working principle
+
+Start small → validate → scale
+Not the other way around
+
+## Full Model Restart Plan (Own Cis-Window Candidate Model)
+
+### Main next-method step
+
+Move from:
+
+* reranking LinkPeaks candidates
+
+to:
+
+* **own candidate generation + own scoring**
+
+This is the real methodological upgrade.
+
+---
+
+### 1. Define own cis candidate universe
+
+For each gene:
+
+* same chromosome
+* peaks within fixed cis window
+* start with:
+
+  * **100–500 kb**
+* later sensitivity:
+
+  * 1 Mb if needed
+
+Filters:
+
+* minimum gene expression prevalence
+* minimum peak accessibility prevalence
+
+Output:
+
+```text
+(gene, peak) candidate table
+```
+
+This replaces LinkPeaks as the entry gate.
+
+---
+
+### 2. Keep current scoring logic first
+
+Do **not** redesign the formula immediately.
+
+First standalone version should reuse current logic:
+
+```text
+score = coactivity × distance × TF
+```
+
+Meaning:
+
+* coactivity = main signal
+* distance = soft prior
+* TF/motif = biological support
+
+Goal:
+
+* prove current scoring still works when candidate generation is no longer inherited from LinkPeaks
+
+---
+
+### 3. First standalone version
+
+Implement:
+
+#### candidate mode
+
+* `candidate_mode = "window"`
+
+#### scoring inputs
+
+* RNA matrix
+* ATAC matrix
+* transcript-derived TSS table
+* motif / TF support
+
+#### output
+
+* ranked peak–gene links from your own cis window universe
+
+This is the simplest real full-model milestone.
+
+---
+
+### 4. Then add cluster-aware version
+
+After basic cis-window model works:
+
+* cluster cells
+* annotate later if needed
+* create metacells within cluster
+* compute coactivity on metacells instead of raw cells
+
+Within cluster k:
+
+```text
+S_pgk = A_pgk × D_pg × (1 + α T_pgk)
+```
+
+Then aggregate across clusters, likely:
+
+```text
+S_pg = max_k S_pgk
+```
+
+Store:
+
+* best cluster
+* global score
+* maybe number of supporting clusters
+
+---
+
+### 5. Correct development order
+
+APPLY:
+
+1. own cis candidate generation
+2. run current formula on that candidate set
+3. benchmark standalone version
+4. only then add metacells / cluster-aware scoring
+
+SKIP:
+
+* changing candidate generation and scoring logic at the same time
+* adding advanced bias correction before basic standalone version works
+
+---
+
+### 6. What to check first once implemented
+
+* candidate count per gene
+* promoter vs distal balance
+* score distribution
+* whether top links collapse to nearest promoter
+* whether ORA / gene diversity stay strong
+
+Main question:
+
+> does current scoring still work when freed from LinkPeaks candidate space?
+
+---
+
+### 7. Immediate post-holiday coding target
+
+Implement a clean standalone pipeline with:
+
+* transcript-derived TSS table
+* cis-window candidate builder
+* prevalence filters
+* current formula
+* ranked output
+
+That is the real next milestone, more important than further benchmark plumbing.
+
+---
+
+### One-line reminder
+
+The next real method step is **not** more reranking tweaks — it is replacing LinkPeaks candidate generation with your own cis-window candidate model.
+
+
+
