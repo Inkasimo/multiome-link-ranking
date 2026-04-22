@@ -17,6 +17,7 @@ suppressPackageStartupMessages({
   library(ggplot2)
   library(ArchR)
   library(SCENT)
+  library(GenomicRanges)
 })
 
 # ============================================================
@@ -319,6 +320,50 @@ calc_gene_overlap <- function(method_tables, ks = c(10, 20, 50, 100, 200)) {
   rbindlist(out)
 }
 
+
+make_peak_gr <- function(peaks) {
+  dt <- as.data.table(parse_peak_table(peaks))
+  GRanges(
+    seqnames = dt$peak_chr,
+    ranges = IRanges(dt$peak_start, dt$peak_end),
+    peak = dt$peak
+  )
+}
+
+map_peaks_reciprocal <- function(query_peaks, subject_peaks, min_recip = 0.5) {
+  qgr <- make_peak_gr(unique(query_peaks))
+  sgr <- make_peak_gr(unique(subject_peaks))
+
+  hits <- findOverlaps(qgr, sgr, ignore.strand = TRUE)
+  if (length(hits) == 0) return(data.table())
+
+  qh <- queryHits(hits)
+  sh <- subjectHits(hits)
+
+  ov <- pintersect(qgr[qh], sgr[sh])
+  ov_width <- width(ov)
+
+  q_width <- width(qgr[qh])
+  s_width <- width(sgr[sh])
+
+  dt <- data.table(
+    query_peak = mcols(qgr[qh])$peak,
+    subject_peak = mcols(sgr[sh])$peak,
+    overlap_bp = ov_width,
+    frac_query = ov_width / q_width,
+    frac_subject = ov_width / s_width
+  )
+
+  dt <- dt[
+    frac_query >= min_recip & frac_subject >= min_recip
+  ]
+
+  # if multiple matches remain, keep the best one
+  setorder(dt, query_peak, -pmin(frac_query, frac_subject), -overlap_bp)
+  dt <- dt[, .SD[1], by = query_peak]
+
+  dt
+}
 # ============================================================
 # Inputs
 # ============================================================
