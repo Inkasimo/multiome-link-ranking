@@ -1978,3 +1978,4 @@ Next step: integrate the candidate matrix-subsetting fix into `benchmark_methods
 
 Do not run full-genome SCENT locally yet.
 
+Next step: Benchmark with one chr
