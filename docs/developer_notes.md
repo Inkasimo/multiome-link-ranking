@@ -1960,4 +1960,21 @@ That is the real next milestone, more important than further benchmark plumbing.
 The next real method step is **not** more reranking tweaks — it is replacing LinkPeaks candidate generation with your own cis-window candidate model.
 
 
+## 260607 SCENT chr22 smoke-test summary
+
+SCENT is functional on this dataset. The earlier long runtime was a scale/configuration issue, not an installation or formatting failure.
+
+The key fix was to pass only candidate-linked genes and peaks into `CreateSCENTObj()`. Previously, SCENT was receiving many unnecessary RNA genes / ATAC peaks even when the candidate table was small. After subsetting `rna_counts` and `atac_counts` to the candidate genes/peaks, chr22 test runs completed successfully.
+
+| Test | Chr | Cells | Window | Min frac | Candidate pairs | Genes | Peaks | Output rows | Runtime |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| Initial small test | chr22 | 500 | 50 kb | 0.15 | 694 | 120 | 355 | canceled | >1.5 h |
+| Smoke test | chr22 | 500 | 25 kb | 0.20 | 82 | 50 | 76 | 82 | completed |
+| Scale-up test | chr22 | 1000 | 25 kb | 0.20 | 113 | 53 | 94 | 113 | 16.71 min |
+
+For the 1000-cell test, SCENT returned columns `gene`, `peak`, `beta`, `se`, `z`, `p`, and `boot_basic_p`. The ranking score was computed as `-log10(boot_basic_p) * sign(beta)`. The final output had 59 positive and 54 negative scores, suggesting the score conversion is working.
+
+Next step: integrate the candidate matrix-subsetting fix into `benchmark_methods.r` and run a real chr22 benchmark with LinkPeaks, Reranker, Coactivity, DistanceOnly, and SCENT. Skip ArchR until the chr22 SCENT benchmark is stable.
+
+Do not run full-genome SCENT locally yet.
 

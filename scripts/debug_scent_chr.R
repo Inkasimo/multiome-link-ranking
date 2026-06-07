@@ -344,3 +344,14 @@ saveRDS(
   ),
   file.path(opt$output_dir, sprintf("scent_result_%s_timed.rds", opt$test_chr))
 )
+
+scent <- fread(file.path(opt$output_dir, sprintf("scent_links_%s_timed.csv", opt$test_chr)))
+
+dim(scent)
+head(scent[order(-score)], 20)
+summary(scent$score)
+
+uniqueN(scent$gene)
+uniqueN(scent$peak)
+sum(scent$score > 0, na.rm = TRUE)
+sum(scent$score < 0, na.rm = TRUE)
