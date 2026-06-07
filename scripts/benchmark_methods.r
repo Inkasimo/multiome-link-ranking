@@ -73,7 +73,20 @@ option_list <- list(
   make_option(c("--skip-scent"), action = "store_true", default = FALSE,
               help = "Skip SCENT run [default %default]"),
   make_option(c("--archr-force"), action = "store_true", default = FALSE,
-              help = "Force recreation of ArchR project files [default %default]")
+              help = "Force recreation of ArchR project files [default %default]"),
+              make_option(c("--test-chr"), type = "character", default = NA,
+            help = "Run benchmark on one chromosome only, e.g. chr22 [default %default]"),
+  make_option(c("--archr-peak-method"), type = "character", default = "Tiles",
+            help = "ArchR peakMethod: Tiles or Macs2 [default %default]"),
+
+  make_option(c("--archr-lsi-iterations"), type = "integer", default = 1,
+            help = "ArchR addIterativeLSI iterations [default %default]"),
+
+  make_option(c("--archr-var-features"), type = "integer", default = 10000,
+            help = "ArchR LSI varFeatures [default %default]"),
+
+  make_option(c("--archr-p2g-cor-cutoff"), type = "double", default = 0.30,
+            help = "corCutOff passed to addPeak2GeneLinks [default %default]")
 )
 
 opt <- parse_args(OptionParser(option_list = option_list))
@@ -364,6 +377,62 @@ map_peaks_reciprocal <- function(query_peaks, subject_peaks, min_recip = 0.5) {
 
   dt
 }
+
+is_chr_mode <- function() {
+  !is.na(opt$test_chr) && nzchar(opt$test_chr)
+}
+
+filter_method_to_chr <- function(dt, chr, gene_tss_table) {
+  if (!is_chr_mode()) return(dt)
+
+  dt <- copy(as.data.table(dt))
+
+  peak_df <- unique(parse_peak_table(dt$peak))
+  peak_df <- as.data.table(peak_df)[, .(peak, peak_chr)]
+
+  gene_df <- gene_tss_table[, .(gene, gene_chr)]
+
+  dt <- merge(dt, peak_df, by = "peak", all.x = TRUE, sort = FALSE)
+  dt <- merge(dt, gene_df, by = "gene", all.x = TRUE, sort = FALSE)
+
+  dt <- dt[peak_chr == chr & gene_chr == chr]
+
+  dt[, c("peak_chr", "gene_chr") := NULL]
+
+  dt
+}
+
+make_chr_fragments <- function(in_frag, chr, out_dir, force = FALSE) {
+  out_frag <- file.path(out_dir, sprintf("atac_fragments_%s.tsv.gz", chr))
+  out_tbi <- paste0(out_frag, ".tbi")
+
+  if (file.exists(out_frag) && file.exists(out_tbi) && !force) {
+    return(out_frag)
+  }
+
+  msg("Creating chromosome-restricted fragments: %s", out_frag)
+
+  cmd1 <- sprintf(
+    "tabix %s %s | bgzip -c > %s",
+    shQuote(in_frag),
+    shQuote(chr),
+    shQuote(out_frag)
+  )
+
+  status1 <- system(cmd1)
+  if (status1 != 0) {
+    stop("Failed to create chromosome fragments with tabix/bgzip.")
+  }
+
+  cmd2 <- sprintf("tabix -p bed %s", shQuote(out_frag))
+  status2 <- system(cmd2)
+  if (status2 != 0) {
+    stop("Failed to index chromosome fragments with tabix.")
+  }
+
+  out_frag
+}
+
 # ============================================================
 # Inputs
 # ============================================================
@@ -390,6 +459,23 @@ linkpeaks_dt <- standardize_method_table(baseline_raw, score_col = "score", meth
 rerank_dt <- standardize_method_table(ranked_raw, score_col = "final_v6", method_name = "Reranker")
 coactivity_dt <- standardize_method_table(test_scores_raw, score_col = "mul_weigh", method_name = "Coactivity")
 
+gene_tss_all <- copy(gene_tss)
+
+if (is_chr_mode()) {
+  msg("Chromosome test mode enabled: %s", opt$test_chr)
+
+  linkpeaks_dt <- filter_method_to_chr(linkpeaks_dt, opt$test_chr, gene_tss_all)
+  rerank_dt <- filter_method_to_chr(rerank_dt, opt$test_chr, gene_tss_all)
+  coactivity_dt <- filter_method_to_chr(coactivity_dt, opt$test_chr, gene_tss_all)
+
+  gene_tss <- gene_tss[gene_chr == opt$test_chr]
+
+  msg("Chr-filtered LinkPeaks rows: %d", nrow(linkpeaks_dt))
+  msg("Chr-filtered Reranker rows: %d", nrow(rerank_dt))
+  msg("Chr-filtered Coactivity rows: %d", nrow(coactivity_dt))
+  msg("Chr-filtered genes in TSS table: %d", nrow(gene_tss))
+}
+
 distance_dt <- add_distance_columns(copy(linkpeaks_dt), gene_tss)
 distance_dt[, score := -distance_bp]
 distance_dt[, method := "DistanceOnly"]
@@ -406,6 +492,20 @@ if (!all(c("Gene Expression", "Peaks") %in% names(data10x))) {
 }
 rna_counts <- data10x[["Gene Expression"]]
 atac_counts <- data10x[["Peaks"]]
+
+if (is_chr_mode()) {
+  peak_info_for_subset <- as.data.table(parse_peak_table(rownames(atac_counts)))
+  keep_chr_peaks <- peak_info_for_subset$peak_chr == opt$test_chr
+
+  msg(
+    "Subsetting ATAC matrix to %s: %d / %d peaks retained",
+    opt$test_chr,
+    sum(keep_chr_peaks),
+    length(keep_chr_peaks)
+  )
+
+  atac_counts <- atac_counts[keep_chr_peaks, , drop = FALSE]
+}
 
 msg("Creating lightweight Seurat object for metadata / counts alignment...")
 annotations <- GetGRangesFromEnsDb(ensdb = EnsDb.Hsapiens.v86)
@@ -464,10 +564,22 @@ run_archr_method <- function() {
   addArchRGenome(opt$genome)
   addArchRLocking(locking = FALSE)
 
-  arrow_files <- file.path(archr_dir, paste0(opt$sample_name, ".arrow"))
-  if (!file.exists(arrow_files) || isTRUE(opt$archr_force)) {
-    arrow_files <- createArrowFiles(
-      inputFiles = setNames(frag_path, opt$sample_name),
+archr_frag_path <- frag_path
+
+if (is_chr_mode()) {
+  archr_frag_path <- make_chr_fragments(
+    in_frag = frag_path,
+    chr = opt$test_chr,
+    out_dir = archr_dir,
+    force = opt$archr_force
+  )
+}
+
+arrow_files <- file.path(archr_dir, paste0(opt$sample_name, ".arrow"))
+
+if (!file.exists(arrow_files) || isTRUE(opt$archr_force)) {
+  arrow_files <- createArrowFiles(
+    inputFiles = setNames(archr_frag_path, opt$sample_name),
       sampleNames = opt$sample_name,
       filterTSS = 0,
       filterFrags = 0,
@@ -495,22 +607,22 @@ run_archr_method <- function() {
   )
 
   proj <- addIterativeLSI(
-    ArchRProj = proj,
-    useMatrix = "TileMatrix",
-    name = "IterativeLSI",
-    iterations = 1,
-    clusterParams = list(
-      resolution = 0.2,
-      sampleCells = min(5000, nCells(proj)),
-      n.start = 10
-    ),
-    varFeatures = 10000,
-    dimsToUse = 1:30,
-    sampleCellsPre = min(5000, nCells(proj)),
-    projectCellsPre = FALSE,
-    saveIterations = FALSE,
-    force = TRUE
-  )
+  ArchRProj = proj,
+  useMatrix = "TileMatrix",
+  name = "IterativeLSI",
+  iterations = opt$archr_lsi_iterations,
+  clusterParams = list(
+    resolution = 0.2,
+    sampleCells = min(5000, nCells(proj)),
+    n.start = 10
+  ),
+  varFeatures = opt$archr_var_features,
+  dimsToUse = 1:30,
+  sampleCellsPre = min(5000, nCells(proj)),
+  projectCellsPre = FALSE,
+  saveIterations = FALSE,
+  force = TRUE
+)
 
   proj <- addClusters(
     input = proj,
@@ -528,11 +640,11 @@ run_archr_method <- function() {
   )
 
   proj <- addReproduciblePeakSet(
-    ArchRProj = proj,
-    groupBy = "Clusters",
-    peakMethod = "Tiles",
-    force = TRUE
-  )
+  ArchRProj = proj,
+  groupBy = "Clusters",
+  peakMethod = opt$archr_peak_method,
+  force = TRUE
+)
 
   proj <- addPeakMatrix(
     ArchRProj = proj,
@@ -543,7 +655,7 @@ run_archr_method <- function() {
     ArchRProj = proj,
     reducedDims = "IterativeLSI",
     useMatrix = "GeneExpressionMatrix",
-    corCutOff = 0.75,
+    corCutOff = opt$archr_p2g_cor_cutoff,
     maxDist = opt$link_distance
   )
 
