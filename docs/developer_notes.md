@@ -1962,20 +1962,21 @@ The next real method step is **not** more reranking tweaks — it is replacing L
 
 ## 260607 SCENT chr22 smoke-test summary
 
-SCENT is functional on this dataset. The earlier long runtime was a scale/configuration issue, not an installation or formatting failure.
+## SCENT chr22 smoke-test summary
 
-The key fix was to pass only candidate-linked genes and peaks into `CreateSCENTObj()`. Previously, SCENT was receiving many unnecessary RNA genes / ATAC peaks even when the candidate table was small. After subsetting `rna_counts` and `atac_counts` to the candidate genes/peaks, chr22 test runs completed successfully.
+SCENT is functional on this dataset. The earlier long runtime was mainly a scale/configuration issue, not an installation or candidate-formatting failure.
+
+The key fix was to subset the RNA and ATAC matrices to only the genes and peaks present in the SCENT candidate table before calling `CreateSCENTObj()`.
 
 | Test | Chr | Cells | Window | Min frac | Candidate pairs | Genes | Peaks | Output rows | Runtime |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| Initial small test | chr22 | 500 | 50 kb | 0.15 | 694 | 120 | 355 | canceled | >1.5 h |
 | Smoke test | chr22 | 500 | 25 kb | 0.20 | 82 | 50 | 76 | 82 | completed |
-| Scale-up test | chr22 | 1000 | 25 kb | 0.20 | 113 | 53 | 94 | 113 | 16.71 min |
+| Scale-up test | chr22 | 1000 | 100 kb | 0.20 | 113 | 53 | 94 | 113 | 16.71 min |
 
-For the 1000-cell test, SCENT returned columns `gene`, `peak`, `beta`, `se`, `z`, `p`, and `boot_basic_p`. The ranking score was computed as `-log10(boot_basic_p) * sign(beta)`. The final output had 59 positive and 54 negative scores, suggesting the score conversion is working.
+For the 1000-cell / 100 kb run, SCENT returned `gene`, `peak`, `beta`, `se`, `z`, `p`, and `boot_basic_p`. The ranking score was computed as:
 
-Next step: integrate the candidate matrix-subsetting fix into `benchmark_methods.r` and run a real chr22 benchmark with LinkPeaks, Reranker, Coactivity, DistanceOnly, and SCENT. Skip ArchR until the chr22 SCENT benchmark is stable.
+`-log10(boot_basic_p) * sign(beta)`
 
-Do not run full-genome SCENT locally yet.
+The output had 113 rows, with 59 positive and 54 negative scores.
 
-Next step: Benchmark with one chr
+Next step: integrate the matrix-subsetting fix into `benchmark_methods.r` and run a real chr22 benchmark with LinkPeaks, Reranker, Coactivity, DistanceOnly, and SCENT. Skip full-genome SCENT and ArchR for now.
