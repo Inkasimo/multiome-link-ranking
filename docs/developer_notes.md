@@ -1980,3 +1980,202 @@ For the 1000-cell / 100 kb run, SCENT returned `gene`, `peak`, `beta`, `se`, `z`
 The output had 113 rows, with 59 positive and 54 negative scores.
 
 Next step: integrate the matrix-subsetting fix into `benchmark_methods.r` and run a real chr22 benchmark with LinkPeaks, Reranker, Coactivity, DistanceOnly, and SCENT. Skip full-genome SCENT and ArchR for now.
+
+
+## 260613
+
+## Benchmark summary: Reranker vs LinkPeaks, Coactivity, DistanceOnly, and SCENT
+
+Current benchmark compares:
+
+| Method       | Role                                      |
+| ------------ | ----------------------------------------- |
+| LinkPeaks    | baseline peak–gene links                  |
+| Coactivity   | RNA/ATAC coactivity-only baseline         |
+| DistanceOnly | nearest/proximal control                  |
+| SCENT        | external comparator from chromosome sweep |
+| Reranker     | current full model                        |
+
+### Main result
+
+The reranker produces the strongest GO BP enrichment among the tested methods. Its top genes are enriched for immune, lymphocyte, T-cell, leukocyte, and adaptive immune response terms, which is biologically plausible for the current dataset.
+
+This is not explained by distance alone. DistanceOnly collapses to promoter-proximal links and produces little/no useful enrichment. The reranker also has low exact-pair overlap with DistanceOnly, so it is not just a nearest-gene ranking.
+
+### Distance behavior
+
+| Method       | Distance behavior                                    |
+| ------------ | ---------------------------------------------------- |
+| DistanceOnly | promoter/TSS collapse                                |
+| Reranker     | strongly proximal, but not identical to DistanceOnly |
+| SCENT        | intermediate, mostly within 100 kb                   |
+| LinkPeaks    | broadest / most distal-heavy                         |
+| Coactivity   | broad / distal-heavy                                 |
+
+The reranker strongly reduces distal links compared with LinkPeaks and Coactivity. This appears to improve biological coherence, but it is also the main caveat: the model may be over-regularizing toward proximal links.
+
+### Overlap behavior
+
+The reranker overlaps substantially with LinkPeaks and Coactivity, but only weakly with DistanceOnly. This suggests the reranker is still using coactivity/baseline signal, while reordering links with distance and TF/motif support.
+
+SCENT overlaps only modestly with the reranker and gives a different ORA profile dominated by translation/ribosome/rRNA terms. Treat SCENT as a useful comparator, not as a gold standard.
+
+### Interpretation
+
+Current result:
+
+**Reranker = LinkPeaks/coactivity-informed ranking with stronger distance and TF/motif regularization.**
+
+This is a promising pilot result because:
+
+| Check                                       | Status           |
+| ------------------------------------------- | ---------------- |
+| Beats distance-only in biological coherence | yes              |
+| Improves ORA over LinkPeaks / Coactivity    | yes              |
+| Not identical to DistanceOnly               | yes              |
+| Produces plausible immune biology           | yes              |
+| Has interpretable behavior                  | yes              |
+| Still preserves some non-promoter links     | yes, but limited |
+
+Main caveat:
+
+**The current model is quite proximal-biased.**
+
+This is acceptable for the pilot, but future versions should test whether strong distal regulatory links can be rescued without losing enrichment.
+
+---
+
+## Current decision
+
+Continue the project.
+
+Do not keep tuning `lambda_distance` or `alpha_tf` right now. Current locked setting remains:
+
+| Parameter         | Value |
+| ----------------- | ----: |
+| `lambda_distance` |   0.3 |
+| `alpha_tf`        |   0.5 |
+
+These settings give good enrichment while avoiding the stronger promoter collapse seen with higher distance weighting.
+
+ArchR remains excluded from the prototype benchmark because it was operationally attempted but did not produce usable links under the current setup. SCENT is included via chromosome-wise sweep results.
+
+---
+
+## Next steps
+
+### 1. Freeze current benchmark branch
+
+Commit the current working state:
+
+* reranker outputs
+* SCENT chromosome sweep loader
+* benchmark script
+* ORA add-on script
+* benchmark plots/tables
+* developer notes
+
+Suggested commit message:
+
+```text
+Add reranker benchmark against SCENT chromosome sweep
+```
+
+### 2. Make the repo reproducible
+
+Turn the current benchmark branch into a clean workflow before adding more science.
+
+Target structure:
+
+```text
+config/
+workflow/
+scripts/
+containers/
+docs/
+results/
+```
+
+Use the same practical style as the previous `scRNAseq-pbmc-workflow` repo.
+
+Minimum workflow targets:
+
+```text
+run_reranker
+run_scent_chr_sweep
+run_benchmark
+run_ora
+```
+
+Start from 10x H5 + fragments. Do not add raw FASTQ processing yet unless it is easy.
+
+### 3. Test transfer on breast cancer data
+
+Run the locked reranker on the breast cancer dataset without retuning.
+
+Use:
+
+```text
+lambda_distance = 0.3
+alpha_tf = 0.5
+```
+
+Compare:
+
+* LinkPeaks
+* Coactivity
+* DistanceOnly
+* Reranker
+* SCENT if feasible
+
+Main question:
+
+**Does the reranker still improve biological coherence outside the immune/PBMC context?**
+
+### 4. Start standalone candidate generation after transfer test
+
+Only after the repo is reproducible and breast cancer has been tested, start the standalone model.
+
+Add:
+
+```text
+candidate_mode = "linkpeaks"
+candidate_mode = "window"
+```
+
+First standalone version:
+
+* same chromosome
+* fixed cis window, initially 100–500 kb
+* gene expression prevalence filter
+* peak accessibility prevalence filter
+* current scoring formula unchanged
+
+Main question:
+
+**Does the current score still work when LinkPeaks no longer defines the candidate universe?**
+
+### 5. Later: cluster-aware / metacell version
+
+After standalone cis-window scoring works:
+
+* cluster cells
+* optionally annotate clusters
+* create metacells within clusters
+* compute coactivity per cluster/metacell
+* score links per cluster
+* aggregate with max or best-cluster score
+
+Do not start this until the simpler standalone version works.
+
+---
+
+## Current project status
+
+The project is still a prototype, but the benchmark results are coherent enough to justify continuing.
+
+The current model is not ready to claim validated enhancer–gene links, but it is strong enough to support the next phase:
+
+1. reproducible repo/workflow
+2. second dataset transfer test
+3. standalone cis-window candidate model
