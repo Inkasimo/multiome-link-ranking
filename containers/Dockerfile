@@ -5,7 +5,7 @@ LABEL maintainer="Inkasimo" \
       org.opencontainers.image.description="Containerized R/Snakemake workflow for multiome peak-gene link ranking benchmarks"
 
 ENV DEBIAN_FRONTEND=noninteractive
-ENV RENV_CONFIG_REPOS_OVERRIDE=https://packagemanager.posit.co/cran/2024-01-01
+ENV RENV_CONFIG_REPOS_OVERRIDE=https://cloud.r-project.org
 ENV RENV_PATHS_LIBRARY=/opt/renv/library
 ENV RENV_PATHS_CACHE=/opt/renv/cache
 ENV RENV_CONFIG_CACHE_SYMLINKS=FALSE
