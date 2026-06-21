@@ -1,0 +1,211 @@
+============================================================
+BASIC
+============================================================
+PWD: /mnt/g/multiome_test
+BRANCH: workflow-benchmark-pilot
+
+REMOTE:
+origin	git@github.com:Inkasimo/multiome-link-ranking.git (fetch)
+origin	git@github.com:Inkasimo/multiome-link-ranking.git (push)
+
+STATUS:
+## workflow-benchmark-pilot...origin/workflow-benchmark-pilot
+?? inspect_repo.sh
+?? inspect_repo_small.sh
+?? repo_inspection.txt
+?? repo_inspection_small.txt
+
+RECENT COMMITS:
+f05bc46 (HEAD -> workflow-benchmark-pilot, origin/workflow-benchmark-pilot) Add Docker and wrapper scaffold
+692b848 Initialize benchmark workflow branch
+24db9fd (origin/main, main) benchmark
+903e993 Note fix
+eaf4b9b note
+
+============================================================
+TOP LEVEL
+============================================================
+.Rprofile
+.gitignore
+ArchRLogs
+LICENSE
+QualityControl
+README.md
+config
+containers
+data
+docs
+inspect_repo.sh
+inspect_repo_small.sh
+repo_inspection.txt
+repo_inspection_small.txt
+results
+run_analysis.py
+scripts
+tmp
+workflow
+
+============================================================
+IMPORTANT FILES
+============================================================
+FOUND   containers/Dockerfile
+FOUND   workflow/Snakefile
+MISSING config/config.yaml
+FOUND   config/pbmc.yaml
+FOUND   run_analysis.py
+MISSING wrapper-requirements.txt
+FOUND   .Rprofile
+MISSING renv.lock
+
+============================================================
+TRACKED FILES
+============================================================
+.Rprofile
+.gitignore
+LICENSE
+README.md
+config/pbmc.yaml
+containers/Dockerfile
+containers/environment.yml
+containers/wrapper-requirements.txt
+docs/What this pipeline does.docx
+docs/benchmark_summary.md
+docs/developer_notes.md
+docs/math.docx
+docs/plan.docx
+results/.gitkeep
+run_analysis.py
+scripts/add_ora_to_benchmark.R
+scripts/benchmark_methods.r
+scripts/benchmark_reranker_scent_sweep.R
+scripts/compare_runs.R
+scripts/debug_scent_chr.R
+scripts/motifs.r
+scripts/multiome_rie_v1.R
+scripts/multiome_test_script.R
+scripts/opt.R
+scripts/opt_benchmark.r
+scripts/plot_interactions.r
+scripts/run_scent.R
+scripts/run_scent_for_chr.r
+scripts/run_scent_method.r
+workflow/Snakefile
+
+============================================================
+SCRIPTS
+============================================================
+add_ora_to_benchmark.R
+benchmark_methods.r
+benchmark_reranker_scent_sweep.R
+compare_runs.R
+debug_scent_chr.R
+motifs.r
+multiome_rie_v1.R
+multiome_test_script.R
+opt.R
+opt_benchmark.r
+plot_interactions.r
+run_scent.R
+run_scent_for_chr.r
+run_scent_method.r
+
+============================================================
+CONTAINER / WORKFLOW PREVIEWS
+============================================================
+
+----- containers/Dockerfile -----
+FROM rocker/r-ver:4.3.3
+
+LABEL maintainer="Inkasimo" \
+      org.opencontainers.image.title="multiome-link-ranking" \
+      org.opencontainers.image.description="Containerized R/Snakemake workflow for multiome peak-gene link ranking benchmarks"
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV RENV_CONFIG_REPOS_OVERRIDE=https://packagemanager.posit.co/cran/2024-01-01
+ENV RENV_PATHS_LIBRARY=/opt/renv/library
+ENV RENV_PATHS_CACHE=/opt/renv/cache
+ENV RENV_CONFIG_CACHE_SYMLINKS=FALSE
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3 python3-pip \
+    git curl wget ca-certificates \
+    build-essential \
+    zlib1g-dev libbz2-dev liblzma-dev \
+    libcurl4-openssl-dev libssl-dev libxml2-dev \
+    libhdf5-dev \
+    libpng-dev libjpeg-dev libtiff5-dev \
+    libfreetype6-dev libharfbuzz-dev libfribidi-dev \
+    pkg-config libfontconfig1-dev libcairo2-dev libglib2.0-dev \
+    libglpk-dev libgomp1 \
+    tabix samtools bedtools \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN R -q -e "install.packages('renv', repos=Sys.getenv('RENV_CONFIG_REPOS_OVERRIDE'))"
+RUN R -q -e "install.packages('BiocManager', repos=Sys.getenv('RENV_CONFIG_REPOS_OVERRIDE'))"
+
+RUN pip3 install --no-cache-dir \
+    snakemake==7.32.4 \
+    pulp==2.7.0 \
+    pyyaml>=6.0
+
+WORKDIR /work
+
+COPY renv.lock /work/renv.lock
+COPY renv/activate.R /work/renv/activate.R
+COPY .Rprofile /work/.Rprofile
+
+RUN R -q -e '\
+renv::settings$bioconductor.version("3.18"); \
+renv::restore(project="/work", lockfile="/work/renv.lock", prompt=FALSE, rebuild=TRUE) \
+'
+
+CMD ["bash"]
+
+----- workflow/Snakefile -----
+
+----- config/config.yaml -----
+MISSING
+
+----- run_analysis.py -----
+#!/usr/bin/env python3
+
+import argparse
+import subprocess
+from pathlib import Path
+
+
+def run(cmd):
+    print("+", " ".join(cmd), flush=True)
+    subprocess.run(cmd, check=True)
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Wrapper for the multiome link-ranking Snakemake workflow."
+    )
+    parser.add_argument("--cores", type=int, default=4)
+    parser.add_argument("--snakefile", default="workflow/Snakefile")
+    parser.add_argument("--config", default="config/config.yaml")
+    parser.add_argument("--dry-run", action="store_true")
+    args = parser.parse_args()
+
+    cmd = [
+        "snakemake",
+        "-s", args.snakefile,
+        "--configfile", args.config,
+        "--cores", str(args.cores),
+    ]
+
+    if args.dry_run:
+        cmd.append("-n")
+
+    run(cmd)
+
+
+if __name__ == "__main__":
+    main()
+
+----- .Rprofile -----
+if (file.exists("renv/activate.R")) {
+  source("renv/activate.R")
+}

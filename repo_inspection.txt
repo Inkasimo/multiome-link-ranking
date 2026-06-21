@@ -1,0 +1,1397 @@
+============================================================
+REPO INSPECTION
+============================================================
+
+PWD:
+/mnt/g/multiome_test
+
+DATE:
+Sun Jun 21 18:09:08 CEST 2026
+
+GIT REMOTE:
+origin	git@github.com:Inkasimo/multiome-link-ranking.git (fetch)
+origin	git@github.com:Inkasimo/multiome-link-ranking.git (push)
+
+BRANCH:
+workflow-benchmark-pilot
+
+GIT STATUS:
+## workflow-benchmark-pilot...origin/workflow-benchmark-pilot
+?? inspect_repo.sh
+?? repo_inspection.txt
+
+RECENT COMMITS:
+f05bc46 (HEAD -> workflow-benchmark-pilot, origin/workflow-benchmark-pilot) Add Docker and wrapper scaffold
+692b848 Initialize benchmark workflow branch
+24db9fd (origin/main, main) benchmark
+903e993 Note fix
+eaf4b9b note
+55f1331 SCENT smoke test
+ca01c97 Scent for chr22
+6952a3b SCENT debug
+373be8f code fix
+4a8a779 note update
+
+============================================================
+TOP-LEVEL TREE
+============================================================
+.
+./.Rprofile
+./.gitignore
+./ArchRLogs
+./ArchRLogs/ArchR-addClusters-16021b8ea839-Date-2026-04-18_Time-17-50-37.674553.log
+./ArchRLogs/ArchR-addClusters-1602449768f1-Date-2026-04-18_Time-19-52-48.752304.log
+./ArchRLogs/ArchR-addClusters-160258ec00c4-Date-2026-04-19_Time-12-29-26.377115.log
+./ArchRLogs/ArchR-addClusters-16025ceb5e72-Date-2026-04-18_Time-20-44-43.632468.log
+./ArchRLogs/ArchR-addClusters-160271b1f4d6-Date-2026-04-19_Time-09-31-28.604794.log
+./ArchRLogs/ArchR-addClusters-16027960d238-Date-2026-04-19_Time-00-42-44.467512.log
+./ArchRLogs/ArchR-addClusters-16027eef3e41-Date-2026-04-18_Time-21-42-15.505514.log
+./ArchRLogs/ArchR-addClusters-16027f9c3867-Date-2026-04-19_Time-11-04-10.489074.log
+./ArchRLogs/ArchR-addClusters-1602dc62c1d-Date-2026-04-18_Time-23-04-55.541762.log
+./ArchRLogs/ArchR-addGeneExpressionMatrix-16022294aab6-Date-2026-04-18_Time-23-01-49.348843.log
+./ArchRLogs/ArchR-addGeneExpressionMatrix-16023043d433-Date-2026-04-18_Time-17-06-43.848487.log
+./ArchRLogs/ArchR-addGeneExpressionMatrix-16023f751bda-Date-2026-04-18_Time-16-30-21.813516.log
+./ArchRLogs/ArchR-addGeneExpressionMatrix-16024d47d176-Date-2026-04-19_Time-11-01-11.121883.log
+./ArchRLogs/ArchR-addGeneExpressionMatrix-1602528bde98-Date-2026-04-19_Time-12-26-23.673954.log
+./ArchRLogs/ArchR-addGeneExpressionMatrix-1602576bad88-Date-2026-04-18_Time-20-41-46.240083.log
+./ArchRLogs/ArchR-addGeneExpressionMatrix-160262bdba81-Date-2026-04-18_Time-17-47-45.936017.log
+./ArchRLogs/ArchR-addGeneExpressionMatrix-160269601a-Date-2026-04-18_Time-21-39-15.370804.log
+./ArchRLogs/ArchR-addGeneExpressionMatrix-16026aa173ef-Date-2026-04-19_Time-09-28-21.695384.log
+./ArchRLogs/ArchR-addGeneExpressionMatrix-1602708c3642-Date-2026-04-18_Time-19-49-49.419411.log
+./ArchRLogs/ArchR-addGeneExpressionMatrix-1602bed9b0b-Date-2026-04-19_Time-00-36-34.423411.log
+./ArchRLogs/ArchR-addGroupCoverages-16021f4b41cf-Date-2026-04-18_Time-23-06-24.55928.log
+./ArchRLogs/ArchR-addGroupCoverages-160231894263-Date-2026-04-18_Time-21-43-41.399979.log
+./ArchRLogs/ArchR-addGroupCoverages-16024cae5408-Date-2026-04-19_Time-09-32-59.619823.log
+./ArchRLogs/ArchR-addGroupCoverages-16025c1e2438-Date-2026-04-19_Time-12-30-52.600682.log
+./ArchRLogs/ArchR-addGroupCoverages-16026b11e0bf-Date-2026-04-19_Time-11-05-43.468509.log
+./ArchRLogs/ArchR-addGroupCoverages-160272e0ffc6-Date-2026-04-19_Time-00-45-52.12364.log
+./ArchRLogs/ArchR-addIterativeLSI-1602102c8b82-Date-2026-04-18_Time-21-40-57.992296.log
+./ArchRLogs/ArchR-addIterativeLSI-16021decaca5-Date-2026-04-19_Time-12-28-09.024603.log
+./ArchRLogs/ArchR-addIterativeLSI-16022bf69518-Date-2026-04-19_Time-00-40-12.995236.log
+./ArchRLogs/ArchR-addIterativeLSI-16024ced882c-Date-2026-04-18_Time-20-43-26.187551.log
+./ArchRLogs/ArchR-addIterativeLSI-160257b3d3c1-Date-2026-04-19_Time-11-02-54.395926.log
+./ArchRLogs/ArchR-addIterativeLSI-160257ca5b3-Date-2026-04-18_Time-23-03-33.400399.log
+./ArchRLogs/ArchR-addIterativeLSI-16025f52a15-Date-2026-04-18_Time-16-31-50.412206.log
+./ArchRLogs/ArchR-addIterativeLSI-160265d08e19-Date-2026-04-19_Time-09-30-08.379961.log
+./ArchRLogs/ArchR-addIterativeLSI-16026825638d-Date-2026-04-18_Time-17-08-17.66381.log
+./ArchRLogs/ArchR-addIterativeLSI-160271077e32-Date-2026-04-18_Time-19-51-29.828637.log
+./ArchRLogs/ArchR-addIterativeLSI-1602ab17cc6-Date-2026-04-18_Time-17-49-24.150539.log
+./ArchRLogs/ArchR-addPeak2GeneLinks-1602316d3749-Date-2026-04-19_Time-11-33-11.82865.log
+./ArchRLogs/ArchR-addPeak2GeneLinks-16023e34747-Date-2026-04-18_Time-23-39-32.693909.log
+./ArchRLogs/ArchR-addPeak2GeneLinks-16024581ad07-Date-2026-04-18_Time-22-17-52.948828.log
+./ArchRLogs/ArchR-addPeak2GeneLinks-16025eb54931-Date-2026-04-19_Time-02-17-16.868328.log
+./ArchRLogs/ArchR-addPeak2GeneLinks-160264ca9b9b-Date-2026-04-18_Time-20-56-00.364754.log
+./ArchRLogs/ArchR-addPeak2GeneLinks-160299245a0-Date-2026-04-19_Time-10-01-22.298193.log
+./ArchRLogs/ArchR-addPeakMatrix-1602335c14b8-Date-2026-04-19_Time-01-45-56.446323.log
+./ArchRLogs/ArchR-addPeakMatrix-1602453b5863-Date-2026-04-18_Time-23-25-37.260664.log
+./ArchRLogs/ArchR-addPeakMatrix-160246fc517-Date-2026-04-19_Time-09-56-31.838687.log
+./ArchRLogs/ArchR-addPeakMatrix-16025e518198-Date-2026-04-19_Time-11-28-32.144315.log
+./ArchRLogs/ArchR-addPeakMatrix-16027620ab54-Date-2026-04-18_Time-22-03-01.020678.log
+./ArchRLogs/ArchR-addReproduciblePeakSet-16021adfaf63-Date-2026-04-19_Time-01-40-07.62386.log
+./ArchRLogs/ArchR-addReproduciblePeakSet-16023ad14766-Date-2026-04-19_Time-11-25-39.957196.log
+./ArchRLogs/ArchR-addReproduciblePeakSet-16026c8aa549-Date-2026-04-19_Time-09-53-45.497856.log
+./ArchRLogs/ArchR-addReproduciblePeakSet-16026d884bee-Date-2026-04-18_Time-23-23-03.306168.log
+./ArchRLogs/ArchR-addReproduciblePeakSet-1602b8c1c5-Date-2026-04-18_Time-22-00-26.014727.log
+./ArchRLogs/ArchR-createArrows-16021341a73c-Date-2026-04-18_Time-17-14-55.31232.log
+./ArchRLogs/ArchR-createArrows-160215047fff-Date-2026-04-19_Time-10-17-48.59754.log
+./ArchRLogs/ArchR-createArrows-16021d07a056-Date-2026-04-18_Time-23-47-17.614954.log
+./ArchRLogs/ArchR-createArrows-160230ab35-Date-2026-04-19_Time-11-44-31.239583.log
+./ArchRLogs/ArchR-createArrows-16024ac960bd-Date-2026-04-18_Time-21-02-48.890499.log
+./ArchRLogs/ArchR-createArrows-16024c5dc1a9-Date-2026-04-19_Time-10-17-18.761621.log
+./ArchRLogs/ArchR-createArrows-1602543f81f8-Date-2026-04-18_Time-15-59-25.30991.log
+./ArchRLogs/ArchR-createArrows-16025987b037-Date-2026-04-18_Time-20-06-27.993769.log
+./ArchRLogs/ArchR-createArrows-16025b86fbce-Date-2026-04-18_Time-15-59-08.436579.log
+./ArchRLogs/ArchR-createArrows-16025f9b757f-Date-2026-04-19_Time-11-44-09.632198.log
+./ArchRLogs/ArchR-createArrows-160264c64709-Date-2026-04-18_Time-16-35-14.707423.log
+./ArchRLogs/ArchR-createArrows-160266387894-Date-2026-04-18_Time-19-07-05.770668.log
+./ArchRLogs/ArchR-createArrows-16026a4a8019-Date-2026-04-19_Time-08-43-52.76274.log
+./ArchRLogs/ArchR-createArrows-16026e2e7744-Date-2026-04-18_Time-22-21-56.601562.log
+./LICENSE
+./QualityControl
+./QualityControl/multiome_sample
+./README.md
+./config
+./config/pbmc.yaml
+./containers
+./containers/Dockerfile
+./containers/environment.yml
+./containers/wrapper-requirements.txt
+./docs
+./docs/What this pipeline does.docx
+./docs/benchmark_summary.md
+./docs/developer_notes.md
+./docs/math.docx
+./docs/plan.docx
+./inspect_repo.sh
+./repo_inspection.txt
+./run_analysis.py
+./scripts
+./scripts/add_ora_to_benchmark.R
+./scripts/benchmark_methods.r
+./scripts/benchmark_reranker_scent_sweep.R
+./scripts/compare_runs.R
+./scripts/debug_scent_chr.R
+./scripts/motifs.r
+./scripts/multiome_rie_v1.R
+./scripts/multiome_test_script.R
+./scripts/opt.R
+./scripts/opt_benchmark.r
+./scripts/plot_interactions.r
+./scripts/run_scent.R
+./scripts/run_scent_for_chr.r
+./scripts/run_scent_method.r
+./tmp
+./workflow
+./workflow/Snakefile
+
+============================================================
+TRACKED FILES
+============================================================
+.Rprofile
+.gitignore
+LICENSE
+README.md
+config/pbmc.yaml
+containers/Dockerfile
+containers/environment.yml
+containers/wrapper-requirements.txt
+docs/What this pipeline does.docx
+docs/benchmark_summary.md
+docs/developer_notes.md
+docs/math.docx
+docs/plan.docx
+results/.gitkeep
+run_analysis.py
+scripts/add_ora_to_benchmark.R
+scripts/benchmark_methods.r
+scripts/benchmark_reranker_scent_sweep.R
+scripts/compare_runs.R
+scripts/debug_scent_chr.R
+scripts/motifs.r
+scripts/multiome_rie_v1.R
+scripts/multiome_test_script.R
+scripts/opt.R
+scripts/opt_benchmark.r
+scripts/plot_interactions.r
+scripts/run_scent.R
+scripts/run_scent_for_chr.r
+scripts/run_scent_method.r
+workflow/Snakefile
+
+============================================================
+IGNORED FILES / DIRS
+============================================================
+?? inspect_repo.sh
+?? repo_inspection.txt
+!! ArchRLogs/
+!! QualityControl/
+!! data/
+!! results/100000_03_old/
+!! results/50000_03_old/
+!! results/50_k_full_model_after_tss_table/
+!! results/50k_dist_labda_05/
+!! results/50k_dist_lambda_01/
+!! results/75000_03_old/
+!! results/Old_results/
+!! results/ablations_after_tss_table/
+!! results/alpa_tf_01_after_tss/
+!! results/alpha_tf_05_after_tss_current/
+!! results/benchmark_reranker_scent_sweep/
+!! results/comparison_alpha_tf_after_tss/
+!! results/debug_scent_chr22/
+!! results/debug_scent_chr22_tiny_25kb_frac020_500cells/
+!! results/dist_lamda_comparisons_after_tss/
+!! results/multiome_rie_checkpoint_after_clustering.rds
+!! results/multiome_rie_post_linkpeaks_object.rds
+!! results/multiome_sample.arrow
+!! results/scent_chr_sweep_100kb_frac020_1000cells/
+
+============================================================
+KEY DIRECTORIES
+============================================================
+
+--- config ---
+config/pbmc.yaml
+
+--- workflow ---
+workflow/Snakefile
+
+--- scripts ---
+scripts/add_ora_to_benchmark.R
+scripts/benchmark_methods.r
+scripts/benchmark_reranker_scent_sweep.R
+scripts/compare_runs.R
+scripts/debug_scent_chr.R
+scripts/motifs.r
+scripts/multiome_rie_v1.R
+scripts/multiome_test_script.R
+scripts/opt.R
+scripts/opt_benchmark.r
+scripts/plot_interactions.r
+scripts/run_scent.R
+scripts/run_scent_for_chr.r
+scripts/run_scent_method.r
+
+--- containers ---
+containers/Dockerfile
+containers/environment.yml
+containers/wrapper-requirements.txt
+
+--- docs ---
+docs/What this pipeline does.docx
+docs/benchmark_summary.md
+docs/developer_notes.md
+docs/math.docx
+docs/plan.docx
+
+--- renv ---
+MISSING
+
+--- results ---
+results/.gitkeep
+results/100000_03_old/multiome_rie_baseline_links.csv
+results/100000_03_old/multiome_rie_baseline_vs_final_v6_scatter.png
+results/100000_03_old/multiome_rie_distance_distribution.png
+results/100000_03_old/multiome_rie_ora_baseline_GO_BP.csv
+results/100000_03_old/multiome_rie_ora_baseline_dotplot.png
+results/100000_03_old/multiome_rie_ora_baseline_vs_final_v6.png
+results/100000_03_old/multiome_rie_ora_final_v6_GO_BP.csv
+results/100000_03_old/multiome_rie_ora_final_v6_dotplot.png
+results/100000_03_old/multiome_rie_ranked_links.csv
+results/100000_03_old/multiome_rie_summary_metrics.csv
+results/100000_03_old/multiome_rie_test_scores.csv
+results/100000_03_old/multiome_rie_tier_summary.csv
+results/100000_03_old/multiome_rie_top100_final_links.csv
+results/100000_03_old/multiome_rie_topN_overlap_baseline_vs_final_v6.csv
+results/100000_03_old/multiome_rie_top_demoted_links.csv
+results/100000_03_old/multiome_rie_top_promoted_links.csv
+results/50000_03_old/multiome_rie_baseline_links.csv
+results/50000_03_old/multiome_rie_baseline_vs_final_v6_scatter.png
+results/50000_03_old/multiome_rie_checkpoint_after_clustering.rds
+results/50000_03_old/multiome_rie_distance_distribution.png
+results/50000_03_old/multiome_rie_multiome_object.rds
+results/50000_03_old/multiome_rie_ora_baseline_GO_BP.csv
+results/50000_03_old/multiome_rie_ora_baseline_dotplot.png
+results/50000_03_old/multiome_rie_ora_baseline_vs_final_v6.png
+results/50000_03_old/multiome_rie_ora_final_v6_GO_BP.csv
+results/50000_03_old/multiome_rie_ora_final_v6_dotplot.png
+results/50000_03_old/multiome_rie_ranked_links.csv
+results/50000_03_old/multiome_rie_summary_metrics.csv
+results/50000_03_old/multiome_rie_test_scores.csv
+results/50000_03_old/multiome_rie_tier_summary.csv
+results/50000_03_old/multiome_rie_top100_final_links.csv
+results/50000_03_old/multiome_rie_topN_overlap_baseline_vs_final_v6.csv
+results/50000_03_old/multiome_rie_top_demoted_links.csv
+results/50000_03_old/multiome_rie_top_promoted_links.csv
+results/50_k_full_model_after_tss_table/multiome_rie_baseline_links_full.csv
+results/50_k_full_model_after_tss_table/multiome_rie_baseline_vs_final_v6_scatter.png
+results/50_k_full_model_after_tss_table/multiome_rie_distance_distribution.png
+results/50_k_full_model_after_tss_table/multiome_rie_ora_baseline_GO_BP.csv
+results/50_k_full_model_after_tss_table/multiome_rie_ora_baseline_dotplot.png
+results/50_k_full_model_after_tss_table/multiome_rie_ora_baseline_vs_final_v6.png
+results/50_k_full_model_after_tss_table/multiome_rie_ora_final_v6_GO_BP.csv
+results/50_k_full_model_after_tss_table/multiome_rie_ora_final_v6_dotplot.png
+results/50_k_full_model_after_tss_table/multiome_rie_ranked_links.csv
+results/50_k_full_model_after_tss_table/multiome_rie_summary_metrics.csv
+results/50_k_full_model_after_tss_table/multiome_rie_test_scores.csv
+results/50_k_full_model_after_tss_table/multiome_rie_tier_summary.csv
+results/50_k_full_model_after_tss_table/multiome_rie_top100_final_links.csv
+results/50_k_full_model_after_tss_table/multiome_rie_topN_overlap_baseline_vs_final_v6.csv
+results/50_k_full_model_after_tss_table/multiome_rie_top_demoted_links.csv
+results/50_k_full_model_after_tss_table/multiome_rie_top_promoted_links.csv
+results/50k_dist_labda_05/multiome_rie_baseline_links_full.csv
+results/50k_dist_labda_05/multiome_rie_baseline_vs_final_v6_scatter.png
+results/50k_dist_labda_05/multiome_rie_distance_distribution.png
+results/50k_dist_labda_05/multiome_rie_ora_baseline_GO_BP.csv
+results/50k_dist_labda_05/multiome_rie_ora_baseline_dotplot.png
+results/50k_dist_labda_05/multiome_rie_ora_baseline_vs_final_v6.png
+results/50k_dist_labda_05/multiome_rie_ora_final_v6_GO_BP.csv
+results/50k_dist_labda_05/multiome_rie_ora_final_v6_dotplot.png
+results/50k_dist_labda_05/multiome_rie_ranked_links.csv
+results/50k_dist_labda_05/multiome_rie_summary_metrics.csv
+results/50k_dist_labda_05/multiome_rie_test_scores.csv
+results/50k_dist_labda_05/multiome_rie_tier_summary.csv
+results/50k_dist_labda_05/multiome_rie_top100_final_links.csv
+results/50k_dist_labda_05/multiome_rie_topN_overlap_baseline_vs_final_v6.csv
+results/50k_dist_labda_05/multiome_rie_top_demoted_links.csv
+results/50k_dist_labda_05/multiome_rie_top_promoted_links.csv
+results/50k_dist_lambda_01/multiome_rie_baseline_links_full.csv
+results/50k_dist_lambda_01/multiome_rie_baseline_vs_final_v6_scatter.png
+results/50k_dist_lambda_01/multiome_rie_distance_distribution.png
+results/50k_dist_lambda_01/multiome_rie_ora_baseline_GO_BP.csv
+results/50k_dist_lambda_01/multiome_rie_ora_baseline_dotplot.png
+results/50k_dist_lambda_01/multiome_rie_ora_baseline_vs_final_v6.png
+results/50k_dist_lambda_01/multiome_rie_ora_final_v6_GO_BP.csv
+results/50k_dist_lambda_01/multiome_rie_ora_final_v6_dotplot.png
+results/50k_dist_lambda_01/multiome_rie_ranked_links.csv
+results/50k_dist_lambda_01/multiome_rie_summary_metrics.csv
+results/50k_dist_lambda_01/multiome_rie_test_scores.csv
+results/50k_dist_lambda_01/multiome_rie_tier_summary.csv
+results/50k_dist_lambda_01/multiome_rie_top100_final_links.csv
+results/50k_dist_lambda_01/multiome_rie_topN_overlap_baseline_vs_final_v6.csv
+results/50k_dist_lambda_01/multiome_rie_top_demoted_links.csv
+results/50k_dist_lambda_01/multiome_rie_top_promoted_links.csv
+results/75000_03_old/multiome_rie_baseline_links.csv
+results/75000_03_old/multiome_rie_baseline_vs_final_v6_scatter.png
+results/75000_03_old/multiome_rie_distance_distribution.png
+results/75000_03_old/multiome_rie_ora_baseline_GO_BP.csv
+results/75000_03_old/multiome_rie_ora_baseline_dotplot.png
+results/75000_03_old/multiome_rie_ora_baseline_vs_final_v6.png
+results/75000_03_old/multiome_rie_ora_final_v6_GO_BP.csv
+results/75000_03_old/multiome_rie_ora_final_v6_dotplot.png
+results/75000_03_old/multiome_rie_ranked_links.csv
+results/75000_03_old/multiome_rie_summary_metrics.csv
+results/75000_03_old/multiome_rie_test_scores.csv
+results/75000_03_old/multiome_rie_tier_summary.csv
+results/75000_03_old/multiome_rie_top100_final_links.csv
+results/75000_03_old/multiome_rie_topN_overlap_baseline_vs_final_v6.csv
+results/75000_03_old/multiome_rie_top_demoted_links.csv
+results/75000_03_old/multiome_rie_top_promoted_links.csv
+results/alpa_tf_01_after_tss/multiome_rie_baseline_links_full.csv
+results/alpa_tf_01_after_tss/multiome_rie_baseline_vs_final_v6_scatter.png
+results/alpa_tf_01_after_tss/multiome_rie_distance_distribution.png
+results/alpa_tf_01_after_tss/multiome_rie_ora_baseline_GO_BP.csv
+results/alpa_tf_01_after_tss/multiome_rie_ora_baseline_dotplot.png
+results/alpa_tf_01_after_tss/multiome_rie_ora_baseline_vs_final_v6.png
+results/alpa_tf_01_after_tss/multiome_rie_ora_final_v6_GO_BP.csv
+results/alpa_tf_01_after_tss/multiome_rie_ora_final_v6_dotplot.png
+results/alpa_tf_01_after_tss/multiome_rie_ranked_links.csv
+results/alpa_tf_01_after_tss/multiome_rie_summary_metrics.csv
+results/alpa_tf_01_after_tss/multiome_rie_test_scores.csv
+results/alpa_tf_01_after_tss/multiome_rie_tier_summary.csv
+results/alpa_tf_01_after_tss/multiome_rie_top100_final_links.csv
+results/alpa_tf_01_after_tss/multiome_rie_topN_overlap_baseline_vs_final_v6.csv
+results/alpa_tf_01_after_tss/multiome_rie_top_demoted_links.csv
+results/alpa_tf_01_after_tss/multiome_rie_top_promoted_links.csv
+results/alpha_tf_05_after_tss_current/multiome_rie_baseline_links_full.csv
+results/alpha_tf_05_after_tss_current/multiome_rie_baseline_vs_final_v6_scatter.png
+results/alpha_tf_05_after_tss_current/multiome_rie_custom_distal_gene_link_panels.png
+results/alpha_tf_05_after_tss_current/multiome_rie_custom_gene_link_panels.png
+results/alpha_tf_05_after_tss_current/multiome_rie_distance_distribution.png
+
+--- data ---
+data/atac_fragments.tsv.gz
+data/atac_fragments.tsv.gz.tbi
+data/filtered_feature_bc_matrix.h5
+
+============================================================
+SCRIPT HEADERS
+============================================================
+
+--- scripts/add_ora_to_benchmark.R ---
+#!/usr/bin/env Rscript
+
+suppressPackageStartupMessages({
+  library(optparse)
+  library(data.table)
+  library(clusterProfiler)
+  library(org.Hs.eg.db)
+  library(enrichplot)
+  library(ggplot2)
+})
+
+option_list <- list(
+  make_option(c("--benchmark-dir"), type = "character",
+              default = file.path("results", "benchmark_reranker_scent_sweep"),
+              help = "Directory containing benchmark_all_methods_combined.csv or benchmark_*_links.csv [default %default]"),
+  make_option(c("--top-n"), type = "integer", default = 100,
+              help = "Top N links/genes per method for GO ORA [default %default]"),
+  make_option(c("--ora-show-category"), type = "integer", default = 15,
+              help = "Number of GO terms shown in dotplots [default %default]"),
+  make_option(c("--pvalue-cutoff"), type = "double", default = 0.05,
+              help = "enrichGO pvalueCutoff [default %default]"),
+  make_option(c("--qvalue-cutoff"), type = "double", default = 0.20,
+              help = "enrichGO qvalueCutoff [default %default]")
+)
+
+opt <- parse_args(OptionParser(option_list = option_list))
+names(opt) <- gsub("-", "_", names(opt), fixed = TRUE)
+
+msg <- function(...) cat(sprintf(...), "\n")
+
+if (!dir.exists(opt$benchmark_dir)) {
+  stop("Benchmark directory not found: ", opt$benchmark_dir)
+}
+
+safe_bitr <- function(genes) {
+  genes <- unique(as.character(genes))
+  genes <- genes[!is.na(genes) & nzchar(genes)]
+
+  if (length(genes) == 0) {
+    return(data.frame(SYMBOL = character(0), ENTREZID = character(0)))
+
+--- scripts/benchmark_methods.r ---
+#!/usr/bin/env Rscript
+
+suppressPackageStartupMessages({
+  library(optparse)
+  library(data.table)
+  library(Matrix)
+  library(Seurat)
+  library(Signac)
+  library(GenomeInfoDb)
+  library(GenomicRanges)
+  library(SummarizedExperiment)
+  library(EnsDb.Hsapiens.v86)
+  library(BSgenome.Hsapiens.UCSC.hg38)
+  library(clusterProfiler)
+  library(org.Hs.eg.db)
+  library(enrichplot)
+  library(ggplot2)
+  library(ArchR)
+  library(SCENT)
+  library(GenomicRanges)
+})
+
+# ============================================================
+# CLI
+# ============================================================
+option_list <- list(
+  make_option(c("--results-dir"), type = "character", default = file.path("results", "alpha_tf_05_after_tss_current"),
+              help = "Directory containing existing LinkPeaks/reranker outputs [default %default]"),
+  make_option(c("--baseline-file"), type = "character", default = "multiome_rie_baseline_links_full.csv",
+              help = "Baseline LinkPeaks CSV inside --results-dir [default %default]"),
+  make_option(c("--ranked-file"), type = "character", default = "multiome_rie_ranked_links.csv",
+              help = "Reranked method CSV inside --results-dir [default %default]"),
+  make_option(c("--test-scores-file"), type = "character", default = "multiome_rie_test_scores.csv",
+              help = "Score table from main method inside --results-dir [default %default]"),
+  make_option(c("--data-dir"), type = "character", default = "data",
+              help = "Directory containing 10x multiome input files [default %default]"),
+  make_option(c("--h5-file"), type = "character", default = "filtered_feature_bc_matrix.h5",
+              help = "10x h5 matrix filename inside --data-dir [default %default]"),
+  make_option(c("--frag-file"), type = "character", default = "atac_fragments.tsv.gz",
+              help = "ATAC fragments filename inside --data-dir [default %default]"),
+
+--- scripts/benchmark_reranker_scent_sweep.R ---
+#!/usr/bin/env Rscript
+
+suppressPackageStartupMessages({
+  library(optparse)
+  library(data.table)
+  library(GenomicRanges)
+  library(EnsDb.Hsapiens.v86)
+  library(ggplot2)
+})
+
+# ============================================================
+# CLI
+# ============================================================
+option_list <- list(
+  make_option(c("--results-dir"), type = "character",
+              default = file.path("results", "alpha_tf_05_after_tss_current"),
+              help = "Directory containing existing LinkPeaks/reranker outputs [default %default]"),
+
+  make_option(c("--baseline-file"), type = "character",
+              default = "multiome_rie_baseline_links_full.csv",
+              help = "Baseline LinkPeaks CSV inside --results-dir [default %default]"),
+
+  make_option(c("--ranked-file"), type = "character",
+              default = "multiome_rie_ranked_links.csv",
+              help = "Reranked CSV inside --results-dir [default %default]"),
+
+  make_option(c("--test-scores-file"), type = "character",
+              default = "multiome_rie_test_scores.csv",
+              help = "Score table from main method inside --results-dir [default %default]"),
+
+  make_option(c("--scent-sweep-dir"), type = "character",
+              default = file.path("results", "scent_chr_sweep_100kb_frac020_1000cells"),
+              help = "Directory containing per-chromosome SCENT sweep folders [default %default]"),
+
+  make_option(c("--output-dir"), type = "character",
+              default = file.path("results", "benchmark_reranker_scent_sweep"),
+              help = "Output directory for benchmark artifacts [default %default]"),
+
+  make_option(c("--distance-d0"), type = "double", default = 50000,
+              help = "Distance scale for distance_score [default %default]"),
+
+--- scripts/compare_runs.R ---
+#!/usr/bin/env Rscript
+
+suppressPackageStartupMessages({
+  library(data.table)
+})
+
+setwd("/mnt/g/multiome_test/results")
+
+# =========================
+# Config
+# =========================
+run_dirs <- c("50_k_full_model_after_tss_table", "alpha_tf_05_after_tss", "alpa_tf_01_after_tss")
+
+ranked_file  <- "multiome_rie_ranked_links.csv"
+summary_file <- "multiome_rie_summary_metrics.csv"
+
+top_n_main <- 100
+top_n_alt  <- 200
+high_dist_bp <- 50000
+mid_dist_min <- 10000
+mid_dist_max <- 50000
+high_rank_cutoff <- 500
+
+# =========================
+# Helpers
+# =========================
+require_file <- function(path) {
+  if (!file.exists(path)) stop("Missing file: ", path)
+}
+
+safe_read <- function(path) {
+  require_file(path)
+  fread(path)
+}
+
+metric_value <- function(summary_dt, metric_name) {
+  x <- summary_dt[metric == metric_name, value]
+  if (length(x) == 0) return(NA_real_)
+  as.numeric(x[1])
+}
+
+--- scripts/debug_scent_chr.R ---
+suppressPackageStartupMessages({
+  library(data.table)
+  library(Matrix)
+  library(Seurat)
+  library(Signac)
+  library(GenomeInfoDb)
+  library(GenomicRanges)
+  library(EnsDb.Hsapiens.v86)
+  library(SCENT)
+})
+
+# ============================================================
+# Mock opt for line-by-line debugging
+# ============================================================
+opt <- list(
+  data_dir = "data",
+  h5_file = "filtered_feature_bc_matrix.h5",
+  frag_file = "atac_fragments.tsv.gz",
+
+  output_dir = file.path("results", "debug_scent_chr22_tiny_25kb_frac020_500cells"),
+
+  test_chr = "chr22",
+  genome = "hg38",
+
+  link_distance = 100000L,
+  min_pair_frac = 0.20,
+  n_cells_test = 1000L,
+
+  scoring_celltype = NA_character_,
+  scent_cores = 1L,
+  scent_regr = "poisson",
+
+  use_shared_universe = FALSE,
+  seed = 42L
+)
+
+set.seed(opt$seed)
+dir.create(opt$output_dir, recursive = TRUE, showWarnings = FALSE)
+
+msg <- function(...) cat(sprintf(...), "\n")
+
+--- scripts/motifs.r ---
+#!/usr/bin/env Rscript
+
+suppressPackageStartupMessages({
+  library(optparse)
+  library(data.table)
+  library(GenomicRanges)
+  library(BSgenome.Hsapiens.UCSC.hg38)
+  library(TFBSTools)
+  library(JASPAR2022)
+  library(motifmatchr)
+  library(Matrix)
+})
+
+# ---------------------------
+# CLI
+# ---------------------------
+option_list <- list(
+  make_option(c("-i", "--input"),
+              type = "character",
+              default = "test_scores_with_distance_FINAL.csv",
+              help = "Input CSV from your first script [default %default]"),
+  make_option(c("-o", "--output"),
+              type = "character",
+              default = "test_scores_with_motifs.csv",
+              help = "Output CSV with motif columns added [default %default]"),
+  make_option(c("--species"),
+              type = "integer",
+              default = 9606,
+              help = "NCBI taxonomy ID for motifs [default %default]"),
+  make_option(c("--collection"),
+              type = "character",
+              default = "CORE",
+              help = "JASPAR collection [default %default]"),
+  make_option(c("--min.score"),
+              type = "character",
+              default = "85%",
+              help = "Motif match threshold for motifmatchr [default %default]"),
+  make_option(c("--motif-penalty"),
+              type = "double",
+              default = 0.85,
+
+--- scripts/multiome_rie_v1.R ---
+#!/usr/bin/env Rscript
+
+suppressPackageStartupMessages({
+  library(optparse)
+  library(data.table)
+  library(Matrix)
+  library(Seurat)
+  library(Signac)
+  library(GenomeInfoDb)
+  library(biovizBase)
+  library(EnsDb.Hsapiens.v86)
+  library(BSgenome.Hsapiens.UCSC.hg38)
+  library(GenomicRanges)
+  library(TFBSTools)
+  library(JASPAR2022)
+  library(motifmatchr)
+  library(clusterProfiler)
+  library(org.Hs.eg.db)
+  library(enrichplot)
+  library(ggplot2)
+  library(SummarizedExperiment)
+})
+
+# ============================================================
+# CLI
+# ============================================================
+option_list <- list(
+  make_option(c("--data-dir"), type = "character", default = "data",
+              help = "Directory containing 10x multiome input files [default %default]"),
+  make_option(c("--h5-file"), type = "character", default = "filtered_feature_bc_matrix.h5",
+              help = "10x h5 matrix filename inside --data-dir [default %default]"),
+  make_option(c("--frag-file"), type = "character", default = "atac_fragments.tsv.gz",
+              help = "ATAC fragments filename inside --data-dir [default %default]"),
+  make_option(c("--candidate-top-k"), type = "integer", default = 5000,
+              help = "Number of top LinkPeaks links to rerank [default %default]"),
+  make_option(c("--link-distance"), type = "integer", default = 500000,
+              help = "Maximum distance passed to LinkPeaks [default %default]"),
+  make_option(c("--distance-d0"), type = "double", default = 50000,
+              help = "Scale parameter for long-tail distance prior [default %default]"),
+  make_option(c("--lambda-distance"), type = "double", default = 0.30,
+
+--- scripts/multiome_test_script.R ---
+library(Seurat)
+library(Signac)
+library(GenomeInfoDb)
+library(biovizBase)
+library(EnsDb.Hsapiens.v86)
+library(BSgenome.Hsapiens.UCSC.hg38)
+
+library(clusterProfiler)
+library(org.Hs.eg.db)
+library(enrichplot)
+library(ggplot2)
+
+data_dir <- "data/"
+h5_file  <- file.path(data_dir, "filtered_feature_bc_matrix.h5")
+frag_file <- file.path(data_dir, "atac_fragments.tsv.gz")
+
+data <- Read10X_h5(h5_file)
+print(names(data))
+
+annotations <- GetGRangesFromEnsDb(ensdb = EnsDb.Hsapiens.v86)
+seqlevelsStyle(annotations) <- "UCSC"
+genome(annotations) <- "hg38"
+
+obj <- CreateSeuratObject(
+  counts = data$`Gene Expression`,
+  assay = "RNA"
+)
+
+obj[["ATAC"]] <- CreateChromatinAssay(
+  counts = data$Peaks,
+  sep = c(":", "-"),
+  genome = "hg38",
+  fragments = frag_file,
+  annotation = annotations
+)
+
+
+DefaultAssay(obj) <- "RNA"
+obj <- NormalizeData(obj)
+obj <- FindVariableFeatures(obj)
+
+--- scripts/opt.R ---
+opt <- list(
+  data_dir = "data",
+  h5_file = "filtered_feature_bc_matrix.h5",
+  frag_file = "atac_fragments.tsv.gz",
+
+  candidate_top_k = 10000L,
+  link_distance = 500000L,
+  distance_d0 = 50000,
+  lambda_distance = 0.3, #0.3
+  alpha_tf = 0.5, # 0.5
+
+  cluster_resolution = 0.5,
+  pca_dims = 30L,
+  lsi_dims_start = 2L,
+  lsi_dims_end = 30L,
+
+  species = 9606L,
+  collection = "CORE",
+  motif_min_score = NULL,
+  tf_expressed_frac = 0.10,
+  top_k_motif_names = 3L,
+
+  ora_top_n = 100L,
+  ora_show_category = 15L,
+
+  tier_high_quantile = 0.90,
+  tier_medium_quantile = 0.70,
+
+  output_prefix = file.path("results", "multiome_rie")
+)
+--- scripts/opt_benchmark.r ---
+opt <- list(
+  results_dir = file.path("results", "alpha_tf_05_after_tss_current"),
+  baseline_file = "multiome_rie_baseline_links_full.csv",
+  ranked_file = "multiome_rie_ranked_links.csv",
+  test_scores_file = "multiome_rie_test_scores.csv",
+
+  data_dir = "data",
+  h5_file = "filtered_feature_bc_matrix.h5",
+  frag_file = "atac_fragments.tsv.gz",
+
+  output_dir = file.path("results", "benchmark_panel"),
+  sample_name = "multiome_sample",
+  genome = "hg38",
+
+  link_distance = 500000,
+  distance_d0 = 50000,
+  distal_threshold = 50000,
+
+  top_n = 100,
+  top_k_compare = 200,
+
+  min_pair_frac = 0.05,
+  scoring_celltype = NA_character_,
+
+  archr_threads = 4L,
+  scent_cores = 4L,
+  scent_regr = "poisson",
+
+  ora_show_category = 15L,
+  seed = 42L,
+
+  skip_archr = FALSE,
+  skip_scent = FALSE,
+  archr_force = FALSE
+)
+
+set.seed(opt$seed)
+dir.create(opt$output_dir, recursive = TRUE, showWarnings = FALSE)
+--- scripts/plot_interactions.r ---
+#!/usr/bin/env Rscript
+
+suppressPackageStartupMessages({
+  library(data.table)
+  library(ggplot2)
+})
+
+# =========================
+# Config
+# =========================
+workdir <- "/mnt/g/multiome_test/results/alpha_tf_05_after_tss"
+
+ranked_file <- file.path(workdir, "multiome_rie_ranked_links.csv")
+
+top_n_genes <- 6
+top_peaks_per_gene <- 15
+distal_bp <- 50000
+
+# Set genes you specifically want to inspect
+custom_genes <- c("PAX5", "BANK1", "TCF7", "CCL5", "MS4A1", "PRF1")
+
+# =========================
+# Helpers
+# =========================
+require_file <- function(path) {
+  if (!file.exists(path)) stop("Missing file: ", path)
+}
+
+check_required_cols <- function(dt, cols, label = "table") {
+  missing <- setdiff(cols, names(dt))
+  if (length(missing) > 0) {
+    stop(sprintf(
+      "Missing required columns in %s: %s",
+      label,
+      paste(missing, collapse = ", ")
+    ))
+  }
+}
+
+pick_top_peaks_per_gene <- function(dt, n = 15) {
+
+--- scripts/run_scent.R ---
+# ============================================================
+# SCENT method
+# ============================================================
+run_scent_method <- function() {
+  msg("Running SCENT...")
+
+  expr_frac_gene <- Matrix::rowMeans(rna_counts > 0)
+  expr_frac_peak <- Matrix::rowMeans(atac_counts > 0)
+
+  keep_genes <- names(expr_frac_gene)[expr_frac_gene >= opt$min_pair_frac]
+  keep_peaks <- names(expr_frac_peak)[expr_frac_peak >= opt$min_pair_frac]
+
+  msg("Genes passing prevalence filter: %d", length(keep_genes))
+  msg("Peaks passing prevalence filter: %d", length(keep_peaks))
+
+  gene_tss_local <- copy(gene_tss[gene %in% keep_genes])
+  peak_tbl <- parse_peak_table(keep_peaks)
+  peak_tbl$peak_mid <- (peak_tbl$peak_start + peak_tbl$peak_end) / 2
+  peak_dt <- as.data.table(peak_tbl)
+
+  cand <- merge(
+    gene_tss_local[, .(gene, gene_chr, tss)],
+    peak_dt[, .(peak, peak_chr, peak_mid)],
+    by.x = "gene_chr", by.y = "peak_chr",
+    allow.cartesian = TRUE
+  )
+  msg("Initial cis candidate rows before distance filter: %d", nrow(cand))
+
+  cand[, distance_bp := abs(peak_mid - tss)]
+  cand <- cand[distance_bp <= opt$link_distance, .(gene, peak)]
+  cand <- unique(cand)
+
+  cand[, gene := as.character(gene)]
+  cand[, peak := normalize_peak(as.character(peak))]
+
+  msg("Cis candidate rows after distance filter: %d", nrow(cand))
+  msg("Unique cis candidate genes: %d", uniqueN(cand$gene))
+  msg("Unique cis candidate peaks: %d", uniqueN(cand$peak))
+
+  candidate_universe <- unique(rbind(
+
+--- scripts/run_scent_for_chr.r ---
+
+run_scent_for_chr <- function(chr) {
+  chr_start <- Sys.time()
+
+  msg("")
+  msg("============================================================")
+  msg("Starting SCENT chromosome: %s", chr)
+  msg("Start time: %s", format(chr_start))
+  msg("============================================================")
+
+  chr_dir <- file.path(opt$output_dir, chr)
+  dir.create(chr_dir, recursive = TRUE, showWarnings = FALSE)
+
+  out_csv <- file.path(chr_dir, sprintf("scent_links_%s.csv", chr))
+  out_rds <- file.path(chr_dir, sprintf("scent_result_%s.rds", chr))
+  cand_csv <- file.path(chr_dir, sprintf("scent_candidates_%s.csv", chr))
+
+  if (isTRUE(opt$skip_existing) && file.exists(out_csv) && file.exists(out_rds)) {
+    msg("Skipping %s because output already exists.", chr)
+
+    existing <- fread(out_csv)
+
+    return(data.table(
+      chr = chr,
+      status = "skipped_existing",
+      runtime_minutes = NA_real_,
+      n_rows = nrow(existing),
+      n_genes = uniqueN(existing$gene),
+      n_peaks = uniqueN(existing$peak),
+      n_positive = sum(existing$score > 0, na.rm = TRUE),
+      n_negative = sum(existing$score < 0, na.rm = TRUE),
+      score_min = min(existing$score, na.rm = TRUE),
+      score_median = median(existing$score, na.rm = TRUE),
+      score_max = max(existing$score, na.rm = TRUE)
+    ))
+  }
+
+  # Rebuild chr-specific inputs from full matrices
+  chr_peak_ids <- peak_info_full[peak_chr == chr, peak]
+
+
+--- scripts/run_scent_method.r ---
+
+run_scent_method <- function() {
+  msg("Running SCENT...")
+
+  expr_frac_gene <- Matrix::rowMeans(rna_counts > 0)
+  expr_frac_peak <- Matrix::rowMeans(atac_counts > 0)
+
+  keep_genes <- names(expr_frac_gene)[expr_frac_gene >= opt$min_pair_frac]
+  keep_peaks <- names(expr_frac_peak)[expr_frac_peak >= opt$min_pair_frac]
+
+  msg("Genes passing prevalence filter: %d", length(keep_genes))
+  msg("Peaks passing prevalence filter: %d", length(keep_peaks))
+
+  gene_tss_local <- copy(gene_tss[gene %in% keep_genes])
+
+  peak_tbl <- parse_peak_table(keep_peaks)
+  peak_tbl$peak_mid <- (peak_tbl$peak_start + peak_tbl$peak_end) / 2
+  peak_dt <- as.data.table(peak_tbl)
+
+  # Extra safety: force chromosome restriction again
+  gene_tss_local <- gene_tss_local[gene_chr == opt$test_chr]
+  peak_dt <- peak_dt[peak_chr == opt$test_chr]
+
+  msg("Candidate genes on %s: %d", opt$test_chr, nrow(gene_tss_local))
+  msg("Candidate peaks on %s: %d", opt$test_chr, nrow(peak_dt))
+
+  cand <- merge(
+    gene_tss_local[, .(gene, gene_chr, tss)],
+    peak_dt[, .(peak, peak_chr, peak_mid)],
+    by.x = "gene_chr",
+    by.y = "peak_chr",
+    allow.cartesian = TRUE
+  )
+
+  msg("Initial cis candidate rows before distance filter: %d", nrow(cand))
+
+  cand[, distance_bp := abs(peak_mid - tss)]
+  cand <- cand[distance_bp <= opt$link_distance, .(gene, peak)]
+  cand <- unique(cand)
+
+
+============================================================
+CONFIG / WORKFLOW / CONTAINER PREVIEWS
+============================================================
+
+--- config/config.yaml ---
+MISSING
+
+--- config/pbmc.yaml ---
+
+--- workflow/Snakefile ---
+
+--- containers/Dockerfile ---
+FROM rocker/r-ver:4.3.3
+
+LABEL maintainer="Inkasimo" \
+      org.opencontainers.image.title="multiome-link-ranking" \
+      org.opencontainers.image.description="Containerized R/Snakemake workflow for multiome peak-gene link ranking benchmarks"
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV RENV_CONFIG_REPOS_OVERRIDE=https://packagemanager.posit.co/cran/2024-01-01
+ENV RENV_PATHS_LIBRARY=/opt/renv/library
+ENV RENV_PATHS_CACHE=/opt/renv/cache
+ENV RENV_CONFIG_CACHE_SYMLINKS=FALSE
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3 python3-pip \
+    git curl wget ca-certificates \
+    build-essential \
+    zlib1g-dev libbz2-dev liblzma-dev \
+    libcurl4-openssl-dev libssl-dev libxml2-dev \
+    libhdf5-dev \
+    libpng-dev libjpeg-dev libtiff5-dev \
+    libfreetype6-dev libharfbuzz-dev libfribidi-dev \
+    pkg-config libfontconfig1-dev libcairo2-dev libglib2.0-dev \
+    libglpk-dev libgomp1 \
+    tabix samtools bedtools \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN R -q -e "install.packages('renv', repos=Sys.getenv('RENV_CONFIG_REPOS_OVERRIDE'))"
+RUN R -q -e "install.packages('BiocManager', repos=Sys.getenv('RENV_CONFIG_REPOS_OVERRIDE'))"
+
+RUN pip3 install --no-cache-dir \
+    snakemake==7.32.4 \
+    pulp==2.7.0 \
+    pyyaml>=6.0
+
+WORKDIR /work
+
+COPY renv.lock /work/renv.lock
+COPY renv/activate.R /work/renv/activate.R
+COPY .Rprofile /work/.Rprofile
+
+RUN R -q -e '\
+renv::settings$bioconductor.version("3.18"); \
+renv::restore(project="/work", lockfile="/work/renv.lock", prompt=FALSE, rebuild=TRUE) \
+'
+
+CMD ["bash"]
+
+--- wrapper-requirements.txt ---
+MISSING
+
+--- run_analysis.py ---
+#!/usr/bin/env python3
+
+import argparse
+import subprocess
+from pathlib import Path
+
+
+def run(cmd):
+    print("+", " ".join(cmd), flush=True)
+    subprocess.run(cmd, check=True)
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Wrapper for the multiome link-ranking Snakemake workflow."
+    )
+    parser.add_argument("--cores", type=int, default=4)
+    parser.add_argument("--snakefile", default="workflow/Snakefile")
+    parser.add_argument("--config", default="config/config.yaml")
+    parser.add_argument("--dry-run", action="store_true")
+    args = parser.parse_args()
+
+    cmd = [
+        "snakemake",
+        "-s", args.snakefile,
+        "--configfile", args.config,
+        "--cores", str(args.cores),
+    ]
+
+    if args.dry_run:
+        cmd.append("-n")
+
+    run(cmd)
+
+
+if __name__ == "__main__":
+    main()
+
+--- .Rprofile ---
+if (file.exists("renv/activate.R")) {
+  source("renv/activate.R")
+}
+
+--- renv.lock ---
+MISSING
+
+============================================================
+RESULTS OVERVIEW
+============================================================
+results/.gitkeep
+results/100000_03_old/multiome_rie_baseline_links.csv
+results/100000_03_old/multiome_rie_baseline_vs_final_v6_scatter.png
+results/100000_03_old/multiome_rie_distance_distribution.png
+results/100000_03_old/multiome_rie_ora_baseline_GO_BP.csv
+results/100000_03_old/multiome_rie_ora_baseline_dotplot.png
+results/100000_03_old/multiome_rie_ora_baseline_vs_final_v6.png
+results/100000_03_old/multiome_rie_ora_final_v6_GO_BP.csv
+results/100000_03_old/multiome_rie_ora_final_v6_dotplot.png
+results/100000_03_old/multiome_rie_ranked_links.csv
+results/100000_03_old/multiome_rie_summary_metrics.csv
+results/100000_03_old/multiome_rie_test_scores.csv
+results/100000_03_old/multiome_rie_tier_summary.csv
+results/100000_03_old/multiome_rie_top100_final_links.csv
+results/100000_03_old/multiome_rie_topN_overlap_baseline_vs_final_v6.csv
+results/100000_03_old/multiome_rie_top_demoted_links.csv
+results/100000_03_old/multiome_rie_top_promoted_links.csv
+results/50000_03_old/multiome_rie_baseline_links.csv
+results/50000_03_old/multiome_rie_baseline_vs_final_v6_scatter.png
+results/50000_03_old/multiome_rie_checkpoint_after_clustering.rds
+results/50000_03_old/multiome_rie_distance_distribution.png
+results/50000_03_old/multiome_rie_multiome_object.rds
+results/50000_03_old/multiome_rie_ora_baseline_GO_BP.csv
+results/50000_03_old/multiome_rie_ora_baseline_dotplot.png
+results/50000_03_old/multiome_rie_ora_baseline_vs_final_v6.png
+results/50000_03_old/multiome_rie_ora_final_v6_GO_BP.csv
+results/50000_03_old/multiome_rie_ora_final_v6_dotplot.png
+results/50000_03_old/multiome_rie_ranked_links.csv
+results/50000_03_old/multiome_rie_summary_metrics.csv
+results/50000_03_old/multiome_rie_test_scores.csv
+results/50000_03_old/multiome_rie_tier_summary.csv
+results/50000_03_old/multiome_rie_top100_final_links.csv
+results/50000_03_old/multiome_rie_topN_overlap_baseline_vs_final_v6.csv
+results/50000_03_old/multiome_rie_top_demoted_links.csv
+results/50000_03_old/multiome_rie_top_promoted_links.csv
+results/50_k_full_model_after_tss_table/multiome_rie_baseline_links_full.csv
+results/50_k_full_model_after_tss_table/multiome_rie_baseline_vs_final_v6_scatter.png
+results/50_k_full_model_after_tss_table/multiome_rie_distance_distribution.png
+results/50_k_full_model_after_tss_table/multiome_rie_ora_baseline_GO_BP.csv
+results/50_k_full_model_after_tss_table/multiome_rie_ora_baseline_dotplot.png
+results/50_k_full_model_after_tss_table/multiome_rie_ora_baseline_vs_final_v6.png
+results/50_k_full_model_after_tss_table/multiome_rie_ora_final_v6_GO_BP.csv
+results/50_k_full_model_after_tss_table/multiome_rie_ora_final_v6_dotplot.png
+results/50_k_full_model_after_tss_table/multiome_rie_ranked_links.csv
+results/50_k_full_model_after_tss_table/multiome_rie_summary_metrics.csv
+results/50_k_full_model_after_tss_table/multiome_rie_test_scores.csv
+results/50_k_full_model_after_tss_table/multiome_rie_tier_summary.csv
+results/50_k_full_model_after_tss_table/multiome_rie_top100_final_links.csv
+results/50_k_full_model_after_tss_table/multiome_rie_topN_overlap_baseline_vs_final_v6.csv
+results/50_k_full_model_after_tss_table/multiome_rie_top_demoted_links.csv
+results/50_k_full_model_after_tss_table/multiome_rie_top_promoted_links.csv
+results/50k_dist_labda_05/multiome_rie_baseline_links_full.csv
+results/50k_dist_labda_05/multiome_rie_baseline_vs_final_v6_scatter.png
+results/50k_dist_labda_05/multiome_rie_distance_distribution.png
+results/50k_dist_labda_05/multiome_rie_ora_baseline_GO_BP.csv
+results/50k_dist_labda_05/multiome_rie_ora_baseline_dotplot.png
+results/50k_dist_labda_05/multiome_rie_ora_baseline_vs_final_v6.png
+results/50k_dist_labda_05/multiome_rie_ora_final_v6_GO_BP.csv
+results/50k_dist_labda_05/multiome_rie_ora_final_v6_dotplot.png
+results/50k_dist_labda_05/multiome_rie_ranked_links.csv
+results/50k_dist_labda_05/multiome_rie_summary_metrics.csv
+results/50k_dist_labda_05/multiome_rie_test_scores.csv
+results/50k_dist_labda_05/multiome_rie_tier_summary.csv
+results/50k_dist_labda_05/multiome_rie_top100_final_links.csv
+results/50k_dist_labda_05/multiome_rie_topN_overlap_baseline_vs_final_v6.csv
+results/50k_dist_labda_05/multiome_rie_top_demoted_links.csv
+results/50k_dist_labda_05/multiome_rie_top_promoted_links.csv
+results/50k_dist_lambda_01/multiome_rie_baseline_links_full.csv
+results/50k_dist_lambda_01/multiome_rie_baseline_vs_final_v6_scatter.png
+results/50k_dist_lambda_01/multiome_rie_distance_distribution.png
+results/50k_dist_lambda_01/multiome_rie_ora_baseline_GO_BP.csv
+results/50k_dist_lambda_01/multiome_rie_ora_baseline_dotplot.png
+results/50k_dist_lambda_01/multiome_rie_ora_baseline_vs_final_v6.png
+results/50k_dist_lambda_01/multiome_rie_ora_final_v6_GO_BP.csv
+results/50k_dist_lambda_01/multiome_rie_ora_final_v6_dotplot.png
+results/50k_dist_lambda_01/multiome_rie_ranked_links.csv
+results/50k_dist_lambda_01/multiome_rie_summary_metrics.csv
+results/50k_dist_lambda_01/multiome_rie_test_scores.csv
+results/50k_dist_lambda_01/multiome_rie_tier_summary.csv
+results/50k_dist_lambda_01/multiome_rie_top100_final_links.csv
+results/50k_dist_lambda_01/multiome_rie_topN_overlap_baseline_vs_final_v6.csv
+results/50k_dist_lambda_01/multiome_rie_top_demoted_links.csv
+results/50k_dist_lambda_01/multiome_rie_top_promoted_links.csv
+results/75000_03_old/multiome_rie_baseline_links.csv
+results/75000_03_old/multiome_rie_baseline_vs_final_v6_scatter.png
+results/75000_03_old/multiome_rie_distance_distribution.png
+results/75000_03_old/multiome_rie_ora_baseline_GO_BP.csv
+results/75000_03_old/multiome_rie_ora_baseline_dotplot.png
+results/75000_03_old/multiome_rie_ora_baseline_vs_final_v6.png
+results/75000_03_old/multiome_rie_ora_final_v6_GO_BP.csv
+results/75000_03_old/multiome_rie_ora_final_v6_dotplot.png
+results/75000_03_old/multiome_rie_ranked_links.csv
+results/75000_03_old/multiome_rie_summary_metrics.csv
+results/75000_03_old/multiome_rie_test_scores.csv
+results/75000_03_old/multiome_rie_tier_summary.csv
+results/75000_03_old/multiome_rie_top100_final_links.csv
+results/75000_03_old/multiome_rie_topN_overlap_baseline_vs_final_v6.csv
+results/75000_03_old/multiome_rie_top_demoted_links.csv
+results/75000_03_old/multiome_rie_top_promoted_links.csv
+results/Old_results/50k_0303_260416/multiome_rie_baseline_links.csv
+results/Old_results/50k_0303_260416/multiome_rie_baseline_vs_final_v6_scatter.png
+results/Old_results/50k_0303_260416/multiome_rie_distance_distribution.png
+results/Old_results/50k_0303_260416/multiome_rie_ora_baseline_GO_BP.csv
+results/Old_results/50k_0303_260416/multiome_rie_ora_baseline_dotplot.png
+results/Old_results/50k_0303_260416/multiome_rie_ora_baseline_vs_final_v6.png
+results/Old_results/50k_0303_260416/multiome_rie_ora_final_v6_GO_BP.csv
+results/Old_results/50k_0303_260416/multiome_rie_ora_final_v6_dotplot.png
+results/Old_results/50k_0303_260416/multiome_rie_ranked_links.csv
+results/Old_results/50k_0303_260416/multiome_rie_summary_metrics.csv
+results/Old_results/50k_0303_260416/multiome_rie_test_scores.csv
+results/Old_results/50k_0303_260416/multiome_rie_tier_summary.csv
+results/Old_results/50k_0303_260416/multiome_rie_top100_final_links.csv
+results/Old_results/50k_0303_260416/multiome_rie_topN_overlap_baseline_vs_final_v6.csv
+results/Old_results/50k_0303_260416/multiome_rie_top_demoted_links.csv
+results/Old_results/50k_0303_260416/multiome_rie_top_promoted_links.csv
+results/Old_results/ablation_no_dist/multiome_rie_baseline_links.csv
+results/Old_results/ablation_no_dist/multiome_rie_baseline_vs_final_v6_scatter.png
+results/Old_results/ablation_no_dist/multiome_rie_distance_distribution.png
+results/Old_results/ablation_no_dist/multiome_rie_ora_baseline_GO_BP.csv
+results/Old_results/ablation_no_dist/multiome_rie_ora_baseline_dotplot.png
+results/Old_results/ablation_no_dist/multiome_rie_ora_baseline_vs_final_v6.png
+results/Old_results/ablation_no_dist/multiome_rie_ora_final_v6_GO_BP.csv
+results/Old_results/ablation_no_dist/multiome_rie_ora_final_v6_dotplot.png
+results/Old_results/ablation_no_dist/multiome_rie_ranked_links.csv
+results/Old_results/ablation_no_dist/multiome_rie_summary_metrics.csv
+results/Old_results/ablation_no_dist/multiome_rie_test_scores.csv
+results/Old_results/ablation_no_dist/multiome_rie_tier_summary.csv
+results/Old_results/ablation_no_dist/multiome_rie_top100_final_links.csv
+results/Old_results/ablation_no_dist/multiome_rie_topN_overlap_baseline_vs_final_v6.csv
+results/Old_results/ablation_no_dist/multiome_rie_top_demoted_links.csv
+results/Old_results/ablation_no_dist/multiome_rie_top_promoted_links.csv
+results/Old_results/ablation_no_tf/multiome_rie_baseline_links.csv
+results/Old_results/ablation_no_tf/multiome_rie_baseline_vs_final_v6_scatter.png
+results/Old_results/ablation_no_tf/multiome_rie_distance_distribution.png
+results/Old_results/ablation_no_tf/multiome_rie_ora_baseline_GO_BP.csv
+results/Old_results/ablation_no_tf/multiome_rie_ora_baseline_dotplot.png
+results/Old_results/ablation_no_tf/multiome_rie_ora_baseline_vs_final_v6.png
+results/Old_results/ablation_no_tf/multiome_rie_ora_final_v6_GO_BP.csv
+results/Old_results/ablation_no_tf/multiome_rie_ora_final_v6_dotplot.png
+results/Old_results/ablation_no_tf/multiome_rie_ranked_links.csv
+results/Old_results/ablation_no_tf/multiome_rie_summary_metrics.csv
+results/Old_results/ablation_no_tf/multiome_rie_test_scores.csv
+results/Old_results/ablation_no_tf/multiome_rie_tier_summary.csv
+results/Old_results/ablation_no_tf/multiome_rie_top100_final_links.csv
+results/Old_results/ablation_no_tf/multiome_rie_topN_overlap_baseline_vs_final_v6.csv
+results/Old_results/ablation_no_tf/multiome_rie_top_demoted_links.csv
+results/Old_results/ablation_no_tf/multiome_rie_top_promoted_links.csv
+results/Old_results/ablation_only_mul_weigh/multiome_rie_baseline_links.csv
+results/Old_results/ablation_only_mul_weigh/multiome_rie_baseline_vs_final_v6_scatter.png
+results/Old_results/ablation_only_mul_weigh/multiome_rie_distance_distribution.png
+results/Old_results/ablation_only_mul_weigh/multiome_rie_ora_baseline_GO_BP.csv
+results/Old_results/ablation_only_mul_weigh/multiome_rie_ora_baseline_dotplot.png
+results/Old_results/ablation_only_mul_weigh/multiome_rie_ora_baseline_vs_final_v6.png
+results/Old_results/ablation_only_mul_weigh/multiome_rie_ora_final_v6_GO_BP.csv
+results/Old_results/ablation_only_mul_weigh/multiome_rie_ora_final_v6_dotplot.png
+results/Old_results/ablation_only_mul_weigh/multiome_rie_ranked_links.csv
+results/Old_results/ablation_only_mul_weigh/multiome_rie_summary_metrics.csv
+results/Old_results/ablation_only_mul_weigh/multiome_rie_test_scores.csv
+results/Old_results/ablation_only_mul_weigh/multiome_rie_tier_summary.csv
+results/Old_results/ablation_only_mul_weigh/multiome_rie_top100_final_links.csv
+results/Old_results/ablation_only_mul_weigh/multiome_rie_topN_overlap_baseline_vs_final_v6.csv
+results/Old_results/ablation_only_mul_weigh/multiome_rie_top_demoted_links.csv
+results/Old_results/ablation_only_mul_weigh/multiome_rie_top_promoted_links.csv
+results/Old_results/dist_only_50k/multiome_rie_distance_only_dotplot.png
+results/Old_results/dist_only_50k/multiome_rie_distance_only_ora.csv
+results/Old_results/dist_only_50k/multiome_rie_distance_only_overlap_vs_full.csv
+results/Old_results/dist_only_50k/multiome_rie_distance_only_summary.csv
+results/Old_results/dist_only_50k/multiome_rie_distance_only_top100_links.csv
+results/Old_results/dist_summary/comparison_100000_03_high_distance_high_rank_links.csv
+results/Old_results/dist_summary/comparison_100000_03_mid_distance_high_rank_links.csv
+results/Old_results/dist_summary/comparison_100000_03_top20_final_links.csv
+results/Old_results/dist_summary/comparison_50000_03_high_distance_high_rank_links.csv
+results/Old_results/dist_summary/comparison_50000_03_mid_distance_high_rank_links.csv
+results/Old_results/dist_summary/comparison_50000_03_top20_final_links.csv
+results/Old_results/dist_summary/comparison_75000_03_high_distance_high_rank_links.csv
+results/Old_results/dist_summary/comparison_75000_03_mid_distance_high_rank_links.csv
+results/Old_results/dist_summary/comparison_75000_03_top20_final_links.csv
+results/Old_results/dist_summary/comparison_run_summary.csv
+results/Old_results/dist_summary/comparison_top100_overlap_between_runs.csv
+results/Old_results/dist_summary/comparison_top200_overlap_between_runs.csv
+results/ablations_after_tss_table/50_k_full_model_after_tss_table/multiome_rie_baseline_links_full.csv
+results/ablations_after_tss_table/50_k_full_model_after_tss_table/multiome_rie_baseline_vs_final_v6_scatter.png
+results/ablations_after_tss_table/50_k_full_model_after_tss_table/multiome_rie_distance_distribution.png
+results/ablations_after_tss_table/50_k_full_model_after_tss_table/multiome_rie_ora_baseline_GO_BP.csv
+results/ablations_after_tss_table/50_k_full_model_after_tss_table/multiome_rie_ora_baseline_dotplot.png
+results/ablations_after_tss_table/50_k_full_model_after_tss_table/multiome_rie_ora_baseline_vs_final_v6.png
+results/ablations_after_tss_table/50_k_full_model_after_tss_table/multiome_rie_ora_final_v6_GO_BP.csv
+results/ablations_after_tss_table/50_k_full_model_after_tss_table/multiome_rie_ora_final_v6_dotplot.png
+results/ablations_after_tss_table/50_k_full_model_after_tss_table/multiome_rie_ranked_links.csv
+results/ablations_after_tss_table/50_k_full_model_after_tss_table/multiome_rie_summary_metrics.csv
+results/ablations_after_tss_table/50_k_full_model_after_tss_table/multiome_rie_test_scores.csv
+results/ablations_after_tss_table/50_k_full_model_after_tss_table/multiome_rie_tier_summary.csv
+results/ablations_after_tss_table/50_k_full_model_after_tss_table/multiome_rie_top100_final_links.csv
+results/ablations_after_tss_table/50_k_full_model_after_tss_table/multiome_rie_topN_overlap_baseline_vs_final_v6.csv
+results/ablations_after_tss_table/50_k_full_model_after_tss_table/multiome_rie_top_demoted_links.csv
+results/ablations_after_tss_table/50_k_full_model_after_tss_table/multiome_rie_top_promoted_links.csv
+results/ablations_after_tss_table/50k_mul_weigh_only_after_tss/multiome_rie_baseline_links_full.csv
+results/ablations_after_tss_table/50k_mul_weigh_only_after_tss/multiome_rie_baseline_vs_final_v6_scatter.png
+results/ablations_after_tss_table/50k_mul_weigh_only_after_tss/multiome_rie_distance_distribution.png
+results/ablations_after_tss_table/50k_mul_weigh_only_after_tss/multiome_rie_ora_baseline_GO_BP.csv
+
+============================================================
+SCENT SWEEP OVERVIEW
+============================================================
+results/scent_chr_sweep_100kb_frac020_1000cells/chr1/scent_candidates_chr1.csv
+results/scent_chr_sweep_100kb_frac020_1000cells/chr1/scent_links_chr1.csv
+results/scent_chr_sweep_100kb_frac020_1000cells/chr1/scent_result_chr1.rds
+results/scent_chr_sweep_100kb_frac020_1000cells/chr10/scent_candidates_chr10.csv
+results/scent_chr_sweep_100kb_frac020_1000cells/chr10/scent_links_chr10.csv
+results/scent_chr_sweep_100kb_frac020_1000cells/chr10/scent_result_chr10.rds
+results/scent_chr_sweep_100kb_frac020_1000cells/chr11/scent_candidates_chr11.csv
+results/scent_chr_sweep_100kb_frac020_1000cells/chr11/scent_links_chr11.csv
+results/scent_chr_sweep_100kb_frac020_1000cells/chr11/scent_result_chr11.rds
+results/scent_chr_sweep_100kb_frac020_1000cells/chr12/scent_candidates_chr12.csv
+results/scent_chr_sweep_100kb_frac020_1000cells/chr12/scent_links_chr12.csv
+results/scent_chr_sweep_100kb_frac020_1000cells/chr12/scent_result_chr12.rds
+results/scent_chr_sweep_100kb_frac020_1000cells/chr13/scent_candidates_chr13.csv
+results/scent_chr_sweep_100kb_frac020_1000cells/chr13/scent_links_chr13.csv
+results/scent_chr_sweep_100kb_frac020_1000cells/chr13/scent_result_chr13.rds
+results/scent_chr_sweep_100kb_frac020_1000cells/chr14/scent_candidates_chr14.csv
+results/scent_chr_sweep_100kb_frac020_1000cells/chr14/scent_links_chr14.csv
+results/scent_chr_sweep_100kb_frac020_1000cells/chr14/scent_result_chr14.rds
+results/scent_chr_sweep_100kb_frac020_1000cells/chr15/scent_candidates_chr15.csv
+results/scent_chr_sweep_100kb_frac020_1000cells/chr15/scent_links_chr15.csv
+results/scent_chr_sweep_100kb_frac020_1000cells/chr15/scent_result_chr15.rds
+results/scent_chr_sweep_100kb_frac020_1000cells/chr16/scent_candidates_chr16.csv
+results/scent_chr_sweep_100kb_frac020_1000cells/chr16/scent_links_chr16.csv
+results/scent_chr_sweep_100kb_frac020_1000cells/chr16/scent_result_chr16.rds
+results/scent_chr_sweep_100kb_frac020_1000cells/chr17/scent_candidates_chr17.csv
+results/scent_chr_sweep_100kb_frac020_1000cells/chr17/scent_links_chr17.csv
+results/scent_chr_sweep_100kb_frac020_1000cells/chr17/scent_result_chr17.rds
+results/scent_chr_sweep_100kb_frac020_1000cells/chr18/scent_candidates_chr18.csv
+results/scent_chr_sweep_100kb_frac020_1000cells/chr18/scent_links_chr18.csv
+results/scent_chr_sweep_100kb_frac020_1000cells/chr18/scent_result_chr18.rds
+results/scent_chr_sweep_100kb_frac020_1000cells/chr19/scent_candidates_chr19.csv
+results/scent_chr_sweep_100kb_frac020_1000cells/chr19/scent_links_chr19.csv
+results/scent_chr_sweep_100kb_frac020_1000cells/chr19/scent_result_chr19.rds
+results/scent_chr_sweep_100kb_frac020_1000cells/chr2/scent_candidates_chr2.csv
+results/scent_chr_sweep_100kb_frac020_1000cells/chr2/scent_links_chr2.csv
+results/scent_chr_sweep_100kb_frac020_1000cells/chr2/scent_result_chr2.rds
+results/scent_chr_sweep_100kb_frac020_1000cells/chr20/scent_candidates_chr20.csv
+results/scent_chr_sweep_100kb_frac020_1000cells/chr20/scent_links_chr20.csv
+results/scent_chr_sweep_100kb_frac020_1000cells/chr20/scent_result_chr20.rds
+results/scent_chr_sweep_100kb_frac020_1000cells/chr21/scent_candidates_chr21.csv
+results/scent_chr_sweep_100kb_frac020_1000cells/chr21/scent_links_chr21.csv
+results/scent_chr_sweep_100kb_frac020_1000cells/chr21/scent_result_chr21.rds
+results/scent_chr_sweep_100kb_frac020_1000cells/chr22/scent_candidates_chr22.csv
+results/scent_chr_sweep_100kb_frac020_1000cells/chr22/scent_links_chr22.csv
+results/scent_chr_sweep_100kb_frac020_1000cells/chr22/scent_result_chr22.rds
+results/scent_chr_sweep_100kb_frac020_1000cells/chr3/scent_candidates_chr3.csv
+results/scent_chr_sweep_100kb_frac020_1000cells/chr3/scent_links_chr3.csv
+results/scent_chr_sweep_100kb_frac020_1000cells/chr3/scent_result_chr3.rds
+results/scent_chr_sweep_100kb_frac020_1000cells/chr4/scent_candidates_chr4.csv
+results/scent_chr_sweep_100kb_frac020_1000cells/chr4/scent_links_chr4.csv
+results/scent_chr_sweep_100kb_frac020_1000cells/chr4/scent_result_chr4.rds
+results/scent_chr_sweep_100kb_frac020_1000cells/chr5/scent_candidates_chr5.csv
+results/scent_chr_sweep_100kb_frac020_1000cells/chr5/scent_links_chr5.csv
+results/scent_chr_sweep_100kb_frac020_1000cells/chr5/scent_result_chr5.rds
+results/scent_chr_sweep_100kb_frac020_1000cells/chr6/scent_candidates_chr6.csv
+results/scent_chr_sweep_100kb_frac020_1000cells/chr6/scent_links_chr6.csv
+results/scent_chr_sweep_100kb_frac020_1000cells/chr6/scent_result_chr6.rds
+results/scent_chr_sweep_100kb_frac020_1000cells/chr7/scent_candidates_chr7.csv
+results/scent_chr_sweep_100kb_frac020_1000cells/chr7/scent_links_chr7.csv
+results/scent_chr_sweep_100kb_frac020_1000cells/chr7/scent_result_chr7.rds
+results/scent_chr_sweep_100kb_frac020_1000cells/chr8/scent_candidates_chr8.csv
+results/scent_chr_sweep_100kb_frac020_1000cells/chr8/scent_links_chr8.csv
+results/scent_chr_sweep_100kb_frac020_1000cells/chr8/scent_result_chr8.rds
+results/scent_chr_sweep_100kb_frac020_1000cells/chr9/scent_candidates_chr9.csv
+results/scent_chr_sweep_100kb_frac020_1000cells/chr9/scent_links_chr9.csv
+results/scent_chr_sweep_100kb_frac020_1000cells/chr9/scent_result_chr9.rds
+results/scent_chr_sweep_100kb_frac020_1000cells/chrX/scent_candidates_chrX.csv
+results/scent_chr_sweep_100kb_frac020_1000cells/chrX/scent_links_chrX.csv
+results/scent_chr_sweep_100kb_frac020_1000cells/chrX/scent_result_chrX.rds
+results/scent_chr_sweep_100kb_frac020_1000cells/scent_chr_sweep_summary.csv
+
+============================================================
+BENCHMARK OUTPUT OVERVIEW
+============================================================
+results/benchmark_reranker_scent_sweep/benchmark_Coactivity_links.csv
+results/benchmark_reranker_scent_sweep/benchmark_Coactivity_ora_GO_BP.csv
+results/benchmark_reranker_scent_sweep/benchmark_Coactivity_ora_dotplot.png
+results/benchmark_reranker_scent_sweep/benchmark_DistanceOnly_links.csv
+results/benchmark_reranker_scent_sweep/benchmark_DistanceOnly_ora_GO_BP.csv
+results/benchmark_reranker_scent_sweep/benchmark_DistanceOnly_ora_dotplot.png
+results/benchmark_reranker_scent_sweep/benchmark_LinkPeaks_links.csv
+results/benchmark_reranker_scent_sweep/benchmark_LinkPeaks_ora_GO_BP.csv
+results/benchmark_reranker_scent_sweep/benchmark_LinkPeaks_ora_dotplot.png
+results/benchmark_reranker_scent_sweep/benchmark_Reranker_links.csv
+results/benchmark_reranker_scent_sweep/benchmark_Reranker_ora_GO_BP.csv
+results/benchmark_reranker_scent_sweep/benchmark_Reranker_ora_dotplot.png
+results/benchmark_reranker_scent_sweep/benchmark_SCENT_links.csv
+results/benchmark_reranker_scent_sweep/benchmark_SCENT_ora_GO_BP.csv
+results/benchmark_reranker_scent_sweep/benchmark_SCENT_ora_dotplot.png
+results/benchmark_reranker_scent_sweep/benchmark_all_methods_combined.csv
+results/benchmark_reranker_scent_sweep/benchmark_distal_fraction_topK.png
+results/benchmark_reranker_scent_sweep/benchmark_distance_distribution_topK.png
+results/benchmark_reranker_scent_sweep/benchmark_gene_overlap.csv
+results/benchmark_reranker_scent_sweep/benchmark_gene_overlap_heatmap.png
+results/benchmark_reranker_scent_sweep/benchmark_linkpeaks_vs_reranker_scatter.png
+results/benchmark_reranker_scent_sweep/benchmark_median_distance_topK.png
+results/benchmark_reranker_scent_sweep/benchmark_method_counts.csv
+results/benchmark_reranker_scent_sweep/benchmark_ora_summary.csv
+results/benchmark_reranker_scent_sweep/benchmark_ora_term_counts_top100.png
+results/benchmark_reranker_scent_sweep/benchmark_pair_overlap.csv
+results/benchmark_reranker_scent_sweep/benchmark_pair_overlap_heatmap.png
+results/benchmark_reranker_scent_sweep/benchmark_spearman_vs_linkpeaks.csv
+results/benchmark_reranker_scent_sweep/benchmark_spearman_vs_reranker.csv
+results/benchmark_reranker_scent_sweep/benchmark_summary_metrics.csv
+results/benchmark_reranker_scent_sweep/benchmark_top100_genes_for_ORA.csv
+results/benchmark_reranker_scent_sweep/benchmark_unique_genes_topK.png
+results/benchmark_reranker_scent_sweep/reranker_topK_unique_vs_linkpeaks.csv
+results/benchmark_reranker_scent_sweep/reranker_topK_unique_vs_scent.csv
+results/benchmark_reranker_scent_sweep/top100_Coactivity_links.csv
+results/benchmark_reranker_scent_sweep/top100_DistanceOnly_links.csv
+results/benchmark_reranker_scent_sweep/top100_LinkPeaks_links.csv
+results/benchmark_reranker_scent_sweep/top100_Reranker_links.csv
+results/benchmark_reranker_scent_sweep/top100_SCENT_links.csv
+results/benchmark_reranker_scent_sweep/top200_Coactivity_links.csv
+results/benchmark_reranker_scent_sweep/top200_DistanceOnly_links.csv
+results/benchmark_reranker_scent_sweep/top200_LinkPeaks_links.csv
+results/benchmark_reranker_scent_sweep/top200_Reranker_links.csv
+results/benchmark_reranker_scent_sweep/top200_SCENT_links.csv
+results/benchmark_reranker_scent_sweep/top50_Coactivity_links.csv
+results/benchmark_reranker_scent_sweep/top50_DistanceOnly_links.csv
+results/benchmark_reranker_scent_sweep/top50_LinkPeaks_links.csv
+results/benchmark_reranker_scent_sweep/top50_Reranker_links.csv
+results/benchmark_reranker_scent_sweep/top50_SCENT_links.csv
+
+============================================================
+DONE
+============================================================
