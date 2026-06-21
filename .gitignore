@@ -37,3 +37,9 @@ temp/
 results/
 QualityControl/installed_R_packages_multiome2.csv
 installed_R_packages_multiome2_real.csv
+
+# local package inventory
+installed_R_packages_multiome2*.csv
+
+# generated analysis outputs
+QualityControl/
