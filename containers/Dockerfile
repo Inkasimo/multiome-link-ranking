@@ -1,4 +1,4 @@
-FROM rocker/r-ver:4.3.3
+FROM rocker/r-ver:4.4.3
 
 LABEL maintainer="Inkasimo" \
       org.opencontainers.image.title="multiome-link-ranking" \
@@ -39,7 +39,7 @@ COPY renv/activate.R /work/renv/activate.R
 COPY .Rprofile /work/.Rprofile
 
 RUN R -q -e '\
-renv::settings$bioconductor.version("3.18"); \
+renv::settings$bioconductor.version("3.20"); \
 renv::restore(project="/work", lockfile="/work/renv.lock", prompt=FALSE, rebuild=TRUE) \
 '
 
