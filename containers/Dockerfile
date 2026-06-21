@@ -11,7 +11,7 @@ ENV RENV_PATHS_CACHE=/opt/renv/cache
 ENV RENV_CONFIG_CACHE_SYMLINKS=FALSE
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    python3 python3-pip \
+    python3 python3-pip python3-venv \
     git curl wget ca-certificates \
     build-essential \
     zlib1g-dev libbz2-dev liblzma-dev \
@@ -27,10 +27,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN R -q -e "install.packages('renv', repos=Sys.getenv('RENV_CONFIG_REPOS_OVERRIDE'))"
 RUN R -q -e "install.packages('BiocManager', repos=Sys.getenv('RENV_CONFIG_REPOS_OVERRIDE'))"
 
-RUN pip3 install --no-cache-dir \
-    snakemake==7.32.4 \
-    pulp==2.7.0 \
-    "pyyaml>=6.0"
+ENV VIRTUAL_ENV=/opt/venv
+ENV PATH="/opt/venv/bin:${PATH}"
+
+RUN python3 -m venv /opt/venv && \
+    /opt/venv/bin/python -m pip install --upgrade pip setuptools wheel && \
+    /opt/venv/bin/python -m pip install --no-cache-dir \
+      snakemake==7.32.4 \
+      pulp==2.7.0 \
+      "pyyaml>=6.0"
 
 WORKDIR /work
 
