@@ -30,7 +30,7 @@ RUN R -q -e "install.packages('BiocManager', repos=Sys.getenv('RENV_CONFIG_REPOS
 RUN pip3 install --no-cache-dir \
     snakemake==7.32.4 \
     pulp==2.7.0 \
-    pyyaml>=6.0
+    "pyyaml>=6.0"
 
 WORKDIR /work
 
