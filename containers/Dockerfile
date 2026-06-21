@@ -20,7 +20,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpng-dev libjpeg-dev libtiff5-dev \
     libfreetype6-dev libharfbuzz-dev libfribidi-dev \
     pkg-config libfontconfig1-dev libcairo2-dev libglib2.0-dev \
-    libglpk-dev libgomp1 \
+    libglpk-dev libgomp1 libuv1-dev \
     tabix samtools bedtools \
     && rm -rf /var/lib/apt/lists/*
 
