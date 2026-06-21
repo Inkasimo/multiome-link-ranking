@@ -35,4 +35,5 @@ results/
 tmp/
 temp/
 results/
-QualityControl/
+QualityControl/installed_R_packages_multiome2.csv
+installed_R_packages_multiome2_real.csv
