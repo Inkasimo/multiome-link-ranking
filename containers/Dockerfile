@@ -11,7 +11,7 @@ ENV RENV_PATHS_CACHE=/opt/renv/cache
 ENV RENV_CONFIG_CACHE_SYMLINKS=FALSE
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    python3 python3-pip python3-venv \
+    python3 python3-pip python3-venv python3-dev \
     git curl wget ca-certificates \
     build-essential \
     zlib1g-dev libbz2-dev liblzma-dev \
