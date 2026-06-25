@@ -765,7 +765,7 @@
     },
     "RcppArmadillo": {
       "Package": "RcppArmadillo",
-      "Version": "15.4.0-1",
+      "Version": "14.6.3-1",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
@@ -775,7 +775,7 @@
         "stats",
         "utils"
       ],
-      "Hash": "43d8eef474955c50ce48955557a44686"
+      "Hash": "46b265783c8e3feb9c0c817a66bfe529"
     },
     "RcppEigen": {
       "Package": "RcppEigen",
