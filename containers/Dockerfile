@@ -40,6 +40,7 @@ RUN python3 -m venv /opt/venv && \
 WORKDIR /work
 
 COPY renv.lock /work/renv.lock
+COPY renv/vendor/ /work/renv/vendor/
 COPY renv/activate.R /work/renv/activate.R
 COPY .Rprofile /work/.Rprofile
 
