@@ -1,0 +1,93 @@
+configfile: "config/default.yaml"
+
+import os
+import yaml
+
+DATASET = config["dataset"]
+OUTROOT = config.get("output_root", "results")
+FEATURE_DIR = f"{OUTROOT}/{DATASET}/features"
+RANKING_DIR = f"{OUTROOT}/{DATASET}/rankings"
+
+with open(config.get("ablations_file", "config/ablations.yaml")) as handle:
+    ABLATION_CONFIG = yaml.safe_load(handle)
+
+ABLATIONS = ABLATION_CONFIG["ablations"]
+METHODS = list(ABLATIONS.keys())
+
+feature_csv = f"{FEATURE_DIR}/{DATASET}_link_features.csv"
+baseline_csv = f"{FEATURE_DIR}/{DATASET}_baseline_links_full.csv"
+baseline_dist_csv = f"{FEATURE_DIR}/{DATASET}_baseline_links_with_distance.csv"
+features_done = f"{FEATURE_DIR}/.done"
+
+rule all:
+    input:
+        features_done,
+        expand(f"{RANKING_DIR}/{{method}}/.done", method=METHODS)
+
+rule linkpeaks_reranker_features:
+    input:
+        h5=lambda wc: os.path.join(config["data_dir"], config["h5_file"]),
+        fragments=lambda wc: os.path.join(config["data_dir"], config["frag_file"]),
+        fragments_index=lambda wc: os.path.join(config["data_dir"], config["frag_file"] + ".tbi")
+    output:
+        features=feature_csv,
+        baseline=baseline_csv,
+        baseline_dist=baseline_dist_csv,
+        done=features_done
+    params:
+        checkpoint_flag=lambda wc: "--save-checkpoints" if config.get("save_checkpoints", False) else ""
+    shell:
+        r"""
+        Rscript scripts/run_linkpeaks_reranker.R \
+          --data-dir {config[data_dir]} \
+          --h5-file {config[h5_file]} \
+          --frag-file {config[frag_file]} \
+          --candidate-top-k {config[candidate_top_k]} \
+          --link-distance {config[link_distance]} \
+          --distance-d0 {config[distance_d0]} \
+          --cluster-resolution {config[cluster_resolution]} \
+          --pca-dims {config[pca_dims]} \
+          --lsi-dims-start {config[lsi_dims_start]} \
+          --lsi-dims-end {config[lsi_dims_end]} \
+          --species {config[species]} \
+          --collection {config[collection]} \
+          --tf-expressed-frac {config[tf_expressed_frac]} \
+          --top-k-motif-names {config[top_k_motif_names]} \
+          --output-dir {FEATURE_DIR} \
+          --run-name {DATASET} \
+          --seed {config[seed]} \
+          {params.checkpoint_flag} \
+          --done-file {output.done}
+        """
+
+rule evaluate_ranking:
+    input:
+        features=feature_csv,
+        baseline=baseline_csv,
+        baseline_dist=baseline_dist_csv,
+        features_done=features_done
+    output:
+        done=f"{RANKING_DIR}/{{method}}/.done"
+    params:
+        outdir=lambda wc: f"{RANKING_DIR}/{wc.method}",
+        run_name=lambda wc: f"{DATASET}_{wc.method}",
+        score_mode=lambda wc: ABLATIONS[wc.method].get("score_mode", wc.method),
+        lambda_distance=lambda wc: ABLATIONS[wc.method].get("lambda_distance", config["lambda_distance"]),
+        alpha_tf=lambda wc: ABLATIONS[wc.method].get("alpha_tf", config["alpha_tf"])
+    shell:
+        r"""
+        Rscript scripts/evaluate_rankings.R \
+          --features-file {input.features} \
+          --baseline-file {input.baseline} \
+          --baseline-distance-file {input.baseline_dist} \
+          --score-mode {params.score_mode} \
+          --lambda-distance {params.lambda_distance} \
+          --alpha-tf {params.alpha_tf} \
+          --ora-top-n {config[ora_top_n]} \
+          --ora-show-category {config[ora_show_category]} \
+          --tier-high-quantile {config[tier_high_quantile]} \
+          --tier-medium-quantile {config[tier_medium_quantile]} \
+          --output-dir {params.outdir} \
+          --run-name {params.run_name} \
+          --done-file {output.done}
+        """

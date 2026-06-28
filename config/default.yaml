@@ -1,0 +1,36 @@
+# Dataset / paths
+dataset: pbmc
+data_dir: data
+h5_file: filtered_feature_bc_matrix.h5
+frag_file: atac_fragments.tsv.gz
+output_root: results
+
+# LinkPeaks candidate generation
+candidate_top_k: 5000
+link_distance: 500000
+
+# Feature generation
+distance_d0: 50000
+cluster_resolution: 0.5
+pca_dims: 30
+lsi_dims_start: 2
+lsi_dims_end: 30
+species: 9606
+collection: CORE
+tf_expressed_frac: 0.10
+top_k_motif_names: 3
+seed: 42
+save_checkpoints: false
+
+# Default scoring parameters
+lambda_distance: 0.30
+alpha_tf: 0.50
+
+# ORA / evaluation
+ora_top_n: 100
+ora_show_category: 15
+tier_high_quantile: 0.90
+tier_medium_quantile: 0.70
+
+# Ablations file
+ablations_file: config/ablations.yaml
