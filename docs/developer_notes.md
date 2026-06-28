@@ -2179,3 +2179,348 @@ The current model is not ready to claim validated enhancer–gene links, but it 
 1. reproducible repo/workflow
 2. second dataset transfer test
 3. standalone cis-window candidate model
+
+## Cis-first standalone model; trans regulation deferred
+
+The first standalone model should remain a **cis peak–gene linker**, not a general genome-wide regulatory network model.
+
+### v1 scope: cis peak–gene linking
+
+The initial standalone model should generate candidate peak–gene pairs using a same-chromosome cis window, for example 100–500 kb around each gene. The score should remain interpretable:
+
+```text
+S_cis(p,g) =
+  coactivity(p,g)
+  × distance_prior(p,g)
+  × TF_motif_support(p,g)
+```
+
+where:
+
+```text
+p = peak
+g = gene
+coactivity(p,g) = accessibility/expression association across cells or metacells
+distance_prior(p,g) = decreasing function of genomic distance
+TF_motif_support(p,g) = motif/TF-expression support for the peak-gene pair
+```
+
+The current distance prior only makes biological and mathematical sense for cis links. It should not be stretched to cross-chromosome regulation because there is no meaningful linear genomic distance between chromosomes.
+
+### Why trans regulation is not v1
+
+Cross-chromosome regulation would require a different model layer. A TF gene on one chromosome can affect a target gene on another chromosome through protein activity and motif binding at local enhancers near the target gene. That is not the same object as a peak–gene distance-based cis link.
+
+Example:
+
+```text
+TF gene t on chr1
+→ TF protein/activity
+→ motif-bearing cis peak p near target gene g on chr7
+→ target gene g expression
+```
+
+This should not be modeled as:
+
+```text
+distant peak/gene across chromosomes → target gene
+```
+
+because the current distance metric is not valid for that case.
+
+### Possible v2 extension: TF-mediated regulatory layer
+
+After the cis linker works, a second layer could infer TF-to-gene regulatory edges using the cis links as substrate:
+
+```text
+TF t may regulate gene g if:
+  expression/activity of t is associated with expression of g
+  gene g has high-scoring cis peaks
+  those cis peaks contain motifs for t
+  those peaks are accessible in the relevant cells/clusters/metacells
+```
+
+Possible later score:
+
+```text
+S_trans(t,g) =
+  corr(expr_t, expr_g)
+  × max over cis peaks p near g [
+      cis_activity(p,g)
+      × motif_presence(t,p)
+      × accessibility_context(p)
+    ]
+```
+
+This would be closer to a chromatin-anchored gene regulatory network model. It is potentially interesting, especially given experience with co-expression networks, but it adds major complexity: TF motif family ambiguity, TF expression versus TF activity, indirect regulation, cell-type specificity, and a much larger multiple-testing burden.
+
+### Design decision
+
+For the current standalone model:
+
+```text
+Do:
+  build an interpretable cis peak–gene linker
+
+Do not:
+  attempt genome-wide trans regulatory inference in v1
+```
+
+The clean project roadmap is:
+
+```text
+Model/paper 1:
+  standalone interpretable cis peak–gene linking
+
+Model/paper 2:
+  TF-mediated regulatory network built on top of validated cis links
+```
+
+This keeps v1 tractable and publishable while preserving a natural extension path toward TF-mediated trans regulatory modeling.
+
+## Reranker benchmark cleanup notes: LinkPeaks candidate filtering and feature-table robustness
+
+The current `workflow-benchmark-pilot` branch should not be interrupted solely to fix candidate filtering issues. The current run can still serve as a useful smoke test / first full feature-generation run. These fixes should be applied before the next serious benchmark run.
+
+### Current benchmark framing
+
+The current branch is a **LinkPeaks-candidate reranker benchmark**, not the final standalone model.
+
+The main benchmark question is:
+
+```text
+Given a noisy LinkPeaks-derived candidate universe, can the reranker improve biological prioritization by combining coactivity, distance, and motif/TF support?
+```
+
+Therefore, the default benchmark should not be too tightly dependent on LinkPeaks significance filtering. If we filter only to highly significant LinkPeaks links, the benchmark becomes narrower:
+
+```text
+Among links LinkPeaks already calls significant, can the reranker reorder them?
+```
+
+That is useful as a sensitivity analysis, but it weakens the proof-of-concept for the later standalone model.
+
+### Candidate filtering decision
+
+Default candidate filtering should be:
+
+```text
+candidate_filter: positive_score
+candidate_top_k: 5000
+```
+
+Meaning:
+
+```text
+keep LinkPeaks candidates with finite positive LinkPeaks score
+then keep the top K by LinkPeaks score
+```
+
+Do not include negative or non-finite LinkPeaks scores in the main candidate set.
+
+A stricter sensitivity mode should also be supported:
+
+```text
+candidate_filter: significant
+```
+
+where available LinkPeaks statistics such as `pvalue`, `pvalue_adj`, or `zscore` are used to keep only stronger LinkPeaks calls.
+
+Recommended modes:
+
+```text
+candidate_filter:
+  none
+  positive_score
+  significant
+```
+
+Default:
+
+```text
+positive_score
+```
+
+### Preserve LinkPeaks statistics
+
+The feature-generation script should preserve all useful columns returned by `Links(obj)`, especially:
+
+```text
+score
+pvalue
+pvalue_adj
+zscore
+```
+
+These should be carried into the feature table where available, even if they are not used by the reranker score directly.
+
+This enables later checks:
+
+```text
+Does reranker performance hold on all positive LinkPeaks candidates?
+Does it hold on only LinkPeaks-significant candidates?
+Is the reranker simply reproducing LinkPeaks score?
+Does the reranker rescue biologically plausible links with weaker LinkPeaks statistics?
+```
+
+### Required robustness checks
+
+Add explicit checks immediately after extracting `Links(obj)`:
+
+```r
+links_df <- as.data.frame(Links(obj))
+
+if (nrow(links_df) == 0) {
+  stop("LinkPeaks returned zero peak-gene links.")
+}
+
+links_dt <- as.data.table(links_df)
+
+required_cols <- c("peak", "gene", "score")
+missing_cols <- setdiff(required_cols, names(links_dt))
+
+if (length(missing_cols) > 0) {
+  stop("Links object missing columns: ", paste(missing_cols, collapse = ", "))
+}
+```
+
+Then filter candidates according to config:
+
+```r
+candidate_filter <- opt$candidate_filter
+
+if (candidate_filter == "positive_score") {
+  links_dt <- links_dt[is.finite(score) & score > 0]
+} else if (candidate_filter == "significant") {
+  links_dt <- links_dt[is.finite(score) & score > 0]
+
+  if ("pvalue_adj" %in% names(links_dt)) {
+    links_dt <- links_dt[pvalue_adj < 0.05]
+  } else if ("pvalue" %in% names(links_dt)) {
+    links_dt <- links_dt[pvalue < 0.05]
+  } else if ("zscore" %in% names(links_dt)) {
+    links_dt <- links_dt[zscore > 0]
+  } else {
+    stop("candidate_filter='significant' requested, but no pvalue_adj, pvalue, or zscore column found.")
+  }
+} else if (candidate_filter == "none") {
+  links_dt <- links_dt[is.finite(score)]
+} else {
+  stop("Unknown candidate_filter: ", candidate_filter)
+}
+
+setorder(links_dt, peak, gene, -score)
+links_dt <- links_dt[, .SD[1], by = .(peak, gene)]
+setorder(links_dt, -score)
+
+if (nrow(links_dt) == 0) {
+  stop("No LinkPeaks candidates survived candidate_filter=", candidate_filter)
+}
+```
+
+### PCA/LSI dimension guard
+
+The WNN preprocessing should not assume the requested PCA/LSI dimensions exist.
+
+Replace fixed dimensions with bounded dimensions:
+
+```r
+pca_max <- ncol(Embeddings(obj, "pca"))
+lsi_max <- ncol(Embeddings(obj, "lsi"))
+
+pca_dims <- seq_len(min(opt$pca_dims, pca_max))
+lsi_dims <- opt$lsi_dims_start:min(opt$lsi_dims_end, lsi_max)
+
+if (length(pca_dims) < 2) {
+  stop("Not enough PCA dimensions available.")
+}
+
+if (length(lsi_dims) < 2) {
+  stop("Not enough LSI dimensions available.")
+}
+
+obj <- FindMultiModalNeighbors(
+  obj,
+  reduction.list = list("pca", "lsi"),
+  dims.list = list(pca_dims, lsi_dims)
+)
+```
+
+### Gene annotation and peak-drop reporting
+
+The script currently assigns missing gene annotations to infinite distance / zero distance score. That can silently bias results if many gene symbols do not match the annotation.
+
+Add reporting:
+
+```r
+missing_gene_frac <- mean(is.na(features$gene_chr))
+msg("Genes missing from TSS annotation: %.2f%%", 100 * missing_gene_frac)
+```
+
+For motif scoring, report dropped peaks:
+
+```r
+dropped_peak_frac <- 1 - length(peak_gr) / length(peak_ids)
+msg("Peaks dropped before motif scoring: %.2f%%", 100 * dropped_peak_frac)
+```
+
+Do not necessarily stop on these values unless they are very high, but always log them.
+
+### Motif/TF feature naming
+
+Current motif/TF features are peak-level, not gene-specific. Every gene linked to the same peak receives the same motif/TF support.
+
+Rename columns to make this explicit:
+
+```text
+motif_score  -> peak_motif_score
+tf_score     -> peak_tf_score
+motif_names  -> peak_top_motifs
+```
+
+For v1, this is acceptable as **peak-level regulatory support**. It should not be described as gene-specific TF regulation.
+
+Gene-specific TF-to-gene regulation belongs to a later TF-mediated GRN layer, not the initial standalone cis linker.
+
+### Duplicate motif names
+
+JASPAR can contain multiple motifs with the same TF name. Avoid duplicate column names by using unique motif labels:
+
+```r
+motif_ids <- names(pfm_list)
+motif_names <- vapply(pfm_list, name, character(1))
+motif_labels <- make.unique(paste0(motif_names, "|", motif_ids))
+colnames(motif_score_mat) <- motif_labels
+```
+
+### TSS distance caveat
+
+The current distance calculation uses one selected transcript/TSS per gene. This can be wrong for genes with alternative promoters.
+
+For the standalone model, distance should eventually use:
+
+```text
+minimum distance from peak to any TSS of the linked gene
+```
+
+This is not the highest-priority fix for the current reranker branch, but it matters for the standalone model.
+
+### Priority order
+
+Before the next serious benchmark run, implement:
+
+```text
+1. zero-link and missing-column checks after Links(obj)
+2. positive LinkPeaks score filter as default candidate_filter
+3. preserve pvalue / pvalue_adj / zscore if present
+4. configurable candidate_filter: none / positive_score / significant
+5. dynamic PCA/LSI dimension bounds
+6. missing gene annotation and dropped peak reporting
+7. rename motif/TF columns as peak-level features
+8. unique motif labels
+9. minimum-distance-to-any-TSS later, especially for standalone model
+```
+
+### Do not stop current run just for these fixes
+
+The current run should be allowed to finish if it is not crashing. Treat it as a smoke test. The fixes above are for improving benchmark rigor and avoiding silent bias before the next formal run.
