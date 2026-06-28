@@ -926,7 +926,7 @@
       "Source": "Local",
       "Repository": "CRAN",
       "RemoteType": "local",
-      "RemoteUrl": "renv/vendor/Seurat_5.4.0.tar.gz",
+      "RemoteUrl": "/mnt/g/multiome_test/renv/vendor/Seurat_5.4.0.tar.gz",
       "Requirements": [
         "KernSmooth",
         "MASS",
@@ -993,7 +993,7 @@
       "Source": "Local",
       "Repository": "CRAN",
       "RemoteType": "local",
-      "RemoteUrl": "renv/vendor/SeuratObject_5.4.0.tar.gz",
+      "RemoteUrl": "/mnt/g/multiome_test/renv/vendor/SeuratObject_5.4.0.tar.gz",
       "Requirements": [
         "Matrix",
         "R",
@@ -1022,7 +1022,7 @@
       "Source": "Local",
       "Repository": "CRAN",
       "RemoteType": "local",
-      "RemoteUrl": "renv/vendor/Signac_1.16.0.tar.gz",
+      "RemoteUrl": "/mnt/g/multiome_test/renv/vendor/Signac_1.16.0.tar.gz",
       "Requirements": [
         "BiocGenerics",
         "GenomeInfoDb",
@@ -1143,7 +1143,7 @@
       "Source": "Local",
       "Repository": "CRAN",
       "RemoteType": "local",
-      "RemoteUrl": "renv/vendor/TFMPvalue_0.0.9.tar.gz",
+      "RemoteUrl": "/mnt/g/multiome_test/renv/vendor/TFMPvalue_0.0.9.tar.gz",
       "Requirements": [
         "R",
         "Rcpp"
@@ -2287,6 +2287,20 @@
       ],
       "Hash": "588d091c35389f1f4a9d533c8d709b35"
     },
+    "hdf5r": {
+      "Package": "hdf5r",
+      "Version": "1.3.12",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "R6",
+        "bit64",
+        "methods",
+        "utils"
+      ],
+      "Hash": "697780d27f201a778615764861718401"
+    },
     "here": {
       "Package": "here",
       "Version": "1.0.2",
@@ -3043,6 +3057,16 @@
         "withr"
       ],
       "Hash": "4425ad9e28b8e3351184ca2739995b87"
+    },
+    "renv": {
+      "Package": "renv",
+      "Version": "1.0.3",
+      "Source": "Repository",
+      "Repository": "RSPM",
+      "Requirements": [
+        "utils"
+      ],
+      "Hash": "41b847654f567341725473431dd0d5ab"
     },
     "reshape2": {
       "Package": "reshape2",

@@ -4,6 +4,7 @@ data_dir: data
 h5_file: filtered_feature_bc_matrix.h5
 frag_file: atac_fragments.tsv.gz
 output_root: results
+default_score_mode: full
 
 # LinkPeaks candidate generation
 candidate_top_k: 5000

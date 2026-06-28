@@ -65,6 +65,10 @@ opt <- parse_args(OptionParser(option_list = option_list))
 names(opt) <- gsub("-", "_", names(opt), fixed = TRUE)
 set.seed(opt$seed)
 
+options(future.globals.maxSize = 8 * 1024^3)
+options(future.rng.onMisuse = "ignore")
+
+
 dir.create(opt$output_dir, showWarnings = FALSE, recursive = TRUE)
 
 feature_file <- file.path(opt$output_dir, sprintf("%s_link_features.csv", opt$run_name))

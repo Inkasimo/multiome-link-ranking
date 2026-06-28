@@ -20,7 +20,7 @@ option_list <- list(
   make_option(c("--baseline-distance-file"), type = "character", default = file.path("results", "pbmc", "features", "pbmc_baseline_links_with_distance.csv"),
               help = "Full LinkPeaks baseline table with distance columns"),
   make_option(c("--score-mode"), type = "character", default = "full",
-              help = "One of: linkpeaks, coactivity, coactivity_distance, coactivity_tf, distance_only, full"),
+              help = "One of: linkpeaks, coactivity, coactivity_distance, coactivity_tf, distance_only, full, full_linkpeaks_anchored"),
   make_option(c("--lambda-distance"), type = "double", default = 0.30,
               help = "Strength of distance modifier [default %default]"),
   make_option(c("--alpha-tf"), type = "double", default = 0.50,
@@ -53,6 +53,20 @@ msg <- function(...) cat(sprintf(...), "\n")
 
 require_file <- function(path) {
   if (!file.exists(path)) stop("File not found: ", path)
+}
+
+rescale01 <- function(x) {
+  x <- as.numeric(x)
+  x[!is.finite(x)] <- NA_real_
+  rng <- range(x, na.rm = TRUE)
+  if (!all(is.finite(rng)) || diff(rng) == 0) {
+    out <- rep(0, length(x))
+    out[is.na(x)] <- 0
+    return(out)
+  }
+  out <- (x - rng[1]) / diff(rng)
+  out[is.na(out)] <- 0
+  out
 }
 
 assign_tiers <- function(score_vec, high_q = 0.90, medium_q = 0.70) {
@@ -126,6 +140,15 @@ get_rank_table <- function(features, baseline_dist, mode, lambda_distance, alpha
       dt[, model_score := mul_weigh * (1 + alpha_tf * tf_score)]
     } else if (mode == "full") {
       dt[, model_score := mul_weigh * ((1 - lambda_distance) + lambda_distance * distance_score) * (1 + alpha_tf * tf_score)]
+    } else if (mode == "full_linkpeaks_anchored") {
+      dt[, link_score_scaled := rescale01(link_score)]
+      dt[, mul_weigh_scaled := rescale01(mul_weigh)]
+      dt[, model_score :=
+        link_score_scaled *
+        (0.5 + 0.5 * mul_weigh_scaled) *
+        ((1 - lambda_distance) + lambda_distance * distance_score) *
+        (1 + alpha_tf * tf_score)
+      ]
     } else {
       stop("Unknown score-mode: ", mode)
     }
