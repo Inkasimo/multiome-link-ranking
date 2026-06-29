@@ -447,3 +447,237 @@ The current reranker result is not encouraging.
 The strongest honest conclusion is:
 
 > The current reranker produces interpretable but unconvincing reshuffling of LinkPeaks candidates. It should not be optimized further as the main method. Future work should either audit for systematic bugs, stop the project, or move to a genuinely standalone candidate-generation model.
+
+## Modified distance ablation finding
+
+### Purpose
+
+A modified distance prior was added to test whether the distance component could be made less aggressively promoter-biased while still contributing useful genomic plausibility.
+
+The original distance formulation was:
+
+```text
+old_distance_modifier = (1 - lambda_distance) + lambda_distance * distance_score
+```
+
+This only penalizes distal links. Nearby links are preserved, while distant links are downweighted.
+
+The modified distance formulation was:
+
+```text
+modified_distance_modifier = 1 + lambda_distance * (distance_score - 0.5)
+```
+
+This makes distance act more symmetrically:
+
+```text
+nearby links  -> mild boost
+mid-distance  -> approximately unchanged
+distal links  -> mild penalty
+```
+
+The goal was not to make distance dominate, but to test whether a smoother distance prior could retain more distal regulatory candidates than the original full model.
+
+### New ablations added
+
+The following new modes were added:
+
+```text
+distance_mod_only_lambda_0_1
+full_moddist_lambda_0_1
+full_moddist_lambda_0_2
+```
+
+The main intended comparison set is now:
+
+```text
+linkpeaks
+coactivity
+coactivity_tf
+full_lambda_0_1
+full_lambda_0_2
+full_moddist_lambda_0_1
+full_moddist_lambda_0_2
+distance_only
+distance_mod_only_lambda_0_1
+```
+
+### Main finding
+
+The modified distance prior behaves correctly, but it does not radically change the ranking at lambda 0.1.
+
+`full_moddist_lambda_0_1` is very similar to `full_lambda_0_1` in top-ranked behavior. This is expected because the near-vs-far ranking pressure is almost the same at lambda 0.1 under the old and modified formulas.
+
+At lambda 0.2, the modified distance prior is somewhat less harsh than the original distance prior. It preserves slightly more distal links than `full_lambda_0_2`, but it still shifts rankings strongly toward promoter-proximal links.
+
+### Distance behavior summary
+
+Observed pattern:
+
+```text
+coactivity_tf:
+  no distance prior
+  preserves the most distal links among plausible reranker variants
+
+full_lambda_0_1:
+  mild original distance prior
+  reduces distal fraction noticeably
+
+full_moddist_lambda_0_1:
+  modified distance prior
+  very similar to full_lambda_0_1
+
+full_lambda_0_2:
+  stronger original distance prior
+  strongly promoter-proximal
+
+full_moddist_lambda_0_2:
+  less harsh than full_lambda_0_2
+  but still substantially distance-biased
+
+full / lambda 0.3:
+  too aggressive
+  should be treated as a distance-pressure sensitivity run, not as the preferred model
+```
+
+Approximate top-ranked behavior from the PBMC validation run:
+
+```text
+coactivity_tf:
+  top50 median distance ~11.3 kb
+  top50 distal fraction >50 kb ~32%
+
+full_lambda_0_1:
+  top50 median distance ~5.9 kb
+  top50 distal fraction >50 kb ~20%
+
+full_moddist_lambda_0_1:
+  top50 median distance ~5.9 kb
+  top50 distal fraction >50 kb ~20%
+
+full_lambda_0_2:
+  top50 median distance ~3.1 kb
+  top50 distal fraction >50 kb ~6%
+
+full_moddist_lambda_0_2:
+  top50 median distance ~3.8 kb
+  top50 distal fraction >50 kb ~10%
+```
+
+### Interpretation
+
+The modified distance prior does not invalidate the earlier conclusion that distance is a strong and potentially dangerous component.
+
+Distance is clearly doing real work. It changes rankings and pushes top links toward shorter genomic distances. This is biologically plausible up to a point, but it can easily become promoter-proximity bias.
+
+The motif/TF component is also doing real work. `coactivity_tf` changes the ranking relative to coactivity alone and promotes links with higher TF/motif support. This supports keeping motif/TF support as a real scoring component rather than treating it as cosmetic.
+
+The current evidence suggests:
+
+```text
+coactivity = core signal
+TF/motif support = useful modifier
+distance = useful but risky prior
+modified distance = cleaner formulation, but not a decisive improvement yet
+```
+
+### Current method decision
+
+For the next validation step, the primary full-method candidate should be:
+
+```text
+full_moddist_lambda_0_1
+```
+
+Reason:
+
+```text
+It matches the intended biological model:
+coactivity × TF/motif support × mild distance prior
+```
+
+The most important ablation should be:
+
+```text
+coactivity_tf
+```
+
+Reason:
+
+```text
+It tests whether adding distance improves or hurts after coactivity and TF/motif support are already present.
+```
+
+The required controls are:
+
+```text
+linkpeaks
+coactivity
+distance_only
+```
+
+Reason:
+
+```text
+linkpeaks = source-method baseline
+coactivity = core signal only
+distance_only = promoter-proximity control
+```
+
+### What not to claim
+
+Do not claim that the modified distance model has proven superiority over LinkPeaks.
+
+Do not claim that the distance prior is solved.
+
+Do not claim that lambda 0.2 or lambda 0.3 are preferred.
+
+Do not use ORA alone as evidence that distance improves the model.
+
+### SCENT decision rule
+
+The next validation should ask:
+
+```text
+Does full_moddist_lambda_0_1 rank SCENT-supported links above unsupported links?
+```
+
+Critical comparison:
+
+```text
+full_moddist_lambda_0_1 vs coactivity_tf
+```
+
+Interpretation:
+
+```text
+If full_moddist_lambda_0_1 beats coactivity_tf after distance matching:
+  the mild distance prior is adding useful biological signal.
+
+If coactivity_tf beats full_moddist_lambda_0_1 after distance matching:
+  distance is mostly adding bias.
+
+If both beat distance_only:
+  coactivity/TF signal is likely real.
+
+If neither beats LinkPeaks or distance_only:
+  stop tuning the reranker and salvage the feature engineering only.
+```
+
+### Practical conclusion
+
+The modified distance experiment was useful. It showed that changing the distance formulation can reduce harshness at stronger lambda values, but lambda remains the main sensitivity point.
+
+The best current full-method candidate is:
+
+```text
+full_moddist_lambda_0_1
+```
+
+The best no-distance comparator is:
+
+```text
+coactivity_tf
+```
+
+The next step is not more distance tuning. The next step is SCENT validation with distance-matched analysis.

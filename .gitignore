@@ -45,6 +45,9 @@ installed_R_packages_multiome2*.csv
 QualityControl/
 .snakemake/
 
+# tarballs
+tarballs/
+
 # Local result bundles
 pbmc_ablation_results_check.tar.gz
 pbmc_ablation_plus_lambda_results_check.tar.gz

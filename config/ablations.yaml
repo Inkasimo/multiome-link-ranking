@@ -8,6 +8,11 @@ ablations:
   distance_only:
     score_mode: distance_only
 
+  distance_mod_only_lambda_0_1:
+    score_mode: distance_mod_only
+    lambda_distance: 0.10
+    alpha_tf: 0.00
+
   coactivity_distance:
     score_mode: coactivity_distance
     lambda_distance: 0.30
@@ -21,4 +26,24 @@ ablations:
   full:
     score_mode: full
     lambda_distance: 0.30
+    alpha_tf: 0.50
+
+  full_lambda_0_1:
+    score_mode: full
+    lambda_distance: 0.10
+    alpha_tf: 0.50
+
+  full_lambda_0_2:
+    score_mode: full
+    lambda_distance: 0.20
+    alpha_tf: 0.50
+
+  full_moddist_lambda_0_1:
+    score_mode: full_moddist
+    lambda_distance: 0.10
+    alpha_tf: 0.50
+
+  full_moddist_lambda_0_2:
+    score_mode: full_moddist
+    lambda_distance: 0.20
     alpha_tf: 0.50

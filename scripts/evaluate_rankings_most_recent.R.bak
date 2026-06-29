@@ -20,7 +20,7 @@ option_list <- list(
   make_option(c("--baseline-distance-file"), type = "character", default = file.path("results", "pbmc", "features", "pbmc_baseline_links_with_distance.csv"),
               help = "Full LinkPeaks baseline table with distance columns; used only for diagnostics / compatibility"),
   make_option(c("--score-mode"), type = "character", default = "full",
-              help = "One of: linkpeaks, coactivity, coactivity_distance, coactivity_tf, distance_only, distance_mod_only, full, full_moddist, full_linkpeaks_anchored"),
+              help = "One of: linkpeaks, coactivity, coactivity_distance, coactivity_tf, distance_only, full, full_linkpeaks_anchored"),
   make_option(c("--lambda-distance"), type = "double", default = 0.30,
               help = "Strength of distance modifier [default %default]"),
   make_option(c("--alpha-tf"), type = "double", default = 0.50,
@@ -74,13 +74,6 @@ rescale01 <- function(x) {
   out <- (x - rng[1]) / diff(rng)
   out[is.na(out)] <- 0
   out
-}
-
-calc_distance_modifier <- function(distance_score, lambda_distance) {
-  # Symmetric distance modifier around distance_score = 0.5.
-  # Nearby links are mildly boosted; distant links are mildly penalized.
-  # Example: lambda=0.10 gives range approximately 0.95-1.05.
-  1 + lambda_distance * (as.numeric(distance_score) - 0.5)
 }
 
 rank_desc <- function(x) {
@@ -280,7 +273,6 @@ summarize_link_set <- function(dt, set_label, top_n = NA_integer_) {
   link_score <- get_numeric_col(dt, "link_score")
   mul_weigh <- get_numeric_col(dt, "mul_weigh")
   distance_score <- get_numeric_col(dt, "distance_score")
-  distance_modifier <- get_numeric_col(dt, "distance_modifier")
   tf_score <- get_numeric_col(dt, "tf_score")
   motif_score <- get_numeric_col(dt, "motif_score")
   peak_tf_score <- get_numeric_col(dt, "peak_tf_score")
@@ -301,7 +293,6 @@ summarize_link_set <- function(dt, set_label, top_n = NA_integer_) {
     median_link_score = safe_median_num(link_score),
     median_coactivity = safe_median_num(mul_weigh),
     median_distance_score = safe_median_num(distance_score),
-    median_distance_modifier = safe_median_num(distance_modifier),
     median_tf_score = safe_median_num(tf_score),
     mean_tf_score = safe_mean_num(tf_score),
     median_motif_score = safe_median_num(motif_score),
@@ -360,7 +351,7 @@ write_validation_outputs <- function(ranked, output_dir, run_name) {
   inspection_cols <- intersect(c(
     "direction", "peak", "gene", "distance_bin", "distance_bp",
     "rank_model", "rank_link", "rank_diff_vs_linkpeaks", "tier",
-    "model_score", "link_score", "mul_weigh", "distance_score", "distance_modifier",
+    "model_score", "link_score", "mul_weigh", "distance_score",
     "tf_score", "motif_score", "peak_tf_score", "peak_motif_score", "motif_names", "peak_top_motifs"
   ), names(inspection_dt))
   fwrite(inspection_dt[, ..inspection_cols], file.path(output_dir, sprintf("%s_validation_promoted_demoted_inspection.csv", run_name)))
@@ -441,7 +432,7 @@ write_validation_outputs <- function(ranked, output_dir, run_name) {
 
   # 5) Component-correlation diagnostics to catch distance or LinkPeaks domination.
   component_cols <- intersect(c(
-    "link_score", "mul_weigh", "distance_score", "distance_modifier", "distance_bp",
+    "link_score", "mul_weigh", "distance_score", "distance_bp",
     "tf_score", "motif_score", "peak_tf_score", "peak_motif_score"
   ), names(ranked_v))
 
@@ -492,10 +483,6 @@ get_rank_table <- function(features, mode, lambda_distance, alpha_tf, high_q, me
   } else if (mode == "distance_only") {
     dt[, model_score := distance_score]
 
-  } else if (mode == "distance_mod_only") {
-    dt[, distance_modifier := calc_distance_modifier(distance_score, lambda_distance)]
-    dt[, model_score := distance_modifier]
-
   } else if (mode == "coactivity") {
     dt[, model_score := mul_weigh]
 
@@ -515,14 +502,6 @@ get_rank_table <- function(features, mode, lambda_distance, alpha_tf, high_q, me
     dt[, model_score :=
       mul_weigh *
       ((1 - lambda_distance) + lambda_distance * distance_score) *
-      (1 + alpha_tf * tf_score)
-    ]
-
-  } else if (mode == "full_moddist") {
-    dt[, distance_modifier := calc_distance_modifier(distance_score, lambda_distance)]
-    dt[, model_score :=
-      mul_weigh *
-      distance_modifier *
       (1 + alpha_tf * tf_score)
     ]
 
