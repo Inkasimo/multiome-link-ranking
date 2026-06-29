@@ -3,30 +3,40 @@ configfile: "config/default.yaml"
 import os
 import yaml
 
-DATASET = config["dataset"]
-OUTROOT = config.get("output_root", "results")
+DATASET = str(config["dataset"]).strip()
+OUTROOT = str(config.get("output_root", "results")).strip()
 
 FEATURE_DIR = os.path.join(OUTROOT, DATASET, "features")
 RANKING_DIR = os.path.join(OUTROOT, DATASET, "rankings")
 
-with open(config.get("ablations_file", "config/ablations.yaml")) as handle:
-    ABLATION_CONFIG = yaml.safe_load(handle)
+SCORE_MODES_FILE = config.get(
+    "score_modes_file",
+    config.get("ablations_file", "config/ablations.yaml")
+)
 
-ABLATIONS = ABLATION_CONFIG["ablations"]
-METHODS = list(ABLATIONS.keys())
+with open(SCORE_MODES_FILE) as handle:
+    SCORE_MODES_CONFIG = yaml.safe_load(handle) or {}
 
-feature_csv = os.path.join(FEATURE_DIR, f"{DATASET}_link_features.csv")
-baseline_csv = os.path.join(FEATURE_DIR, f"{DATASET}_baseline_links_full.csv")
-baseline_dist_csv = os.path.join(FEATURE_DIR, f"{DATASET}_baseline_links_with_distance.csv")
-features_done = os.path.join(FEATURE_DIR, ".done")
+SCORE_MODES = SCORE_MODES_CONFIG.get(
+    "score_modes",
+    SCORE_MODES_CONFIG.get("ablations", {})
+)
 
-ranking_done = os.path.join(RANKING_DIR, "{method}", ".done")
+RANK_MODES = list(SCORE_MODES.keys())
+
+feature_csv = "results/pbmc/features/pbmc_link_features.csv"
+baseline_csv = "results/pbmc/features/pbmc_baseline_links_full.csv"
+baseline_dist_csv = "results/pbmc/features/pbmc_baseline_links_with_distance.csv"
+features_done = "results/pbmc/features/.done"
+
+
+ranking_done = os.path.join(RANKING_DIR, "{rank_mode}", ".done")
 
 
 rule all:
     input:
         features_done,
-        expand(ranking_done, method=METHODS)
+        expand(ranking_done, rank_mode=RANK_MODES)
 
 
 rule linkpeaks_reranker_features:
@@ -75,11 +85,11 @@ rule evaluate_ranking:
     output:
         done=ranking_done
     params:
-        outdir=lambda wc: os.path.join(RANKING_DIR, wc.method),
-        run_name=lambda wc: f"{DATASET}_{wc.method}",
-        score_mode=lambda wc: ABLATIONS[wc.method].get("score_mode", wc.method),
-        lambda_distance=lambda wc: ABLATIONS[wc.method].get("lambda_distance", config["lambda_distance"]),
-        alpha_tf=lambda wc: ABLATIONS[wc.method].get("alpha_tf", config["alpha_tf"])
+        outdir=lambda wc: os.path.join(RANKING_DIR, wc.rank_mode),
+        run_name=lambda wc: f"{DATASET}_{wc.rank_mode}",
+        score_mode=lambda wc: SCORE_MODES[wc.rank_mode].get("score_mode", wc.rank_mode),
+        lambda_distance=lambda wc: SCORE_MODES[wc.rank_mode].get("lambda_distance", config["lambda_distance"]),
+        alpha_tf=lambda wc: SCORE_MODES[wc.rank_mode].get("alpha_tf", config["alpha_tf"])
     shell:
         r"""
         Rscript scripts/evaluate_rankings.R \

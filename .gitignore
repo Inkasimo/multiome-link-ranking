@@ -43,3 +43,4 @@ installed_R_packages_multiome2*.csv
 
 # generated analysis outputs
 QualityControl/
+.snakemake/
