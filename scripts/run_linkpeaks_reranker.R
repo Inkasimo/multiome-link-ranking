@@ -1,5 +1,9 @@
 #!/usr/bin/env Rscript
 
+options(timeout = 600)
+Sys.setenv("R_DEFAULT_INTERNET_TIMEOUT" = "600")
+
+
 suppressPackageStartupMessages({
   library(optparse)
   library(data.table)
