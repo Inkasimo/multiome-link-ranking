@@ -91,17 +91,13 @@ def main() -> int:
             "run_score_mode",
             "run_all_score_modes",
             "run_reranker_score_suite",
-            "run_scent_validation",
-            "run_reranker_with_scent",
             "list_score_modes",
-            "list_scent_methods",
             "unlock",
         ],
         help=(
             "What to run: build_linkpeaks_features, run_default_score, "
             "run_score_mode, run_all_score_modes, run_reranker_score_suite, "
-            "run_scent_validation, run_reranker_with_scent, "
-            "list_score_modes, list_scent_methods, unlock."
+            "list_score_modes, unlock."
         ),
     )
 
@@ -211,26 +207,6 @@ def main() -> int:
         for mode in modes
     ]
 
-    scent_config_file = cfg.get("scent_validation_config", "config/scent_validation.yaml")
-    scent_cfg = {}
-    if (repo_root / scent_config_file).exists():
-        try:
-            scent_raw = load_yaml(scent_config_file)
-            scent_cfg = scent_raw.get("scent_validation", scent_raw)
-        except Exception as e:
-            print(f"ERROR: could not read SCENT validation config {scent_config_file}: {e}", file=sys.stderr)
-            return 2
-
-    scent_methods = [str(x) for x in scent_cfg.get(
-        "methods",
-        ["linkpeaks", "coactivity", "coactivity_tf", "full_moddist_lambda_0_1", "distance_only"],
-    )]
-    scent_output_dir = scent_cfg.get(
-        "output_dir",
-        f"{output_root}/{dataset}/scent_validation",
-    )
-    scent_done = f"{scent_output_dir}/.done"
-
     if args.section == "list_score_modes":
         print(f"Default score mode: {default_score_mode}")
         print("Available score modes:")
@@ -247,22 +223,6 @@ def main() -> int:
                 f"lambda_distance={lambda_distance}, "
                 f"alpha_tf={alpha_tf})"
             )
-        return 0
-
-    if args.section == "list_scent_methods":
-        print(f"SCENT validation config: {scent_config_file}")
-        print(f"SCENT output done target: {scent_done}")
-        print("SCENT validation methods:")
-        missing = []
-        for mode in scent_methods:
-            status = "" if mode in modes else " [MISSING from score modes]"
-            if mode not in modes:
-                missing.append(mode)
-            print(f"  - {mode}{status}")
-        if missing:
-            print("ERROR: these SCENT methods are not present in the ablations/score modes file:", file=sys.stderr)
-            print("  " + ", ".join(missing), file=sys.stderr)
-            return 2
         return 0
 
     if not docker_bind_mount_works(repo_root, args.image):
@@ -323,20 +283,6 @@ def main() -> int:
 
     elif args.section == "run_reranker_score_suite":
         targets = ["all"]
-
-    elif args.section == "run_scent_validation":
-        missing = [m for m in scent_methods if m not in modes]
-        if missing:
-            print("ERROR: SCENT validation methods missing from score modes: " + ", ".join(missing), file=sys.stderr)
-            return 2
-        targets = [scent_done]
-
-    elif args.section == "run_reranker_with_scent":
-        missing = [m for m in scent_methods if m not in modes]
-        if missing:
-            print("ERROR: SCENT validation methods missing from score modes: " + ", ".join(missing), file=sys.stderr)
-            return 2
-        targets = ["all", scent_done]
 
     else:
         print(f"ERROR: unhandled section: {args.section}", file=sys.stderr)

@@ -1,0 +1,39 @@
+# SCENT validation configuration.
+# This is intentionally separate from config/ablations.yaml because SCENT is an
+# external validation stage, not a score-mode definition file.
+
+scent_validation:
+  # Directory containing per-chromosome SCENT output files named scent_links_chr*.csv.
+  # Change this to the actual SCENT sweep output directory in your repo.
+  scent_sweep_dir: results/scent_chr_sweep_100kb_frac020_1000cells
+
+  # Output directory for integrated reranker-vs-SCENT validation summaries.
+  output_dir: results/pbmc/scent_validation
+
+  # Ranking modes to compare against SCENT. These names must exist in config/ablations.yaml
+  # and therefore in results/<dataset>/rankings/<mode>/ after evaluation.
+  methods:
+    - linkpeaks
+    - coactivity
+    - coactivity_tf
+    - full_moddist_lambda_0_1
+    - full_lambda_0_1
+    - distance_only
+
+  # Top-N summaries to write.
+  top_n_values: [50, 100, 200]
+  top_k_compare: 200
+
+  # Peak-overlap matching against SCENT. A reranker peak is SCENT-supported when
+  # the gene matches and the peak overlaps a SCENT peak reciprocally by this fraction.
+  reciprocal_overlap: 0.50
+
+  # Distance behavior summaries.
+  distal_threshold: 50000
+  distance_d0: 50000
+
+  # Restrict ranked methods to chromosomes present in SCENT outputs.
+  restrict_to_scent_chrs: true
+
+  # Write full per-method tables with SCENT labels. This can be large, so default false.
+  write_standardized_links: false
