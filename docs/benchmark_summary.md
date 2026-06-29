@@ -300,3 +300,150 @@ Current provisional design choices:
 * do not use ORA as the primary validation criterion
 
 The next real method step, after the link-level validation package, is to replace LinkPeaks candidate generation with an own cis-window candidate generator and test whether the same scoring logic still works without LinkPeaks defining the candidate universe.
+
+## Negative interpretation of current reranker benchmark
+
+### Current conclusion
+
+The current LinkPeaks-candidate reranker does **not** provide convincing evidence of improvement over LinkPeaks.
+
+The reranker produces interpretable score behavior, but the biological validation does not support a strong positive claim. The most accurate interpretation is:
+
+> The model reshuffles LinkPeaks-derived candidate links using biologically motivated features, but the reshuffling is not clearly beneficial.
+
+This means the reranker should not be treated as the final method.
+
+### What failed to look convincing
+
+The main issue is that the modes expected to be most interesting do not clearly outperform the LinkPeaks baseline.
+
+Observed pattern:
+
+* `linkpeaks` remains biologically coherent by the available weak metrics.
+* `coactivity` stays close to LinkPeaks but does not clearly improve it.
+* `coactivity_tf` adds TF/motif influence but appears to weaken ORA-style biological signal.
+* `full_lambda_0_1` gives a milder distance prior but still does not show clear improvement.
+* `full_lambda_0_2` and `full` recover some gene-level enrichment but mainly by becoming more promoter-proximal.
+* `distance_only` behaves as expected: mostly promoter-proximal and biologically weak.
+
+The result is not random chaos, but it is also not a clear win.
+
+### Main failure mode
+
+The reranker appears to be doing biologically interpretable reshuffling rather than demonstrably better prioritization.
+
+The score components behave in the intended direction:
+
+* coactivity contributes real ranking structure
+* TF/motif support shifts rankings
+* distance regularization strongly affects prioritization
+* distance-only is a poor control
+
+However, the combined score does not produce a convincing biological improvement over LinkPeaks.
+
+This suggests that the current reranking formulation is not strong enough as a standalone result.
+
+### Why this is not publishable as-is
+
+The current result is too easy to criticize.
+
+Main weaknesses:
+
+* No clear improvement over LinkPeaks.
+* Gene-only ORA is weak and cannot validate peak-gene links.
+* Top-ranked reranker outputs may lose immune/PBMC enrichment compared with LinkPeaks.
+* Stronger distance settings improve some summaries but mostly by pushing links closer to promoters.
+* LinkPeaks defines the candidate universe, so the reranker is constrained by and compared back to the same method.
+* The most promising modes are not obviously better than the baseline.
+* The result supports “interpretable behavior,” not “better method.”
+
+Therefore, the reranker should not be framed as a successful method.
+
+### What the benchmark still taught
+
+The work was not completely useless.
+
+It established several important points:
+
+* The pipeline now runs reproducibly.
+* The candidate universe is controlled.
+* Score modes can be compared on the same 5,000 peak-gene pairs.
+* Distance-only is a useful negative/control ranking.
+* Coactivity is a real signal, but not enough to prove improvement.
+* TF/motif support can modify rankings, but does not rescue the current model.
+* Distance must be used carefully; aggressive distance weighting collapses toward promoter-proximal links.
+* ORA is not a sufficient validation strategy for peak-gene linking.
+
+This is a useful diagnostic result, but not a successful reranker result.
+
+### Decision
+
+Stop polishing this reranker.
+
+Do not spend more time on:
+
+* more lambda tuning
+* more alpha tuning
+* more ORA interpretation
+* trying to force the reranker to look better
+* treating this as the final method
+
+The reranker should be frozen as a prototype / diagnostic branch.
+
+### Honest project status
+
+Current status:
+
+> The LinkPeaks reranker did not demonstrate a convincing biological improvement. It should be treated as a negative or weak diagnostic result. The useful pieces are the feature calculations, evaluation harness, and lessons about score behavior, not the reranker itself.
+
+### Possible next paths
+
+There are only three rational next choices.
+
+#### Option A — Archive / stop
+
+Stop the project here.
+
+This is defensible if the goal was specifically to produce a LinkPeaks reranker.
+
+Conclusion:
+
+> Reranking LinkPeaks candidates with the current coactivity × distance × TF/motif score was not strong enough to justify further development.
+
+#### Option B — Audit for bugs first
+
+Before fully trusting the negative result, run a systematic audit.
+
+Check:
+
+* candidate pairs are identical across modes
+* score formulas are implemented exactly
+* rank columns match score order
+* RNA and ATAC cell orders are aligned
+* peak identifiers match TF/motif scores
+* distance scores decrease correctly with genomic distance
+* no stale outputs are being interpreted
+
+If a systematic bug is found, fix and rerun.
+
+If no bug is found, accept the weak result.
+
+#### Option C — Stop reranker work and test standalone candidate generation
+
+Only continue if the goal changes from “rerank LinkPeaks” to “build an own cis-window peak-gene linker.”
+
+The next valid method question would be:
+
+> Does the same coactivity / TF / mild-distance logic work when LinkPeaks no longer defines the candidate universe?
+
+This would require a separate minimal standalone candidate-mode test.
+
+But this should not be framed as rescuing the reranker. It is a different method direction.
+
+### Final note
+
+The current reranker result is not encouraging.
+
+The strongest honest conclusion is:
+
+> The current reranker produces interpretable but unconvincing reshuffling of LinkPeaks candidates. It should not be optimized further as the main method. Future work should either audit for systematic bugs, stop the project, or move to a genuinely standalone candidate-generation model.
