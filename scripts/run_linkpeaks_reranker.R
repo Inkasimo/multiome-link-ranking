@@ -4,6 +4,49 @@ options(timeout = 600)
 Sys.setenv("R_DEFAULT_INTERNET_TIMEOUT" = "600")
 
 
+
+seed_jaspar2022_cache <- function() {
+  jaspar_url <- "https://jaspar2022.genereg.net/download/database/JASPAR2022.sqlite"
+  jaspar_local <- file.path(getwd(), "resources", "jaspar", "JASPAR2022.sqlite")
+
+  if (!file.exists(jaspar_local)) {
+    message("Local JASPAR2022 SQLite not found: ", jaspar_local)
+    message("JASPAR2022 package may try network download.")
+    return(invisible(FALSE))
+  }
+
+  if (!requireNamespace("BiocFileCache", quietly = TRUE)) {
+    stop("BiocFileCache is not installed; cannot seed local JASPAR2022 cache.")
+  }
+
+  bfc <- BiocFileCache::BiocFileCache(ask = FALSE)
+
+  old <- BiocFileCache::bfcquery(
+    bfc,
+    query = jaspar_url,
+    field = "rname",
+    exact = TRUE
+  )
+
+  if (nrow(old) > 0L) {
+    for (rid in old$rid) {
+      BiocFileCache::bfcremove(bfc, rid)
+    }
+  }
+
+  BiocFileCache::bfcadd(
+    bfc,
+    rname = jaspar_url,
+    fpath = jaspar_local,
+    action = "copy"
+  )
+
+  message("Seeded BiocFileCache with local JASPAR2022 SQLite: ", jaspar_local)
+  invisible(TRUE)
+}
+
+seed_jaspar2022_cache()
+
 suppressPackageStartupMessages({
   library(optparse)
   library(data.table)

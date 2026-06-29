@@ -104,6 +104,6 @@ rule evaluate_ranking:
           --tier-high-quantile {config[tier_high_quantile]} \
           --tier-medium-quantile {config[tier_medium_quantile]} \
           --output-dir {params.outdir} \
-          --run-name {params.run_name} \
+          --run-name {DATASET}_{wildcards.rank_mode} \
           --done-file {output.done}
         """
