@@ -3,15 +3,35 @@ configfile: "config/default.yaml"
 import os
 import yaml
 
-DATASET = str(config["dataset"]).strip()
-OUTROOT = str(config.get("output_root", "results")).strip()
 
-FEATURE_DIR = os.path.join(OUTROOT, DATASET, "features")
-RANKING_DIR = os.path.join(OUTROOT, DATASET, "rankings")
+def clean_str(x):
+    return str(x).strip()
 
-SCORE_MODES_FILE = config.get(
-    "score_modes_file",
-    config.get("ablations_file", "config/ablations.yaml")
+
+def clean_path(*parts):
+    return os.path.join(*(clean_str(p) for p in parts))
+
+
+def assert_clean_path(name, path):
+    path = clean_str(path)
+    bad_parts = [p for p in path.split(os.sep) if p != p.strip()]
+    if bad_parts:
+        raise ValueError(f"{name} has whitespace-contaminated path components: " + repr(path))
+    if path.endswith(" ") or path.startswith(" "):
+        raise ValueError(f"{name} has leading/trailing whitespace: " + repr(path))
+    return path
+
+
+DATASET = clean_str(config["dataset"])
+OUTROOT = clean_str(config.get("output_root", "results"))
+DATA_DIR = clean_str(config["data_dir"])
+
+FEATURE_DIR = assert_clean_path("FEATURE_DIR", clean_path(OUTROOT, DATASET, "features"))
+RANKING_DIR = assert_clean_path("RANKING_DIR", clean_path(OUTROOT, DATASET, "rankings"))
+
+SCORE_MODES_FILE = assert_clean_path(
+    "SCORE_MODES_FILE",
+    clean_str(config.get("score_modes_file", config.get("ablations_file", "config/ablations.yaml")))
 )
 
 with open(SCORE_MODES_FILE) as handle:
@@ -22,9 +42,13 @@ SCORE_MODES = SCORE_MODES_CONFIG.get(
     SCORE_MODES_CONFIG.get("ablations", {})
 )
 
-RANK_MODES = list(SCORE_MODES.keys())
+RANK_MODES = [clean_str(x) for x in SCORE_MODES.keys()]
 
-SCENT_CONFIG_FILE = config.get("scent_validation_config", "config/scent_validation.yaml")
+SCENT_CONFIG_FILE = assert_clean_path(
+    "SCENT_CONFIG_FILE",
+    clean_str(config.get("scent_validation_config", "config/scent_validation.yaml"))
+)
+
 if os.path.exists(SCENT_CONFIG_FILE):
     with open(SCENT_CONFIG_FILE) as handle:
         SCENT_CONFIG_RAW = yaml.safe_load(handle) or {}
@@ -37,19 +61,25 @@ SCENT_METHODS = SCENT_CONFIG.get(
     "methods",
     ["linkpeaks", "coactivity", "coactivity_tf", "full_moddist_lambda_0_1", "distance_only"]
 )
-SCENT_METHODS = [str(x) for x in SCENT_METHODS]
+SCENT_METHODS = [clean_str(x) for x in SCENT_METHODS if clean_str(x)]
 
-SCENT_SWEEP_DIR = SCENT_CONFIG.get(
-    "scent_sweep_dir",
-    os.path.join(OUTROOT, "scent_chr_sweep_100kb_frac020_1000cells")
+SCENT_SWEEP_DIR = assert_clean_path(
+    "SCENT_SWEEP_DIR",
+    clean_str(SCENT_CONFIG.get(
+        "scent_sweep_dir",
+        clean_path(OUTROOT, "scent_chr_sweep_100kb_frac020_1000cells")
+    ))
 )
 
-SCENT_OUTPUT_DIR = SCENT_CONFIG.get(
-    "output_dir",
-    os.path.join(OUTROOT, DATASET, "scent_validation")
+SCENT_OUTPUT_DIR = assert_clean_path(
+    "SCENT_OUTPUT_DIR",
+    clean_str(SCENT_CONFIG.get(
+        "output_dir",
+        clean_path(OUTROOT, DATASET, "scent_validation")
+    ))
 )
 
-SCENT_TOP_N_VALUES = ",".join(str(x) for x in SCENT_CONFIG.get("top_n_values", [50, 100, 200]))
+SCENT_TOP_N_VALUES = ",".join(clean_str(x) for x in SCENT_CONFIG.get("top_n_values", [50, 100, 200]))
 SCENT_TOP_K_COMPARE = int(SCENT_CONFIG.get("top_k_compare", 200))
 SCENT_RECIPROCAL_OVERLAP = float(SCENT_CONFIG.get("reciprocal_overlap", 0.50))
 SCENT_DISTAL_THRESHOLD = int(SCENT_CONFIG.get("distal_threshold", config.get("distal_threshold", 50000)))
@@ -57,14 +87,21 @@ SCENT_DISTANCE_D0 = float(SCENT_CONFIG.get("distance_d0", config.get("distance_d
 SCENT_RESTRICT_TO_CHRS = bool(SCENT_CONFIG.get("restrict_to_scent_chrs", True))
 SCENT_WRITE_STANDARDIZED_LINKS = bool(SCENT_CONFIG.get("write_standardized_links", False))
 
-feature_csv = os.path.join(FEATURE_DIR, f"{DATASET}_link_features.csv")
-baseline_csv = os.path.join(FEATURE_DIR, f"{DATASET}_baseline_links_full.csv")
-baseline_dist_csv = os.path.join(FEATURE_DIR, f"{DATASET}_baseline_links_with_distance.csv")
-features_done = os.path.join(FEATURE_DIR, ".done")
+feature_csv = assert_clean_path("feature_csv", clean_path(FEATURE_DIR, f"{DATASET}_link_features.csv"))
+baseline_csv = assert_clean_path("baseline_csv", clean_path(FEATURE_DIR, f"{DATASET}_baseline_links_full.csv"))
+baseline_dist_csv = assert_clean_path("baseline_dist_csv", clean_path(FEATURE_DIR, f"{DATASET}_baseline_links_with_distance.csv"))
+features_done = assert_clean_path("features_done", clean_path(FEATURE_DIR, ".done"))
 
-ranking_done = os.path.join(RANKING_DIR, "{rank_mode}", ".done")
-ranking_csv = os.path.join(RANKING_DIR, "{rank_mode}", DATASET + "_{rank_mode}_ranked_links.csv")
-scent_done = os.path.join(SCENT_OUTPUT_DIR, ".done")
+ranking_done = assert_clean_path("ranking_done", clean_path(RANKING_DIR, "{rank_mode}", ".done"))
+ranking_csv = assert_clean_path("ranking_csv", clean_path(RANKING_DIR, "{rank_mode}", DATASET + "_{rank_mode}_ranked_links.csv"))
+scent_done = assert_clean_path("scent_done", clean_path(SCENT_OUTPUT_DIR, ".done"))
+
+# Fail early if SCENT config references modes not present in the scoring config.
+missing_scent_modes = sorted(set(SCENT_METHODS) - set(RANK_MODES))
+if missing_scent_modes:
+    raise ValueError(
+        "SCENT methods are missing from config/ablations.yaml: " + ", ".join(missing_scent_modes)
+    )
 
 
 rule all:
@@ -82,20 +119,22 @@ rule all_with_scent:
 
 rule linkpeaks_reranker_features:
     input:
-        h5=lambda wc: os.path.join(config["data_dir"], config["h5_file"]),
-        fragments=lambda wc: os.path.join(config["data_dir"], config["frag_file"]),
-        fragments_index=lambda wc: os.path.join(config["data_dir"], config["frag_file"] + ".tbi")
+        h5=lambda wc: clean_path(DATA_DIR, config["h5_file"]),
+        fragments=lambda wc: clean_path(DATA_DIR, config["frag_file"]),
+        fragments_index=lambda wc: clean_path(DATA_DIR, clean_str(config["frag_file"]) + ".tbi")
     output:
         features=feature_csv,
         baseline=baseline_csv,
         baseline_dist=baseline_dist_csv,
         done=features_done
     params:
+        output_dir=FEATURE_DIR,
+        run_name=DATASET,
         checkpoint_flag=lambda wc: "--save-checkpoints" if config.get("save_checkpoints", False) else ""
     shell:
         r"""
         Rscript scripts/run_linkpeaks_reranker.R \
-          --data-dir {config[data_dir]} \
+          --data-dir {DATA_DIR} \
           --h5-file {config[h5_file]} \
           --frag-file {config[frag_file]} \
           --candidate-top-k {config[candidate_top_k]} \
@@ -109,8 +148,8 @@ rule linkpeaks_reranker_features:
           --collection {config[collection]} \
           --tf-expressed-frac {config[tf_expressed_frac]} \
           --top-k-motif-names {config[top_k_motif_names]} \
-          --output-dir {FEATURE_DIR} \
-          --run-name {DATASET} \
+          --output-dir {params.output_dir} \
+          --run-name {params.run_name} \
           --seed {config[seed]} \
           {params.checkpoint_flag} \
           --done-file {output.done}
@@ -126,7 +165,7 @@ rule evaluate_ranking:
     output:
         done=ranking_done
     params:
-        outdir=lambda wc: os.path.join(RANKING_DIR, wc.rank_mode),
+        outdir=lambda wc: clean_path(RANKING_DIR, wc.rank_mode),
         run_name=lambda wc: f"{DATASET}_{wc.rank_mode}",
         score_mode=lambda wc: SCORE_MODES[wc.rank_mode].get("score_mode", wc.rank_mode),
         lambda_distance=lambda wc: SCORE_MODES[wc.rank_mode].get("lambda_distance", config["lambda_distance"]),
@@ -145,7 +184,7 @@ rule evaluate_ranking:
           --tier-high-quantile {config[tier_high_quantile]} \
           --tier-medium-quantile {config[tier_medium_quantile]} \
           --output-dir {params.outdir} \
-          --run-name {DATASET}_{wildcards.rank_mode} \
+          --run-name {params.run_name} \
           --done-file {output.done}
         """
 
