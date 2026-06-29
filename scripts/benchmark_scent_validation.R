@@ -15,7 +15,7 @@ option_list <- list(
               help = "Dataset/run name used in ranking filenames [default %default]"),
   make_option(c("--rankings-dir"), type = "character", default = file.path("results", "pbmc", "rankings"),
               help = "Directory containing ranking subdirectories [default %default]"),
-  make_option(c("--scent-sweep-dir"), type = "character", default = file.path("results", "scent_chr_sweep_100kb_frac020_1000cells"),
+  make_option(c("--scent-sweep-dir"), type = "character", default = file.path("results", "pbmc", "scent_chr_sweep_100kb_frac020_1000cells"),
               help = "Directory containing per-chromosome SCENT output CSVs [default %default]"),
   make_option(c("--output-dir"), type = "character", default = file.path("results", "pbmc", "scent_validation"),
               help = "Output directory for SCENT validation artifacts [default %default]"),
@@ -27,6 +27,12 @@ option_list <- list(
               help = "Main top-K used for selected plots/tables [default %default]"),
   make_option(c("--reciprocal-overlap"), type = "double", default = 0.50,
               help = "Minimum reciprocal peak overlap for SCENT support [default %default]"),
+  make_option(c("--scent-support-rule"), type = "character", default = "pvalue_positive",
+              help = "SCENT support filter: pvalue_positive, positive_score, or all [default %default]"),
+  make_option(c("--scent-p-threshold"), type = "double", default = 0.05,
+              help = "P-value threshold for pvalue_positive support rule [default %default]"),
+  make_option(c("--scent-min-score"), type = "double", default = 0,
+              help = "Minimum SCENT score for positive_score support rule [default %default]"),
   make_option(c("--distance-d0"), type = "double", default = 50000,
               help = "Distance scale used only if distance_score must be recomputed [default %default]"),
   make_option(c("--distal-threshold"), type = "integer", default = 50000,
@@ -52,6 +58,15 @@ msg <- function(...) cat(sprintf(...), "\n")
 
 require_file <- function(path) {
   if (!file.exists(path)) stop("File not found: ", path)
+}
+
+safe_num_col <- function(dt, nm) {
+  if (nm %in% names(dt)) as.numeric(dt[[nm]]) else rep(NA_real_, nrow(dt))
+}
+
+normalize_chr <- function(chr) {
+  chr <- as.character(chr)
+  ifelse(grepl("^chr", chr), chr, paste0("chr", chr))
 }
 
 require_cols <- function(dt, cols, label) {
@@ -87,7 +102,7 @@ parse_peak_table <- function(peak_vec) {
     stop("Could not parse peak coordinates for: ", paste(head(bad, 10), collapse = ", "))
   }
 
-  chr <- vapply(parts, `[`, character(1), 1)
+  chr <- normalize_chr(vapply(parts, `[`, character(1), 1))
   start <- suppressWarnings(as.integer(vapply(parts, `[`, character(1), 2)))
   end <- suppressWarnings(as.integer(vapply(parts, `[`, character(1), 3)))
 
@@ -187,13 +202,18 @@ read_scent_sweep <- function(scent_sweep_dir) {
     x <- fread(f)
     require_cols(x, c("peak", "gene", "score"), paste("SCENT file", f))
 
-    out <- x[, .(
-      peak = canonical_peak(peak),
-      gene = as.character(gene),
-      score = as.numeric(score),
+    out <- data.table(
+      peak = canonical_peak(x$peak),
+      gene = as.character(x$gene),
+      score = as.numeric(x$score),
+      beta = safe_num_col(x, "beta"),
+      se = safe_num_col(x, "se"),
+      z = safe_num_col(x, "z"),
+      p = safe_num_col(x, "p"),
+      boot_basic_p = safe_num_col(x, "boot_basic_p"),
       source_file = f,
       source_chr = basename(dirname(f))
-    )]
+    )
 
     out[!is.na(peak) & !is.na(gene) & nzchar(gene) & is.finite(score)]
   })
@@ -209,6 +229,42 @@ read_scent_sweep <- function(scent_sweep_dir) {
   scent[]
 }
 
+filter_scent_support <- function(scent_dt, rule, p_threshold, min_score) {
+  rule <- tolower(trimws(as.character(rule)))
+  x <- copy(scent_dt)
+
+  if (rule %in% c("all", "none", "unfiltered")) {
+    x[, scent_support_rule := "all"]
+    return(x)
+  }
+
+  if (rule == "positive_score") {
+    x <- x[score > min_score]
+    x[, scent_support_rule := "positive_score"]
+    return(x)
+  }
+
+  if (rule == "pvalue_positive") {
+    pval <- rep(NA_real_, nrow(x))
+    if ("boot_basic_p" %in% names(x)) pval <- x$boot_basic_p
+    if ("p" %in% names(x)) pval <- fifelse(is.na(pval), x$p, pval)
+
+    if (all(is.na(pval))) {
+      warning("SCENT support rule pvalue_positive requested, but no p or boot_basic_p values were found; falling back to positive score.")
+      x <- x[score > min_score]
+      x[, scent_support_rule := "positive_score_fallback"]
+      return(x)
+    }
+
+    beta_ok <- if ("beta" %in% names(x) && any(!is.na(x$beta))) x$beta > 0 else x$score > min_score
+    x <- x[beta_ok & !is.na(pval) & pval <= p_threshold]
+    x[, scent_support_rule := "pvalue_positive"]
+    return(x)
+  }
+
+  stop("Unknown --scent-support-rule: ", rule, ". Use pvalue_positive, positive_score, or all.")
+}
+
 # ============================================================
 # SCENT overlap labels
 # ============================================================
@@ -221,6 +277,10 @@ add_scent_support <- function(dt, scent_dt, reciprocal_overlap) {
   dt[, scent_overlap_bp := NA_real_]
   dt[, scent_recip_overlap_query := NA_real_]
   dt[, scent_recip_overlap_scent := NA_real_]
+  dt[, scent_best_beta := NA_real_]
+  dt[, scent_best_p := NA_real_]
+  dt[, scent_best_boot_basic_p := NA_real_]
+  dt[, scent_best_z := NA_real_]
 
   if (nrow(dt) == 0 || nrow(scent_dt) == 0) return(dt)
 
@@ -254,6 +314,10 @@ add_scent_support <- function(dt, scent_dt, reciprocal_overlap) {
     scent_score = scent_dt$score[sh[ok]],
     scent_rank = scent_dt$rank[sh[ok]],
     scent_peak = scent_dt$peak[sh[ok]],
+    scent_beta = if ("beta" %in% names(scent_dt)) scent_dt$beta[sh[ok]] else NA_real_,
+    scent_p = if ("p" %in% names(scent_dt)) scent_dt$p[sh[ok]] else NA_real_,
+    scent_boot_basic_p = if ("boot_basic_p" %in% names(scent_dt)) scent_dt$boot_basic_p[sh[ok]] else NA_real_,
+    scent_z = if ("z" %in% names(scent_dt)) scent_dt$z[sh[ok]] else NA_real_,
     overlap_bp = ov_width[ok],
     recip_query = recip_q[ok],
     recip_scent = recip_s[ok]
@@ -269,6 +333,10 @@ add_scent_support <- function(dt, scent_dt, reciprocal_overlap) {
   dt$scent_overlap_bp[best$row_id] <- best$overlap_bp
   dt$scent_recip_overlap_query[best$row_id] <- best$recip_query
   dt$scent_recip_overlap_scent[best$row_id] <- best$recip_scent
+  dt$scent_best_beta[best$row_id] <- best$scent_beta
+  dt$scent_best_p[best$row_id] <- best$scent_p
+  dt$scent_best_boot_basic_p[best$row_id] <- best$scent_boot_basic_p
+  dt$scent_best_z[best$row_id] <- best$scent_z
 
   dt[]
 }
@@ -304,7 +372,7 @@ method_count_summary <- function(method_tables) {
 }
 
 make_topn_metrics <- function(dt, method_name, top_n, distal_threshold) {
-  top_dt <- copy(dt[order(-score)][1:min(.N, top_n)])
+  top_dt <- copy(head(dt[order(-score)], top_n))
   finite_dist <- top_dt$distance_bp[is.finite(top_dt$distance_bp)]
 
   if (nrow(top_dt) == 0) {
@@ -385,8 +453,8 @@ calc_pair_overlap <- function(method_tables, ks) {
   for (k in ks) {
     for (i in seq_along(methods)) {
       for (j in seq_along(methods)) {
-        a <- unique(method_tables[[methods[i]]][order(-score)][1:min(.N, k), .(peak, gene)])
-        b <- unique(method_tables[[methods[j]]][order(-score)][1:min(.N, k), .(peak, gene)])
+        a <- unique(head(method_tables[[methods[i]]][order(-score)], k)[, .(peak, gene)])
+        b <- unique(head(method_tables[[methods[j]]][order(-score)], k)[, .(peak, gene)])
         ov <- nrow(merge(a, b, by = c("peak", "gene")))
         out[[idx]] <- data.table(
           k = k,
@@ -421,9 +489,31 @@ if (length(methods) == 0) stop("No methods supplied in --methods")
 if (length(top_ns) == 0) stop("No top-N values supplied in --top-n-values")
 
 msg("Reading SCENT sweep...")
-scent_dt <- read_scent_sweep(opt$scent_sweep_dir)
-scent_chrs <- sort(unique(parse_peak_table(scent_dt$peak)$peak_chr))
+scent_all_dt <- read_scent_sweep(opt$scent_sweep_dir)
+scent_chrs <- sort(unique(parse_peak_table(scent_all_dt$peak)$peak_chr))
 msg("SCENT chromosomes: %s", paste(scent_chrs, collapse = ", "))
+
+scent_dt <- filter_scent_support(
+  scent_all_dt,
+  rule = opt$scent_support_rule,
+  p_threshold = opt$scent_p_threshold,
+  min_score = opt$scent_min_score
+)
+
+msg("SCENT tested rows: %d", nrow(scent_all_dt))
+msg("SCENT support rows after rule '%s': %d", opt$scent_support_rule, nrow(scent_dt))
+fwrite(
+  data.table(
+    scent_sweep_dir = opt$scent_sweep_dir,
+    support_rule = opt$scent_support_rule,
+    p_threshold = opt$scent_p_threshold,
+    min_score = opt$scent_min_score,
+    n_tested_rows = nrow(scent_all_dt),
+    n_support_rows = nrow(scent_dt),
+    n_tested_chromosomes = length(scent_chrs)
+  ),
+  file.path(opt$output_dir, "scent_validation_scent_filter_summary.csv")
+)
 
 msg("Reading ranked method outputs...")
 method_tables <- setNames(lapply(methods, function(m) {
@@ -435,14 +525,18 @@ if (isTRUE(opt$restrict_to_scent_chrs)) {
   method_tables <- lapply(method_tables, filter_to_chrs, chrs = scent_chrs)
 }
 
-msg("Adding SCENT overlap support labels, reciprocal overlap >= %.3f", opt$reciprocal_overlap)
+msg("Adding SCENT support labels, reciprocal overlap >= %.3f, support rule = %s", opt$reciprocal_overlap, opt$scent_support_rule)
 method_tables <- lapply(method_tables, function(x) {
   add_scent_support(x, scent_dt, reciprocal_overlap = opt$reciprocal_overlap)
 })
 
 # Keep only finite same-chromosome distances when existing distance annotations are available.
 method_tables <- lapply(method_tables, function(x) {
-  if ("distance_bp" %in% names(x)) x[is.finite(distance_bp)] else x
+  if ("distance_bp" %in% names(x) && any(is.finite(x$distance_bp))) {
+    x[is.finite(distance_bp)]
+  } else {
+    x
+  }
 })
 
 combined <- rbindlist(method_tables, use.names = TRUE, fill = TRUE)
@@ -496,7 +590,8 @@ manifest <- data.table(
     "scent_validation_distance_matched_enrichment.csv",
     "scent_validation_supported_rank_summary.csv",
     "scent_validation_pair_overlap_between_rankings.csv",
-    "scent_validation_all_ranked_methods_combined.csv"
+    "scent_validation_all_ranked_methods_combined.csv",
+    "scent_validation_scent_filter_summary.csv"
   ),
   purpose = c(
     "Method-level size and overall SCENT support counts",
@@ -504,7 +599,8 @@ manifest <- data.table(
     "Within-distance-bin top-decile vs rest SCENT support enrichment",
     "Rank position summaries for SCENT-supported candidate links",
     "Exact pair overlap between ranked method top-N sets",
-    "Combined long table of all ranked method candidates with SCENT support labels"
+    "Combined long table of all ranked method candidates with SCENT support labels",
+    "SCENT support-filter rule, tested rows, and retained support rows"
   )
 )
 fwrite(manifest, file.path(opt$output_dir, "scent_validation_manifest.csv"))

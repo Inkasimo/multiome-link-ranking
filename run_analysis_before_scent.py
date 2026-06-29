@@ -91,21 +91,17 @@ def main() -> int:
             "run_score_mode",
             "run_all_score_modes",
             "run_reranker_score_suite",
-            "run_scent_sweep",
             "run_scent_validation",
-            "run_scent_pipeline",
             "run_reranker_with_scent",
             "list_score_modes",
-            "list_scent_run",
             "list_scent_methods",
             "unlock",
         ],
         help=(
             "What to run: build_linkpeaks_features, run_default_score, "
             "run_score_mode, run_all_score_modes, run_reranker_score_suite, "
-            "run_scent_sweep, run_scent_validation, run_scent_pipeline, "
-            "run_reranker_with_scent, list_score_modes, list_scent_run, "
-            "list_scent_methods, unlock."
+            "run_scent_validation, run_reranker_with_scent, "
+            "list_score_modes, list_scent_methods, unlock."
         ),
     )
 
@@ -215,22 +211,6 @@ def main() -> int:
         for mode in modes
     ]
 
-    scent_run_config_file = cfg.get("scent_run_config", "config/scent_run.yaml")
-    scent_run_cfg = {}
-    if (repo_root / scent_run_config_file).exists():
-        try:
-            scent_run_raw = load_yaml(scent_run_config_file)
-            scent_run_cfg = scent_run_raw.get("scent_run", scent_run_raw)
-        except Exception as e:
-            print(f"ERROR: could not read SCENT run config {scent_run_config_file}: {e}", file=sys.stderr)
-            return 2
-
-    scent_sweep_dir = scent_run_cfg.get(
-        "output_dir",
-        f"{output_root}/{dataset}/scent_chr_sweep_100kb_frac020_1000cells",
-    )
-    scent_sweep_done = f"{scent_sweep_dir}/.done"
-
     scent_config_file = cfg.get("scent_validation_config", "config/scent_validation.yaml")
     scent_cfg = {}
     if (repo_root / scent_config_file).exists():
@@ -267,19 +247,6 @@ def main() -> int:
                 f"lambda_distance={lambda_distance}, "
                 f"alpha_tf={alpha_tf})"
             )
-        return 0
-
-    if args.section == "list_scent_run":
-        print(f"SCENT run config: {scent_run_config_file}")
-        print(f"SCENT sweep done target: {scent_sweep_done}")
-        print(f"SCENT sweep output directory: {scent_sweep_dir}")
-        print(f"Chromosomes: {scent_run_cfg.get('chromosomes', ['chr1'])}")
-        print(f"link_distance: {scent_run_cfg.get('link_distance', cfg.get('link_distance', 100000))}")
-        print(f"min_pair_frac: {scent_run_cfg.get('min_pair_frac', 0.02)}")
-        print(f"max_cells: {scent_run_cfg.get('max_cells', 1000)}")
-        print(f"max_scent_candidates: {scent_run_cfg.get('max_scent_candidates', 100000)}")
-        print(f"scent_cores: {scent_run_cfg.get('scent_cores', 4)}")
-        print(f"scent_regr: {scent_run_cfg.get('scent_regr', 'poisson')}")
         return 0
 
     if args.section == "list_scent_methods":
@@ -357,22 +324,12 @@ def main() -> int:
     elif args.section == "run_reranker_score_suite":
         targets = ["all"]
 
-    elif args.section == "run_scent_sweep":
-        targets = [scent_sweep_done]
-
     elif args.section == "run_scent_validation":
         missing = [m for m in scent_methods if m not in modes]
         if missing:
             print("ERROR: SCENT validation methods missing from score modes: " + ", ".join(missing), file=sys.stderr)
             return 2
         targets = [scent_done]
-
-    elif args.section == "run_scent_pipeline":
-        missing = [m for m in scent_methods if m not in modes]
-        if missing:
-            print("ERROR: SCENT validation methods missing from score modes: " + ", ".join(missing), file=sys.stderr)
-            return 2
-        targets = [scent_sweep_done, scent_done]
 
     elif args.section == "run_reranker_with_scent":
         missing = [m for m in scent_methods if m not in modes]
