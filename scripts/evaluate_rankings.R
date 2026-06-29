@@ -380,14 +380,15 @@ write_validation_outputs <- function(ranked, output_dir, run_name) {
   # within each distance bin, compare top-decile ranked links against the rest.
   make_distance_bin_rank_summary <- function(dt, rank_col, rank_label) {
     tmp <- copy(dt)
+    tmp[, rank_type := rank_label]
     tmp[, rank_value_tmp__ := as.numeric(get(rank_col))]
     tmp[, top_decile := is.finite(rank_value_tmp__) & rank_value_tmp__ <= top_decile_n]
 
     out <- tmp[, summarize_link_set(
       .SD,
-      sprintf("%s_%s", rank_label, ifelse(top_decile[1], "top_decile", "rest")),
+      sprintf("%s_%s", rank_type[1], ifelse(top_decile[1], "top_decile", "rest")),
       NA_integer_
-    ), by = .(rank_type = rank_label, distance_bin, top_decile)]
+    ), by = .(rank_type, distance_bin, top_decile)]
 
     out[]
   }
