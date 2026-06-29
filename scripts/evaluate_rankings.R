@@ -310,7 +310,7 @@ calc_cor_safe <- function(x, y, method) {
 }
 
 write_validation_outputs <- function(ranked, output_dir, run_name) {
-  msg("Writing link-level validation diagnostics, excluding SCENT...")
+  msg("Writing link-level validation diagnostics...")
 
   ranked_v <- add_distance_bins(copy(ranked))
   n_total <- nrow(ranked_v)
