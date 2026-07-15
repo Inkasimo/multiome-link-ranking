@@ -681,3 +681,35 @@ coactivity_tf
 ```
 
 The next step is not more distance tuning. The next step is SCENT validation with distance-matched analysis.
+
+## PBMC SCENT validation summary
+
+SCENT validation was run genome-wide across chr1–chr22 using the completed SCENT chromosome sweep. The sweep produced 52,482 tested SCENT peak–gene rows, of which 4,758 passed the positive/significant support rule (`pvalue_positive`). Ranked methods were restricted to the chromosomes covered by the SCENT sweep before comparison.
+
+The main result is that the full reranker models outperform the original LinkPeaks ranking by SCENT link-level support. At top 200 links, SCENT-supported fractions were:
+
+* `full_lambda_0_1`: 0.605
+* `full_moddist_lambda_0_1`: 0.600
+* `coactivity`: 0.525
+* `coactivity_tf`: 0.515
+* `distance_only`: 0.510
+* `linkpeaks`: 0.445
+
+At top 100, the same pattern mostly holds:
+
+* `full_lambda_0_1`: 0.580
+* `full_moddist_lambda_0_1`: 0.570
+* `distance_only`: 0.530
+* `coactivity_tf`: 0.500
+* `coactivity`: 0.460
+* `linkpeaks`: 0.430
+
+At top 50, `distance_only` was highest, but this is not convincing biological evidence because the top distance-only links are almost entirely promoter/TSS-proximal. Its median distances were extremely small: about 3.5 bp at top 50, 7.5 bp at top 100, and 15 bp at top 200, with promoter fraction near 1.0. This shows that SCENT support is strongly enriched near promoters, but also that a pure distance model collapses onto trivial proximal links.
+
+The most important result is the distance-matched enrichment analysis. Within distance bins, the full models still enrich for SCENT-supported links over lower-ranked links. In the 0–10 kb bin, LinkPeaks had an odds ratio of about 2.60, while coactivity, coactivity_tf, full_lambda_0_1, and full_moddist_lambda_0_1 were around 4.68–5.06. In the 10–50 kb bin, LinkPeaks had an odds ratio of about 1.77, while the full models were about 3.15. In the 50–200 kb bin, LinkPeaks was about 1.65 and the full models were about 2.23. This suggests the reranker is not only exploiting global proximity; its coactivity/TF/full scores enrich SCENT-supported links even after distance stratification.
+
+The comparison between `full_lambda_0_1` and `full_moddist_lambda_0_1` does not show a meaningful empirical difference. Their top-200 pair overlap was 199/200, and their SCENT support metrics were nearly identical. Therefore, `full_moddist_lambda_0_1` should be kept only as the cleaner distance formulation, not because it clearly outperformed the original λ=0.1 distance model.
+
+Overall, SCENT gives a more favorable result for the reranker than the earlier gene-level ORA analysis. ORA favored LinkPeaks and was weak/gene-only, whereas SCENT is link-level and supports the diagnostic value of the reranker components. The best interpretation is that coactivity, TF/motif support, and a mild distance prior all carry useful information, but distance alone is not a satisfactory model because it over-prioritizes promoter-proximal links.
+
+Conclusion: the LinkPeaks-candidate reranker should still be treated as a diagnostic scaffold, not a final method. However, the SCENT validation supports carrying the main components forward into the standalone cis-window prototype: coactivity, TF/motif support, mild distance prior, and distance-only as a control. A promoter-proximal dampening or hump-shaped distance prior may be worth testing as an ablation in the standalone version.

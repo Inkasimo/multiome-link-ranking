@@ -430,7 +430,6 @@ calc_distance_matched_enrichment <- function(dt, method_name, high_fraction = 0.
     odds_ratio <- ((a + 0.5) / (b + 0.5)) / ((c + 0.5) / (d + 0.5))
     data.table(
       method = method_name,
-      distance_bin = distance_bin[1],
       n_high = nrow(high),
       n_rest = nrow(rest),
       supported_high = a,
