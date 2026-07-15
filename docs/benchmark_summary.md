@@ -714,4 +714,6 @@ Overall, SCENT gives a more favorable result for the reranker than the earlier g
 
 Conclusion: the LinkPeaks-candidate reranker should still be treated as a diagnostic scaffold, not a final method. However, the SCENT validation supports carrying the main components forward into the standalone cis-window prototype: coactivity, TF/motif support, mild distance prior, and distance-only as a control. A promoter-proximal dampening or hump-shaped distance prior may be worth testing as an ablation in the standalone version.
 
-TEST NEXT: Remove distance <=10 kb and check whether full_moddist/coactivity_tf still beat LinkPeaks and distance_only.
+### removing proximal links
+
+After excluding links within 10 kb or 25 kb of the TSS, full_lambda_0_1 and full_moddist_lambda_0_1 still outperform LinkPeaks by SCENT-supported top-N fraction. This argues that the full-model advantage is not solely due to promoter/TSS-proximal links. However, after excluding links within 50 kb, the advantage over LinkPeaks becomes modest, and distance-only remains high by selecting links just above the cutoff. Thus, the current reranker signal appears strongest for proximal-to-intermediate cis links rather than clearly distal enhancer-gene links.
