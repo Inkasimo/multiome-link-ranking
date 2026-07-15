@@ -713,3 +713,5 @@ The comparison between `full_lambda_0_1` and `full_moddist_lambda_0_1` does not 
 Overall, SCENT gives a more favorable result for the reranker than the earlier gene-level ORA analysis. ORA favored LinkPeaks and was weak/gene-only, whereas SCENT is link-level and supports the diagnostic value of the reranker components. The best interpretation is that coactivity, TF/motif support, and a mild distance prior all carry useful information, but distance alone is not a satisfactory model because it over-prioritizes promoter-proximal links.
 
 Conclusion: the LinkPeaks-candidate reranker should still be treated as a diagnostic scaffold, not a final method. However, the SCENT validation supports carrying the main components forward into the standalone cis-window prototype: coactivity, TF/motif support, mild distance prior, and distance-only as a control. A promoter-proximal dampening or hump-shaped distance prior may be worth testing as an ablation in the standalone version.
+
+TEST NEXT: Remove distance <=10 kb and check whether full_moddist/coactivity_tf still beat LinkPeaks and distance_only.
