@@ -717,3 +717,109 @@ Conclusion: the LinkPeaks-candidate reranker should still be treated as a diagno
 ### removing proximal links
 
 After excluding links within 10 kb or 25 kb of the TSS, full_lambda_0_1 and full_moddist_lambda_0_1 still outperform LinkPeaks by SCENT-supported top-N fraction. This argues that the full-model advantage is not solely due to promoter/TSS-proximal links. However, after excluding links within 50 kb, the advantage over LinkPeaks becomes modest, and distance-only remains high by selecting links just above the cutoff. Thus, the current reranker signal appears strongest for proximal-to-intermediate cis links rather than clearly distal enhancer-gene links.
+
+## Note: CREMA, adding TF evidence, and how to keep my model distinct
+
+CREMA is very close to the same broad biological space: single-cell multiome cis-regulatory inference. It uses RNA + ATAC from the same cells to infer regulatory circuitry around genes. Its core design is peak-agnostic: instead of starting from called ATAC peaks, CREMA scans the full TSS ±100 kb region, identifies TF motif sites, measures accessibility around each motif site, combines that with TF expression, and tests whether the TF expression × motif-site accessibility pattern is associated with target gene expression. Its output unit is therefore a TF–site–gene circuit, not primarily a peak–gene link.
+
+This means CREMA’s central biological question is:
+
+Is TF X, acting through motif/site Y near gene Z, associated with expression of gene Z?
+
+My intended model should ask a different question:
+
+Among candidate cis peak–gene links, which links have enough biological evidence to be prioritized for experimental follow-up, in which cell type, and at what confidence tier?
+
+So the main distinction should be:
+
+CREMA:
+  TF → motif/site → gene circuit inference
+
+My model:
+  peak → gene → cell type → wet-lab evidence tier
+
+I should still add TF evidence early in the standalone model, but not in a way that turns the method into a CREMA clone. The TF component should support and explain a peak–gene link, rather than become the primary object of inference.
+
+A possible standalone score could be:
+
+priority_score(peak, gene, cell_type) =
+  coactivity(peak, gene, cell_type)
++ TF_motif_support(peak, gene, cell_type)
++ distance_prior(peak, gene)
++ cell_type_specificity(peak, gene, cell_type)
++ external/statistical_support(peak, gene, cell_type)
+- proximity_collapse_penalty(peak, gene)
+
+Here, TF_motif_support would mean:
+
+Does the peak contain motifs for TFs active in this cell type?
+Is the TF expressed or active in the same cell type?
+Is the target gene active in the same context?
+Optionally, is there independent TF–gene support from databases or regulon resources?
+
+This makes TF evidence part of the core model from the beginning, but the model remains a peak–gene prioritizer, not a TF-site-gene circuit mapper.
+
+The strongest way to distinguish from CREMA is to make the product explicitly wet-lab-facing. CREMA reports significant regulatory circuits and TF modules. My model should report prioritized, interpretable candidate links:
+
+peak
+gene
+cell_type
+tier
+final_score
+coactivity_score
+TF/motif evidence
+distance_bin
+cell-type specificity
+SCENT/database support
+promoter/proximity warning
+recommended experimental use
+evidence_summary
+
+Example output interpretation:
+
+Tier 1 CD8 T-cell candidate:
+  peak P is linked to gene G.
+  Evidence: strong peak–gene coactivity, active CD8 TF motif support,
+  cell-type-specific accessibility/expression, plausible non-promoter distance,
+  and independent SCENT/database support.
+  Recommended use: CRISPRi enhancer perturbation candidate.
+
+The defensible niche is therefore not:
+
+A new method for cis-regulatory circuitry mapping from single-cell multiome data.
+
+That is too close to CREMA.
+
+The safer and more distinct framing is:
+
+An interpretable, distance-controlled, cell-type-aware framework for tiered prioritization of peak–gene links for experimental follow-up from single-cell multiome data.
+
+Key differentiators to preserve:
+
+1. Primary unit:
+   peak–gene–cell type link, not TF–site–gene circuit.
+
+2. Primary output:
+   ranked and tiered wet-lab candidate links, not only significant circuits.
+
+3. TF role:
+   evidence layer supporting peak–gene prioritization, not the main inferred circuit object.
+
+4. Distance handling:
+   explicit distance-prior family and anti-proximity-collapse controls.
+
+5. Validation:
+   SCENT support, distance-stratified enrichment, >10 kb / >25 kb proximal-removal controls,
+   external enhancer–gene resources, and biological marker-gene sanity checks.
+
+6. Usability:
+   gene-centric and cell-type-specific candidate tables with evidence summaries.
+
+Bottom line:
+
+CREMA is stronger as a mechanistic TF–site–gene circuit inference method.
+
+My model should aim to be stronger as a practical, interpretable,
+wet-lab-oriented peak–gene prioritization and tiering framework.
+
+That distinction is real, but it needs to be protected deliberately in the standalone design.
