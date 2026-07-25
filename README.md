@@ -60,6 +60,11 @@ This benchmark was built to answer one narrow question honestly:
 The answer, in short: partly yes on the first clause, and only partly on the second. The
 proximity control turned out to be the most informative component of the whole study.
 
+This benchmark shows that the reranking score can move SCENT-supported links above the original LinkPeaks ordering, 
+especially at top-100/top-200. However, the strongest lesson is that promoter proximity can look like biological success: 
+a distance-only ranking performs very well near the top, so all future standalone scoring must include explicit distance-only, 
+distance-matched, and proximal-removal controls.
+
 ---
 
 ## What the pipeline does
