@@ -2524,3 +2524,42 @@ Before the next serious benchmark run, implement:
 ### Do not stop current run just for these fixes
 
 The current run should be allowed to finish if it is not crashing. Treat it as a smoke test. The fixes above are for improving benchmark rigor and avoiding silent bias before the next formal run.
+
+Core project question:
+Can a standalone single-cell multiome peak–gene model rank cis links better than LinkPeaks / distance-only / coactivity-only, without collapsing to nearest promoter peaks?
+
+Current evidence:
+- Reranker full models beat LinkPeaks by SCENT support.
+- Advantage survives >10 kb and >25 kb proximal-removal filters.
+- Distance-only is a serious confound.
+- Coactivity, TF/motif, and distance each show measurable signal.
+- Current branch is diagnostic, not final.
+
+Closest literature / threats:
+- CREMA
+- SCENT
+- SCARlink
+- TRIPOD
+- SCENIC+
+- Pando
+- LINGER
+- FigR
+- Signac/LinkPeaks
+- ArchR
+- Cicero
+
+Do not claim:
+- brand-new peak–gene linking
+- brand-new cis-regulatory circuitry mapping
+- brand-new TF-site-gene inference
+
+Potentially defensible claim:
+An interpretable, distance-controlled, cell-type-aware peak–gene prioritization model that decomposes evidence into coactivity, TF/motif support, distance behavior, and cell-type context.
+
+Next real milestone:
+Standalone v0:
+- Generate cis candidates directly: expressed genes + accessible peaks + same chromosome + TSS ±100 kb.
+- Score with coactivity, TF/motif support, and distance variants.
+- Compare against LinkPeaks, distance_only, coactivity_only.
+- Evaluate all links, >10 kb, >25 kb, >50 kb, and distance bins.
+- Continue only if it beats baselines under distance controls.
