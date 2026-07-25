@@ -2563,3 +2563,9 @@ Standalone v0:
 - Compare against LinkPeaks, distance_only, coactivity_only.
 - Evaluate all links, >10 kb, >25 kb, >50 kb, and distance bins.
 - Continue only if it beats baselines under distance controls.
+
+Identified QC gap and orchestrated comprehensive documentation updates
+Identified QC gap and orchestrated comprehensive documentation updates
+
+pbmc_unsorted_10k — "PBMC from a Healthy Donor - No Cell Sorting (10k)", Cell Ranger ARC 2.0.0, published 2021-05-03, one healthy female donor aged 25, cryopreserved PBMC nuclei from AllCells, 12,012 estimated cells, 111,857 ATAC peaks called. Download base is cell-arc/2.0.0/pbmc_unsorted_10k/. 
+10xgenomics
