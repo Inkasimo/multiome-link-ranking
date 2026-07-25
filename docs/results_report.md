@@ -580,14 +580,13 @@ and 0.92 in the same bins. This is the one result that survives the obvious obje
 
 Three, in order of severity.
 
-1. `distance_only` beats every model at \(\delta\) = 50 kb by roughly 2× (§6). The proximity
-   confound is displaced, not removed.
-   
-   -  After removing links within 50 kb, distance_only retains a 2.2–2.8× higher SCENT-supported fraction than every other method.
-      This is not evidence that proximity outperforms coactivity in the distal regime. distance_only's top-200 has a median distance of 56 kb,
-	  inside SCENT's 100 kb tested window, while the other methods sit at 149–186 kb, largely outside it. 
-	  The comparison at δ = 50 kb is therefore confounded by the validator's window and should not be read as either a pass or a 
-	  failure of the coactivity models.
+1. After removing links within 50 kb, `distance_only` retains a 2.2–2.8× higher
+   SCENT-supported fraction than every other method. This is a coverage artifact, not
+   evidence that proximity outperforms coactivity in the distal regime: `distance_only`'s
+   top-200 sits at a median distance of 56 kb, inside SCENT's 100 kb tested window, while
+   the other methods sit at 149–186 kb, largely outside it. The δ = 50 kb comparison is
+   confounded by the validator's window and should be read as neither a pass nor a failure
+   of the coactivity models.
 
 2. SCENT's 100 kb window means the distal regime — the field's actual open problem — is
    entirely unmeasured, and two of five distance bins report artifact odds ratios (§5).
