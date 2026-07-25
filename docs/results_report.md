@@ -235,6 +235,13 @@ Odds ratio, top decile vs remainder, within distance bin.
 Bin occupancy, identical across methods: `0_10kb` 150 / 1,349; `10_50kb` 111 / 999;
 `50_200kb` 121 / 1,082.
 
+Note that in the `0_10kb` bin, `coactivity_tf`, `full_lambda_0_1` and `full_moddist_lambda_0_1`
+are numerically identical at 5.057. Within that bin \(d \ll d_0\), so \(D \approx 1\) and the
+distance modifier is effectively constant across candidates — the three modes reduce to the same
+function. The tight-bin enrichment is therefore a **coactivity + TF/motif** result, not a result
+about the distance prior. The distance term only begins to differentiate in the wider bins
+(10–50 kb: 3.017 for `coactivity_tf` against 3.148 for the full models).
+
 This is the strongest evidence in the benchmark. At fixed distance, the full models
 concentrate SCENT-supported links in their top decile roughly twice as strongly as LinkPeaks
 does — 5.06 vs 2.60 in the 0–10 kb bin, 3.15 vs 1.78 in 10–50 kb, 2.23 vs 1.65 in 50–200 kb.
@@ -414,6 +421,22 @@ effect.** Both halves of that sentence are needed.
 
 ---
 
+### 8.1 Two objections tested and not supported
+
+Both are obvious challenges to the distance-matched result. Neither holds. Recorded because a
+negative check is worth as much as a positive one.
+
+**Coactivity does not smuggle in proximity.** Spearman(`mul_weigh`, `distance_bp`) = **−0.079**,
+and the marginal detection-rate product is uncorrelated with distance at **−0.001**. Proximity
+enters only through the explicit distance term and the candidate set — which is what binning on
+distance controls.
+
+**Truncating to the top 5,000 does not disadvantage the baseline.** `link_score` is right-skewed,
+so removing the low-scoring bulk leaves dispersion unchanged: SD 0.0425 in the top 5,000 against
+0.0415 across all 15,806, ratio 1.025, Thorndike correction 0.98×. More directly, the universe was
+selected *by* `link_score` and `linkpeaks` ranks *by* `link_score`, so its top-200 is identical to
+its top-200 over the full 15,806 — invariant to the truncation.
+
 ## 9. Internal ranking diagnostics
 
 From the per-mode `summary_metrics.csv`, for `full_lambda_0_1`:
@@ -518,7 +541,12 @@ Each of these is directly supported by a named file.
    selection. Four of ten modes have no external validation.
 9. **Not** that results generalise. One dataset, one tissue, one sample, 5,000 pairs over
    1,390 genes drawn from the top of a LinkPeaks ranking — not a random sample of candidates.
-10. **Not** that the numbers are strictly comparable across the two halves of the pipeline.
+10. **Not** that SCENT-supported labels are individually reliable. The rule was applied to 52,482
+    tests with no multiplicity correction. Against a one-sided 2.5% null of ~1,300 rows, the 4,758
+    supporting rows are ~3.6-fold enriched, but plausibly a quarter to a third of individual labels
+    are false positives. Comparisons between methods remain valid (shared label noise, attenuating
+    toward the null); absolute fractions do not. "60.5% supported" is not "60.5% real".
+11. **Not** that the numbers are strictly comparable across the two halves of the pipeline.
     The reranker used all cells; SCENT used `max_cells: 1000`. TSS conventions differ
     (`docs/method_report.md` §7). Peak ID formats differ on disk
     (`docs/input_output_reference.md` §9.1).

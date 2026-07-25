@@ -34,7 +34,7 @@ next phase (not implemented):
 | | |
 |---|---|
 | Stage | Frozen benchmark. Complete, documented, not under active development |
-| Dataset | 10x PBMC multiome, hg38 (accession not yet recorded — see [`TODO.md`](TODO.md) §9) |
+| Dataset | 10x Genomics `pbmc_unsorted_10k` — "PBMC from a Healthy Donor - No Cell Sorting (10k)", Cell Ranger ARC 2.0.0, GRCh38-2020-A |
 | Candidate universe | 5,000 LinkPeaks-derived pairs over 1,390 genes |
 | Score modes | 10 committed; 6 externally validated |
 | External comparator | SCENT, 22 autosomes, 52,482 tested pairs |
@@ -356,6 +356,18 @@ Full analysis, including the gene-level ORA result that points the other way:
 - Gene-level ORA favours the LinkPeaks baseline (17 enriched GO BP terms vs 5).
 - No cell-type stratification anywhere. Coactivity pools all cells, TF weights use global mean
   expression, and SCENT ran with a synthetic `all_cells` label.
+- The coactivity term `mul_weigh` is associated with marginal gene and peak detection rates
+  (Spearman +0.682) and is not conditioned on them. An adjusted variant `adj` exists in the feature
+  table but overcorrects and is unused. Whether the coactivity contribution survives conditioning
+  on marginal activity is not tested in this release.
+- **No cell-level QC is performed.** `CreateSeuratObject()` is called without `min.cells` or
+  `min.features` and there is no `subset()` step, so all ~12,012 barcodes in the filtered matrix
+  enter the analysis. Comparable Signac workflows filter on `nCount_ATAC`, `nCount_RNA`,
+  `nucleosome_signal` and `TSS.enrichment` first.
+- **Annotation versions are mismatched between quantification and TSS assignment.** Counts come
+  from the `GRCh38-2020-A` Cell Ranger ARC reference; TSS coordinates used for `distance_bp` come
+  from `EnsDb.Hsapiens.v86` (Ensembl 86, 2016). Distances are therefore computed against a
+  different annotation release than the one that defined the genes.
 - The TF/motif score is peak-level with no gene or cell-type dependence, so it cannot represent
   TF-to-target specificity. Its contribution is small and inconsistent.
 - Scores use min–max rescaling and are therefore dataset-dependent and not portable.
@@ -412,8 +424,34 @@ conclusions that were later revised. `docs/results_report.md` is the current sta
 
 ## Data availability
 
-Raw input data is not included. The dataset accession is not yet recorded — see
-[`TODO.md`](TODO.md) §9.
+Raw input data is not included in the repository. It is publicly available from 10x Genomics.
+
+| | |
+|---|---|
+| Sample ID | `pbmc_unsorted_10k` |
+| Title | PBMC from a Healthy Donor - No Cell Sorting (10k) |
+| Dataset page | https://www.10xgenomics.com/datasets/pbmc-from-a-healthy-donor-no-cell-sorting-10-k-1-standard-2-0-0 |
+| Download base | `https://cf.10xgenomics.com/samples/cell-arc/2.0.0/pbmc_unsorted_10k/` |
+| Pipeline | `cellranger-arc count`, Cell Ranger ARC 2.0.0 |
+| Reference | `refdata-cellranger-arc-GRCh38-2020-A-2.0.0` (reference_version `2020-A`) |
+| Donor | One healthy female donor, aged 25, cryopreserved PBMC nuclei (AllCells) |
+| Estimated cells | 12,012 |
+| ATAC peaks called | 111,857 |
+| Published | 2021-05-03 |
+| **Data license** | **CC BY 4.0** |
+
+```bash
+BASE=https://cf.10xgenomics.com/samples/cell-arc/2.0.0/pbmc_unsorted_10k
+wget -O data/filtered_feature_bc_matrix.h5 $BASE/pbmc_unsorted_10k_filtered_feature_bc_matrix.h5
+wget -O data/atac_fragments.tsv.gz        $BASE/pbmc_unsorted_10k_atac_fragments.tsv.gz
+wget -O data/atac_fragments.tsv.gz.tbi    $BASE/pbmc_unsorted_10k_atac_fragments.tsv.gz.tbi
+```
+
+Local file sizes for verification: `filtered_feature_bc_matrix.h5` 151,663,850 B;
+`atac_fragments.tsv.gz` 2,917,757,251 B; `.tbi` 1,299,776 B.
+
+Of the 111,857 called peaks, 50,918 (45.5%) survive into the committed results after the
+accessibility-prevalence filter and candidate restriction.
 
 Large outputs — the eleven `*_ranked_links.csv` files, per-chromosome SCENT output, and the
 combined validation table — are excluded from version control and intended for external

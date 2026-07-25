@@ -39,6 +39,8 @@ implemented here.
 | Assumption | Basis |
 |---|---|
 | Paired single-cell RNA + ATAC from the same cells (10x multiome) | `Read10X_h5()` on a filtered feature-barcode matrix carrying both `Gene Expression` and `Peaks` assays |
+| Dataset: 10x `pbmc_unsorted_10k`, Cell Ranger ARC 2.0.0, reference `refdata-cellranger-arc-GRCh38-2020-A-2.0.0` | Recovered from the `atac_fragments.tsv.gz` header (`id=`, `pipeline_version=`, `reference_path=`, `reference_version=2020-A`) |
+| ~12,012 cells, 111,857 called ATAC peaks, one healthy female donor | 10x dataset metrics; 50,918 peaks (45.5%) survive into the committed results |
 | Human, hg38 | `genome(annotations) <- "hg38"` (`run_linkpeaks_reranker.R:377`), `BSgenome.Hsapiens.UCSC.hg38` (`:446`) |
 | Ensembl v86 annotation | `GetGRangesFromEnsDb(ensdb = EnsDb.Hsapiens.v86)` (`:375`) |
 | Tabix-indexed fragments | `.tbi` declared as an explicit Snakemake input |
@@ -46,11 +48,38 @@ implemented here.
 | Single sample, no batch structure | No integration or batch-correction step exists in the pipeline |
 | No cell-type annotation | Clustering is performed at `cluster_resolution: 0.5` on the WNN graph; clusters are never labelled, and **no score in this repository is cell-type-stratified** |
 
-**Dataset provenance is not recorded anywhere in the repository.** The specific PBMC multiome
-dataset behind `filtered_feature_bc_matrix.h5` cannot be determined from the code, configs,
-or notes. This is a reproducibility gap, listed in `TODO.md` §9.
+**Dataset provenance was not recorded in the repository and had to be recovered forensically**
+from the `cellranger-arc` comment block at the head of `data/atac_fragments.tsv.gz`:
+
+```
+# id=pbmc_unsorted_10k
+# description=PBMC from a healthy donor - no cell sorting (10k)
+# pipeline_name=cellranger-arc
+# pipeline_version=cellranger-arc-2.0.0
+# reference_path=.../refdata-cellranger-arc-GRCh38-2020-A-2.0.0
+# reference_fasta_hash=b6f131840f9f337e7b858c3d1e89d7ce0321b243
+# reference_gtf_hash=3b4c36ca3bade222a5b53394e8c07a18db7ebb11
+# reference_version=2020-A
+```
+
+This is 10x Genomics' publicly available `pbmc_unsorted_10k` dataset (published 2021-05-03,
+CC BY 4.0). It should be recorded in `config/default.yaml` so it does not have to be recovered
+again — see `TODO.md` §8.
+
+Note this is **not** the `pbmc_granulocyte_sorted_10k` dataset used in the Signac multiome
+vignette, despite the identical local filenames. The fragment-file sizes differ
+(2,917,757,251 B here versus 2,051,027,831 B for the sorted dataset), which is an independent
+confirmation.
 
 ### Preprocessing
+
+**No cell-level quality control is performed.** `CreateSeuratObject()` is called at
+`run_linkpeaks_reranker.R:380` without `min.cells` or `min.features`, and there is no `subset()`
+step anywhere in the script. All barcodes present in `filtered_feature_bc_matrix.h5` — roughly
+12,012 for this dataset — enter the analysis. Comparable Signac multiome workflows filter on
+`nCount_ATAC`, `nCount_RNA`, `nucleosome_signal` and `TSS.enrichment` before proceeding, which
+typically removes several percent of barcodes. Low-quality nuclei therefore contribute to every
+per-cell z-score and to \(A_{pg}\).
 
 1. RNA: normalisation, variable-feature selection, scaling, PCA to `pca_dims: 30`.
 2. ATAC: TF-IDF, SVD, LSI components `lsi_dims_start: 2` through `lsi_dims_end: 30`. Dropping
@@ -162,6 +191,20 @@ z-scored per feature, \(A_{pg}\) is scale-free but its absolute magnitude is not
 across datasets.
 
 ---
+
+**\(A_{pg}\) is associated with marginal detection rates.** Recovering the marginal activity
+product as `mul_strict / adj` gives Spearman(`mul_weigh`, marginals) = **+0.682**. `mul_weigh` has
+no natural null: under independence its expectation is positive and depends on each feature's
+detection rate. LinkPeaks controls for this via a background matched on accessibility and GC;
+`mul_weigh` does not. **This is not conditioned on anywhere in the benchmark.**
+
+The feature table contains an adjusted variant, `adj` = `mul_strict` / (marginal activity product)
+— a lift ratio, null at 1. It is stored but **not used by any score mode**, and was inspected in
+early prototype work without being adopted. Re-examination shows the ratio normalisation
+overcorrects: Spearman(`adj`, marginals) = **−0.867**, Spearman(`adj`, `mul_strict`) = **−0.735**.
+Dividing by a denominator 0.968-collinear with the numerator yields a ratio governed by the
+denominator, so `adj` preferentially ranks rare gene × rare peak pairs. Recorded as a failed
+correction, not a robustness result.
 
 ## 7. Distance score
 
@@ -522,7 +565,11 @@ Ordered by how much they constrain the conclusions.
    population are systematically diluted.
 6. **\(T_p\) is peak-level only.** It cannot represent TF-to-target specificity, which is
    what "TF support for this link" would require.
-7. **Min–max rescaling of \(T_p\), \(w_k\), and the motif matrix** makes scores
+7. **Coactivity is not conditioned on marginal activity.** `mul_weigh` correlates with the
+   marginal detection-rate product at +0.682. Whether its contribution survives conditioning on
+   marginal activity **is not tested in this release**. The natural check — activity-matched
+   enrichment mirroring §12 — is deferred to v0.2.
+8. **Min–max rescaling of \(T_p\), \(w_k\), and the motif matrix** makes scores
    dataset-dependent and outlier-sensitive. No score in this repository is portable across
    datasets.
 8. **TSS conventions differ between subsystems** (§7): closest transcript TSS in the
@@ -544,11 +591,27 @@ Ordered by how much they constrain the conclusions.
 14. **No orthogonal validation.** No CRISPRi perturbation data, no fine-mapped eQTLs, no
     chromatin-contact data. All available evidence is derived from the same two matrices.
 
+### Data provenance
+
+15. **No cell-level QC.** All ~12,012 barcodes are used, with no filtering on counts,
+    nucleosome signal or TSS enrichment. Low-quality nuclei contribute to every coactivity
+    estimate.
+16. **Annotation versions are mismatched between quantification and TSS assignment.** The count
+    matrix comes from the Cell Ranger ARC `GRCh38-2020-A` reference (a GENCODE-based build; the
+    exact GENCODE/Ensembl correspondence should be confirmed from 10x's reference build notes
+    before citing). TSS coordinates driving `distance_bp` and `distance_score` come from
+    `EnsDb.Hsapiens.v86`, i.e. Ensembl 86 (2016). Genes present in the matrix but absent from
+    Ensembl 86 are silently dropped, and TSS positions may differ for genes present in both.
+    Since distance is the central confound in this benchmark, this is worth stating explicitly.
+    The Signac multiome vignette pairs the same two annotation sources, so this is a widespread
+    convention rather than an unusual error — but it is a real source of coordinate drift.
+
 ### Reproducibility
 
-15. **Dataset provenance unrecorded.**
-16. **`--candidate-filter` not exposed** in configuration.
-17. **The min-distance controls have no Snakemake rule**, and the exact arguments used for
+17. **Dataset provenance was unrecorded in the repository** and had to be recovered from the
+    fragment-file header (§2). Now resolved; record it in `config/default.yaml`.
+18. **`--candidate-filter` not exposed** in configuration.
+19. **The min-distance controls have no Snakemake rule**, and the exact arguments used for
     the committed outputs are not recorded.
-18. **The JASPAR sqlite pinning is undocumented** outside the script body, and the file is
+20. **The JASPAR sqlite pinning is undocumented** outside the script body, and the file is
     not in the container image.

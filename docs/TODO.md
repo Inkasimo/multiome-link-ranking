@@ -547,8 +547,10 @@ The existing `README.md` is actively misleading in three places and must not shi
 | Key package versions | **Yes** — 268 packages pinned in `renv.lock` | version table in release checklist |
 | SCENT provenance | **Yes** — `immunogenomics/SCENT`, v1.0.1, commit `e80b5ba6b445f972c7fe28fb41e24ef4f5b2e373` | cite exactly, not "SCENT (GitHub)" |
 | Random seed | **Yes** — `seed: 42` in `config/default.yaml`, threaded to all four scripts | state in README |
-| **Dataset accession** | **No** | see §9 — blocks release |
-| **Cell count after QC** | **No** — no log or metrics file records it | recover from a rerun or shell history |
+| **Dataset accession** | **Yes, recovered** — `pbmc_unsorted_10k`, Cell Ranger ARC 2.0.0, reference `GRCh38-2020-A`, from the `atac_fragments.tsv.gz` header | record in `config/default.yaml`; see `dataset_provenance.yaml` |
+| **Cell count** | **Yes, by inference** — there is no QC step, so N = barcodes in the filtered matrix ≈ 12,012 | confirm with `ncol()` on a rerun |
+| Cell-level QC | **None performed** — no `min.cells`, `min.features` or `subset()` | document as a limitation |
+| Annotation consistency | **Mismatched** — counts from `GRCh38-2020-A`, TSS from `EnsDb.Hsapiens.v86` | document as a limitation |
 | `--candidate-filter` value used | Inferable — default `positive_score`, consistent with 15,806 | promote to `config/default.yaml` so it is explicit |
 | `--min-distances`, `--high-fraction` used for committed min-distance outputs | **No** | see §0.3 |
 | Docker image digest | **No** — no image was published | build, push, record digest |
@@ -559,15 +561,40 @@ The existing `README.md` is actively misleading in three places and must not shi
 
 These block or constrain the release and require your input.
 
-**Blocking:**
+### Resolved since first draft
 
-1. **Dataset accession or source.** Nothing in `config/`, `scripts/`, `docs/benchmark_summary.md`
-   or `docs/developer_notes.md` identifies which PBMC multiome dataset
-   `data/filtered_feature_bc_matrix.h5` and `data/atac_fragments.tsv.gz` came from. A public
-   release without this is not reproducible in any meaningful sense.
+1. ~~**Dataset accession or source.**~~ **RESOLVED.** Recovered from the `cellranger-arc` header
+   of `data/atac_fragments.tsv.gz`:
+
+   | | |
+   |---|---|
+   | Sample ID | `pbmc_unsorted_10k` |
+   | Title | PBMC from a Healthy Donor - No Cell Sorting (10k) |
+   | Pipeline | `cellranger-arc count`, Cell Ranger ARC 2.0.0 |
+   | Reference | `refdata-cellranger-arc-GRCh38-2020-A-2.0.0`, version `2020-A` |
+   | `reference_fasta_hash` | `b6f131840f9f337e7b858c3d1e89d7ce0321b243` |
+   | `reference_gtf_hash` | `3b4c36ca3bade222a5b53394e8c07a18db7ebb11` |
+   | Dataset page | https://www.10xgenomics.com/datasets/pbmc-from-a-healthy-donor-no-cell-sorting-10-k-1-standard-2-0-0 |
+   | Download base | `https://cf.10xgenomics.com/samples/cell-arc/2.0.0/pbmc_unsorted_10k/` |
+   | Estimated cells | 12,012 |
+   | ATAC peaks called | 111,857 (50,918 recoverable from results = 45.5%) |
+   | Published | 2021-05-03 |
+   | **License** | **CC BY 4.0** |
+
+   Note this is **not** `pbmc_granulocyte_sorted_10k` from the Signac multiome vignette, despite
+   identical local filenames. Fragment-file sizes differ (2,917,757,251 B versus 2,051,027,831 B).
+
+   - [ ] Add `dataset_provenance.yaml` content to `config/default.yaml` as comments
+   - [ ] Run `sha256sum data/*` **now**, while the files are on disk
+
+3. ~~**Whether `data/` is redistributable.**~~ **RESOLVED — CC BY 4.0.** Derived outputs may be
+   redistributed with attribution. Recommendation is still not to deposit the raw data, since 10x
+   hosts it durably; cite the accession and pin checksums instead.
+
+**Still blocking:**
+
 2. **JASPAR2022 sqlite redistribution terms.** Determines whether the file can ship in the
    repo, in LFS, in the Docker image, or must be fetched at runtime.
-3. **Whether `data/` is redistributable.** Governs the Zenodo deposit contents.
 
 **Needed for release metadata:**
 
@@ -604,6 +631,20 @@ These block or constrain the release and require your input.
 13. Exact citations for Signac/LinkPeaks, SCENT, ArchR, Cicero, SCARlink, CREMA, TRIPOD,
     SCENIC+, Pando, LINGER, FigR, JASPAR2022, EnsDb, clusterProfiler. `docs/competitor_positioning.md`
     names each method but deliberately does not invent bibliographic details.
+
+**New findings from provenance recovery — document, do not fix in this release:**
+
+16. **No cell-level QC is performed.** `run_linkpeaks_reranker.R:380` calls
+    `CreateSeuratObject()` without `min.cells` or `min.features`, and no `subset()` step exists
+    anywhere. All ~12,012 barcodes enter the analysis. Comparable Signac multiome workflows filter
+    on `nCount_ATAC`, `nCount_RNA`, `nucleosome_signal` and `TSS.enrichment` first. Documented in
+    `docs/method_report.md` §2 and §14. **Do not add QC now** — it would invalidate every
+    committed result. File as a v0.2 issue.
+17. **Annotation versions are mismatched.** Counts come from the Cell Ranger ARC `GRCh38-2020-A`
+    reference; TSS coordinates driving `distance_bp` come from `EnsDb.Hsapiens.v86` (Ensembl 86,
+    2016). Genes absent from Ensembl 86 are silently dropped and TSS positions may drift. Since
+    distance is the central confound in this benchmark, state it explicitly. Confirm the exact
+    GENCODE/Ensembl correspondence of `2020-A` from 10x's reference build notes before citing it.
 
 **Content checks:**
 
