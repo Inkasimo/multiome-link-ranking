@@ -287,19 +287,16 @@ weighting, and is stored but unused by the committed modes.
 
 All modes share one multiplicative template:
 
-$$
-S_{pg} \;=\; A_{pg} \cdot f_{\lambda}\!\left(D_{pg}\right) \cdot g_{\alpha}\!\left(T_p\right)
-$$
+```text
+S_pg = A_pg * f_lambda(D_pg) * g_alpha(T_p)
 
-with the TF modifier
-
-$$
-g_{\alpha}(T_p) \;=\; 1 + \alpha\, T_p, \qquad \alpha = \texttt{alpha\_tf}
-$$
+g_alpha(T_p) = 1 + alpha * T_p
+alpha = alpha_tf
+```
 
 Multiplicative rather than additive composition is intentional: weak evidence in any one
 component should reduce confidence rather than be offset by strength elsewhere. Because
-\(g_{\alpha} \geq 1\) and \(f_{\lambda} > 0\), neither modifier can zero out a link — they
+\(g_\alpha \geq 1\) and \(f_\lambda > 0\), neither modifier can zero out a link — they
 reweight rather than veto.
 
 ### 9.1 Original distance prior
@@ -524,10 +521,10 @@ configured by `config/scent_validation_min_distance.yaml`, and invoked as
 `python3 run_analysis.py run_scent_validation_min_distance`. It is post-processing of the
 validation output and does not re-run SCENT.
 
-$$
-\mathcal{C}_{\delta} \;=\; \left\{ (p,g) \;:\; d_{pg} > \delta \right\},
-\qquad \delta \in \{10\,\mathrm{kb},\ 25\,\mathrm{kb},\ 50\,\mathrm{kb}\}
-$$
+```text
+C_delta = {(p, g): d_pg > delta}
+delta in {10 kb, 25 kb, 50 kb}
+```
 
 Top-N support fractions are recomputed within \(\mathcal{C}_\delta\) at
 N ∈ {50, 100, 200, 500}, and `delta_vs_linkpeaks` records each method's advantage over the
