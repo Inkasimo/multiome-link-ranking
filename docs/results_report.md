@@ -280,8 +280,18 @@ carry information beyond proximity, in the **0–50 kb** range and probably to 1
 
 ## 6. Proximal-removal and min-distance controls
 
-Source: `results/pbmc/scent_validation_min_distance/scent_min_distance_delta_vs_linkpeaks.csv`
-and `scent_min_distance_method_counts.csv`.
+Source: `results/pbmc/scent_validation_min_distance/scent_min_distance_delta_vs_linkpeaks.csv`,
+`scent_min_distance_topN_support_summary.csv` and `scent_min_distance_method_counts.csv`.
+
+Produced by `rule scent_validation_min_distance` (`workflow/Snakefile`), configured by
+`config/scent_validation_min_distance.yaml` (`min_distances: 10000,25000,50000`;
+`top_n_values: 50,100,200,500`; `high_fraction: 0.10`), invoked via
+`python3 run_analysis.py run_scent_validation_min_distance`. Light post-processing of the
+SCENT validation output; SCENT itself is not re-run.
+
+These summaries include `full` (λ = 0.3), the aggressive distance-prior sensitivity setting,
+which was not present in the earlier version of this analysis. `full_lambda_0_1` (λ = 0.1)
+remains the conservative primary setting.
 
 Surviving candidates after removing links below the threshold — identical for all methods:
 
@@ -297,38 +307,41 @@ surviving candidates are outside the tested range, so the support that remains c
 entirely from a narrow 50–100 kb band. The control loses discriminative power exactly where it
 matters most.
 
+Values are `frac_scent_supported` with the top-N median distance in parentheses.
+SCENT tested only ±100 kb; medians beyond that indicate top-N sets largely outside the
+tested window.
+
 ### \(\delta\) = 10 kb
 
-| top-N | best method | frac | `linkpeaks` frac | delta |
+| top-N | `full` (λ=0.3) | `full_lambda_0_1` | `distance_only` | `linkpeaks` |
 |---|---|---|---|---|
-| 50 | `full_lambda_0_1` / `full_moddist_lambda_0_1` | 0.360 | 0.200 | +0.160 |
-| 100 | `full_lambda_0_1` / `full_moddist_lambda_0_1` | 0.370 | 0.290 | +0.080 |
-| 200 | `distance_only` | 0.410 | 0.300 | +0.110 |
-| 500 | `full_lambda_0_1` / `full_moddist_lambda_0_1` | 0.402 | 0.274 | +0.128 |
-
-At N = 200, `distance_only` (0.410) edges out `full_lambda_0_1` (0.400).
+| 50 | **0.440** (21 kb) | 0.360 | 0.340 | 0.200 |
+| 100 | **0.560** (21 kb) | 0.370 | 0.320 | 0.290 |
+| 200 | **0.570** (22 kb) | 0.400 (50 kb) | 0.410 (12 kb) | 0.300 (64 kb) |
+| 500 | **0.508** (30 kb) | 0.402 (57 kb) | 0.382 (15 kb) | 0.274 (80 kb) |
 
 ### \(\delta\) = 25 kb
 
-| top-N | best method | frac | `linkpeaks` frac | delta |
+| top-N | `full` (λ=0.3) | `full_lambda_0_1` | `distance_only` | `linkpeaks` |
 |---|---|---|---|---|
-| 50 | `full_lambda_0_1` | 0.320 | 0.180 | +0.140 |
-| 100 | `distance_only` / `full_lambda_0_1` | 0.350 | 0.220 | +0.130 |
-| 200 | `full_lambda_0_1` | 0.325 | 0.220 | +0.105 |
-| 500 | `distance_only` | 0.376 | 0.200 | +0.176 |
-
-At N = 500, `distance_only` (0.376) is well ahead of `full_lambda_0_1` (0.296).
+| 50 | **0.520** (45 kb) | 0.320 | 0.300 | 0.180 |
+| 100 | **0.490** (47 kb) | 0.350 | 0.350 | 0.220 |
+| 200 | **0.455** (56 kb) | 0.325 (98 kb) | 0.320 (29 kb) | 0.220 (118 kb) |
+| 500 | **0.386** (61 kb) | 0.296 (104 kb) | 0.376 (36 kb) | 0.200 (129 kb) |
 
 ### \(\delta\) = 50 kb
 
-| top-N | `distance_only` | `full_lambda_0_1` | `coactivity` | `linkpeaks` |
+| top-N | `distance_only` | `full` (λ=0.3) | `full_lambda_0_1` | `linkpeaks` |
 |---|---|---|---|---|
-| 50 | **0.360** | 0.140 | 0.140 | 0.140 |
-| 100 | **0.360** | 0.170 | 0.130 | 0.130 |
-| 200 | **0.380** | 0.170 | 0.135 | 0.135 |
-| 500 | **0.352** | 0.156 | 0.144 | 0.128 |
+| 50 | **0.360** (—) | 0.300 (105 kb) | 0.140 | 0.140 |
+| 100 | **0.360** (—) | 0.270 (103 kb) | 0.170 | 0.130 |
+| 200 | **0.380** (56 kb) | 0.255 (105 kb) | 0.170 (149 kb) | 0.135 (179 kb) |
+| 500 | **0.352** (68 kb) | 0.222 (129 kb) | 0.156 (177 kb) | 0.128 (179 kb) |
 
-At this threshold every model collapses to 0.13–0.17 while `distance_only` holds 0.35–0.38.
+At \(\delta\) = 50 kb `distance_only` leads at every N. Its margin is roughly 2.1–2.6× over
+`full_lambda_0_1` but only 1.2–1.6× over `full`. Read this alongside the median distances:
+`distance_only` is the only method whose top-N stays inside SCENT's tested window, `full` sits
+just outside it, and λ = 0.1 well outside.
 
 *No plot exists for the min-distance controls.* Given that this is the analysis most likely to
 be scrutinised, a figure should be produced: supported fraction against \(\delta\), one line
@@ -339,28 +352,46 @@ per method, at fixed N = 200, with a horizontal reference at the overall support
 results/pbmc/scent_validation_min_distance/scent_min_distance_supported_fraction_by_threshold.png
 ```
 
-The plotting call should be added to `scripts/summarize_scent_validation_min_distance.R` at
-the same time as the missing Snakemake rule (`TODO.md` §0.3).
+The plotting call should be added to `scripts/summarize_scent_validation_min_distance.R`.
+The Snakemake rule itself is now in place (`rule scent_validation_min_distance`); only the
+figure is missing.
 
 ### Honest reading
 
 Two statements are supported, and they must be kept separate.
 
-**Relative to LinkPeaks**, the full models retain an advantage at \(\delta\) = 10 kb and
-25 kb — `full_lambda_0_1`'s `delta_vs_linkpeaks` ranges from +0.08 to +0.16 across N. At
-\(\delta\) = 50 kb it narrows to +0.00 to +0.04, and is exactly **0.00 at N = 50** (0.140 for
-both). So the full-model advantage over the baseline is not
-wholly attributable to promoter-proximal links, and it weakens as more proximal links are
-removed.
+**Relative to LinkPeaks**, both full settings retain an advantage at \(\delta\) = 10 kb and
+25 kb. `full_lambda_0_1`'s `delta_vs_linkpeaks` ranges from +0.08 to +0.16, narrowing to
++0.00 to +0.04 at \(\delta\) = 50 kb and reaching exactly **0.00 at N = 50** (0.140 for both).
+`full` (λ = 0.3) is stronger throughout, +0.09 to +0.34 across all twelve threshold × N cells.
+So the advantage over the baseline is not wholly attributable to promoter-proximal links.
 
-**Relative to `distance_only`**, the picture is worse. `distance_only` matches or beats the
-full models at 4 of 12 threshold × N combinations, and at \(\delta\) = 50 kb it beats every
-other method at every N by a factor of roughly two. The proximity confound is therefore
-**not resolved by these controls** — it is displaced. Removing links below \(\delta\) does not
-remove proximity as an explanatory variable; it re-centres it, and `distance_only`, which
-ranks the remaining links closest-first, continues to exploit it. Combined with the window
-artifact above, the \(\delta\) = 50 kb result cannot be read as either a clean pass or a clean
-failure.
+**The λ = 0.3 result, stated carefully.** `full` achieved the highest raw SCENT support and
+remained stronger than `full_lambda_0_1` after removing links within 10 kb and 25 kb of the
+TSS, which indicates the λ = 0.3 gain is not solely due to sub-10 kb promoter links. However,
+the distance-matched analysis shows **no within-bin advantage** over λ = 0.1: in
+`scent_validation_distance_matched_enrichment.csv`, `full`, `full_lambda_0_1` and
+`full_moddist_lambda_0_1` are identical at 5.057 in `0_10kb` and 3.148 in `10_50kb`. `full`'s
+higher `50_200kb` value (3.213 against 2.233) is not trustworthy, since that bin is only
+testable in its 50–100 kb portion and `distance_only` scores 3.356 there — the highest of any
+method. The mechanism is visible in the median-distance columns above: the stronger prior
+shifts the global ranking toward the 10–100 kb region the SCENT sweep covers, rather than
+discriminating better at fixed distance. `full` is therefore reported as an **aggressive
+distance-prior sensitivity setting**, and `full_lambda_0_1` is retained as the **conservative
+primary setting**.
+
+**Relative to `distance_only`**, the picture is mixed. `distance_only` matches or beats
+`full_lambda_0_1` at 7 of 12 threshold × N combinations, but beats `full` only at
+\(\delta\) = 50 kb, i.e. 4 of 12. At that threshold its margin is 2.1–2.6× over λ = 0.1 and
+1.2–1.6× over λ = 0.3. The proximity confound is therefore **not resolved by these controls**
+— it is displaced. Removing links below \(\delta\) does not remove proximity as an explanatory
+variable; it re-centres it, and `distance_only`, which ranks the remaining links closest-first,
+continues to exploit it. Two additional facts constrain the reading. At \(\delta\) = 10 kb and
+25 kb, `full` beats `distance_only` while sitting **further** from the TSS (22 kb against
+12 kb; 56 kb against 29 kb), which proximity alone does not explain. At \(\delta\) = 50 kb the
+method ordering tracks median distance almost perfectly in reverse, and only `distance_only`
+remains inside SCENT's tested window. Combined with the window limitation, the
+\(\delta\) = 50 kb result cannot be read as either a clean pass or a clean failure.
 
 ---
 
@@ -550,6 +581,11 @@ Each of these is directly supported by a named file.
     The reranker used all cells; SCENT used `max_cells: 1000`. TSS conventions differ
     (`docs/method_report.md` §7). Peak ID formats differ on disk
     (`docs/input_output_reference.md` §9.1).
+12. **Not** that λ = 0.3 is better than λ = 0.1 in any distance-controlled sense. `full` shows
+    higher raw SCENT support at every proximal-removal threshold, but zero within-bin advantage in
+    the distance-matched analysis (identical odds ratios of 5.057 and 3.148). Its gain is
+    consistent with a shift of the global ranking into SCENT's 100 kb tested window, not with
+    better discrimination at fixed distance. λ and α remain hand-set, not fitted.
 
 ---
 

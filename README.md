@@ -258,14 +258,34 @@ docker run --rm -it -v "$PWD":/work -w /work \
 
 Targets: `all` (features + all rankings), `all_with_scent` (adds the sweep and validation).
 
-The proximal-removal controls have **no Snakemake rule yet** and must be run by hand:
+The proximal-removal controls are a separate target, wired via
+`config/scent_validation_min_distance.yaml` and `rule scent_validation_min_distance`:
 
 ```bash
-Rscript scripts/summarize_scent_validation_min_distance.R \
-  --input results/pbmc/scent_validation/scent_validation_all_ranked_methods_combined.csv \
-  --output-dir results/pbmc/scent_validation_min_distance \
-  --min-distances 10000,25000,50000 \
-  --top-n-values 50,100,200,500
+python3 run_analysis.py run_scent_validation_min_distance
+```
+
+Or directly:
+
+```bash
+docker run --rm -it -v "$PWD":/work -w /work \
+  multiome-reranking-benchmark:v0.1.0 \
+  snakemake --snakefile workflow/Snakefile --configfile config/default.yaml --cores 4 \
+    results/pbmc/scent_validation_min_distance/.done
+```
+
+This is light post-processing of
+`results/pbmc/scent_validation/scent_validation_all_ranked_methods_combined.csv`.
+**It does not re-run SCENT.** Note that the target is not included in `all_with_scent`
+and must be requested explicitly.
+
+Thresholds and cut points are version-controlled in
+`config/scent_validation_min_distance.yaml`:
+
+```yaml
+min_distances: "10000,25000,50000"
+top_n_values: "50,100,200,500"
+high_fraction: 0.10
 ```
 
 ---
@@ -319,9 +339,16 @@ SCENT-covered chromosomes). SCENT: 52,482 tested rows, 4,758 supporting under
 
 † window artifact, see below.
 
-**Proximal removal** — `scent_min_distance_delta_vs_linkpeaks.csv`. Full models stay ahead of
-LinkPeaks at 10 kb and 25 kb (`full_lambda_0_1` delta +0.08 to +0.16), and the advantage
-narrows to +0.00 to +0.04 at 50 kb — exactly 0.00 at top-50. `distance_only` beats every model at 50 kb (0.35–0.38 vs 0.13–0.17).
+**Proximal removal** — `scent_min_distance_delta_vs_linkpeaks.csv`. The conservative primary
+setting `full_lambda_0_1` stays ahead of LinkPeaks at 10 kb and 25 kb (delta +0.08 to +0.16),
+narrowing to +0.00 to +0.04 at 50 kb — exactly 0.00 at top-50. The aggressive sensitivity
+setting `full` (λ = 0.3) is stronger at every threshold (delta +0.09 to +0.34), and its
+advantage over λ = 0.1 persists after removing links within 10 kb and 25 kb, so it is not
+carried solely by sub-10 kb promoter links. However, `full`'s top-N sits far closer to the TSS
+(median 22 kb at δ = 10 kb, against 50 kb for λ = 0.1), i.e. deeper inside SCENT's 100 kb
+tested window, and it shows no within-bin advantage over λ = 0.1 in the distance-matched
+analysis. `distance_only` still wins at δ = 50 kb (0.35–0.38), where every method's surviving
+median distance exceeds SCENT's tested window.
 
 ## How to interpret these results
 

@@ -253,9 +253,16 @@ and the usual graphics stack. Full list in `containers/Dockerfile`.
       (15,806 pairs at `positive_score`) and is currently an invisible script default
 - [ ] `run_analysis.py <section> --dry-run` succeeds for every section from a clean clone
 - [ ] `docker build` succeeds from a clean clone
-- [ ] Snakemake rule added for the min-distance controls (`TODO.md` §0.3)
-- [ ] `--min-distances` and `--high-fraction` used for the committed min-distance outputs recovered
-      and recorded, or the outputs regenerated with documented values
+- [x] **Snakemake rule added for the min-distance controls — DONE.**
+      `rule scent_validation_min_distance` (`workflow/Snakefile`), configured by
+      `config/scent_validation_min_distance.yaml`, exposed as
+      `python3 run_analysis.py run_scent_validation_min_distance`. Dry-run and real run passed
+- [ ] Optional: add the min-distance `.done` target to `rule all_with_scent`. It is currently
+      reachable only by explicit request, so `all_with_scent` does not regenerate it
+- [x] **`--min-distances` / `--high-fraction` — RESOLVED.** Now version-controlled in
+      `config/scent_validation_min_distance.yaml`: `min_distances: "10000,25000,50000"`,
+      `top_n_values: "50,100,200,500"`, `high_fraction: 0.10`. Outputs regenerated through the
+      workflow, so the committed values and the config agree
 - [ ] Cell count after QC recorded — currently nowhere in the archive
 - [ ] Total runtime recorded. `scent_chr_sweep_summary.csv` has `status = skipped_existing` and
       blank `runtime_minutes` for all 22 chromosomes, so compute cost is unknown
@@ -360,3 +367,7 @@ and the usual graphics stack. Full list in `containers/Dockerfile`.
 - [ ] `docs/lab_notebook.md` and `docs/benchmark_summary.md` carry their headers
 - [ ] All 15 items in `TODO.md` §9 are either resolved or explicitly documented as unknown in
       `README.md`
+- [ ] `full` (λ = 0.3) described as an aggressive distance-prior sensitivity setting, never as
+      the primary model or a headline result
+- [ ] No claim that λ = 0.3 beats λ = 0.1 in a distance-controlled sense — the within-bin odds
+      ratios are identical

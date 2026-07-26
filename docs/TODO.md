@@ -84,25 +84,27 @@ Actions:
 3. Decide whether the sqlite ships in the image, in Git LFS, or as a download step.
    **Needs confirmation.**
 
-### 0.3 The proximal-control outputs are not reproducible through the workflow
+### 0.3 The proximal-control outputs are now reproducible through the workflow — RESOLVED
 
-`results/pbmc/scent_validation_min_distance/` contains the four CSVs that constitute the
-proximity-confound controls — the single most important defensive analysis in the project.
+Previously these outputs were produced by hand with no Snakemake rule. Now wired in:
 
-`scripts/summarize_scent_validation_min_distance.R` exists and accepts
-`--input --output-dir --min-distances --top-n-values --high-fraction`.
+| Component | Location |
+|---|---|
+| Config | `config/scent_validation_min_distance.yaml` — `min_distances: "10000,25000,50000"`, `top_n_values: "50,100,200,500"`, `high_fraction: 0.10` |
+| Rule | `rule scent_validation_min_distance`, `workflow/Snakefile` |
+| Wrapper | `python3 run_analysis.py run_scent_validation_min_distance` |
+| Inputs | `results/pbmc/scent_validation/.done`, `scent_validation_all_ranked_methods_combined.csv` |
+| Outputs | `results/pbmc/scent_validation_min_distance/{.done, scent_min_distance_method_counts.csv, scent_min_distance_topN_support_summary.csv, scent_min_distance_delta_vs_linkpeaks.csv, scent_min_distance_distance_matched_enrichment.csv}` |
 
-`grep -n "min_distance\|summarize_scent" workflow/Snakefile` returns nothing.
-There is no rule. These outputs were produced by hand.
+Light post-processing only. **Does not re-run SCENT.** Dry-run and real run both verified.
 
-Action: add a `scent_validation_min_distance` rule consuming
-`results/pbmc/scent_validation/scent_validation_all_ranked_methods_combined.csv`,
-plus a `config/scent_validation_min_distance.yaml` holding `min_distances`,
-`top_n_values`, `high_fraction`. Add to `rule all_with_scent`. **Needs confirmation** —
-the exact `--min-distances` and `--high-fraction` values used for the committed outputs
-are not recorded anywhere in the archive and must be recovered from shell history
-before the rule can reproduce them.
+Two small items remain, neither blocking:
 
+1. The `.done` target is **not** in `rule all_with_scent`, so the controls are reachable only
+   by explicit request. Adding it is a one-line workflow-completeness change, not a new
+   analysis. **Safe.**
+2. No plot is produced. See `docs/results_report.md` §6 for the recommended figure and path.
+   **Safe.**
 ---
 
 ## 1. Keep
@@ -552,7 +554,7 @@ The existing `README.md` is actively misleading in three places and must not shi
 | Cell-level QC | **None performed** — no `min.cells`, `min.features` or `subset()` | document as a limitation |
 | Annotation consistency | **Mismatched** — counts from `GRCh38-2020-A`, TSS from `EnsDb.Hsapiens.v86` | document as a limitation |
 | `--candidate-filter` value used | Inferable — default `positive_score`, consistent with 15,806 | promote to `config/default.yaml` so it is explicit |
-| `--min-distances`, `--high-fraction` used for committed min-distance outputs | **No** | see §0.3 |
+| `--min-distances`, `--top-n-values`, `--high-fraction` | **Yes, resolved** — version-controlled in `config/scent_validation_min_distance.yaml` | no action |
 | Docker image digest | **No** — no image was published | build, push, record digest |
 
 ---
