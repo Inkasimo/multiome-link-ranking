@@ -221,13 +221,14 @@ transcript backing the selection is recorded in `tx_id` / `tx_biotype`.
 The distance score is a squared-Lorentzian decay (`:319–322`):
 
 $$
-D_{pg} \;=\;
+D_{pg} =
 \begin{cases}
-\dfrac{1}{1 + \left(\dfrac{d_{pg}}{d_0}\right)^{2}} & d_{pg} \text{ finite} \\[2ex]
-0 & \text{otherwise}
+\frac{1}{1 + (d_{pg}/d_0)^2}, & d_{pg}\ \mathrm{finite} \\[2ex]
+0, & \mathrm{otherwise}
 \end{cases}
-\qquad d_0 = \texttt{distance\_d0} = 50{,}000
 $$
+
+where \(d_0 = 50{,}000\), from config field `distance_d0`.
 
 so \(D \to 1\) at the TSS, \(D = 0.5\) at \(d = d_0\), and \(D \approx 0.01\) at 500 kb. The
 tail is heavy — distal links are downweighted, never excluded.
