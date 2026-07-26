@@ -299,7 +299,7 @@ $$
 
 Multiplicative rather than additive composition is intentional: weak evidence in any one
 component should reduce confidence rather than be offset by strength elsewhere. Because
-\(g_\alpha \geq 1\) and \(f_\lambda > 0\), neither modifier can zero out a link — they
+\(g_{\alpha} \geq 1\) and \(f_{\lambda} > 0\), neither modifier can zero out a link — they
 reweight rather than veto.
 
 ### 9.1 Original distance prior
