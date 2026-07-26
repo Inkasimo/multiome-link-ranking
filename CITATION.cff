@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+message: "If you use this benchmark, please cite it as below."
+title: "Multiome Peak-Gene Reranking Benchmark"
+authors:
+  - family-names: Inkala
+    given-names: Simo
+repository-code: "https://github.com/Inkasimo/multiome-link-ranking"
+version: "0.1.0"
+date-released: "2026-07-26"
+license: "MIT"
+keywords:
+  - single-cell multiome
+  - peak-gene links
+  - benchmarking
+  - SCENT
+  - LinkPeaks
