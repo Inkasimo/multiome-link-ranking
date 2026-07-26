@@ -240,6 +240,23 @@ therefore not guaranteed identical for the same pair. This does not affect the i
 consistency of the reranking comparison, since all modes share one feature table, but it does
 affect distance-stratified comparisons against SCENT.
 
+This distance score is deliberately simple. It is a proximity prior for a reranking
+benchmark and for proximity-bias diagnostics, not a mechanistic model of enhancer–gene
+regulation. Both of its constants are hand-set rather than fitted: the 50 kb
+half-strength point \(d_0\), and \(\lambda\), which scales how much the prior is
+allowed to move a ranking.
+
+Simplicity here is a scoping decision, not a claim of adequacy, and it is what makes the
+proximity diagnostics checkable: at \(\lambda = 0.1\) the modifier is confined to
+[0.90, 1.00], and below 10 kb \(D \approx 1\) for every candidate, so the term is
+effectively constant within that bin and cannot reorder it. This is visible in the
+results — `coactivity_tf`, both \(\lambda = 0.1\) modes and `full` (\(\lambda = 0.3\))
+all give an identical odds ratio of 5.057 in `0_10kb`. The 0–10 kb enrichment is a
+coactivity and TF/motif result; the distance prior contributes nothing to it.
+
+A future standalone model would need a richer distance or contact prior. See
+`docs/future_standalone_v0.md`.
+
 ---
 
 ## 8. TF/motif support score
