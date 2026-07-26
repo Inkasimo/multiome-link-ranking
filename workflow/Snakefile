@@ -311,3 +311,29 @@ rule scent_validation:
           --seed {config[seed]} \
           --done-file {output.done}
         """
+
+
+# Proximal-removal SCENT validation summary.
+# Light post-processing only; does not rerun SCENT.
+configfile: "config/scent_validation_min_distance.yaml"
+
+rule scent_validation_min_distance:
+    input:
+        validation_done=clean_path(OUTROOT, DATASET, "scent_validation", ".done"),
+        combined=clean_path(OUTROOT, DATASET, "scent_validation", "scent_validation_all_ranked_methods_combined.csv")
+    output:
+        done=touch(clean_path(OUTROOT, DATASET, "scent_validation_min_distance", ".done"))
+    params:
+        output_dir=clean_path(OUTROOT, DATASET, "scent_validation_min_distance"),
+        min_distances=lambda wildcards: config["min_distances"],
+        top_n_values=lambda wildcards: config["top_n_values"],
+        high_fraction=lambda wildcards: config["high_fraction"]
+    shell:
+        "mkdir -p {params.output_dir} && "
+        "Rscript scripts/summarize_scent_validation_min_distance.R "
+        "--input {input.combined} "
+        "--output-dir {params.output_dir} "
+        "--min-distances {params.min_distances} "
+        "--top-n-values {params.top_n_values} "
+        "--high-fraction {params.high_fraction}"
+

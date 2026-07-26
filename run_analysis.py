@@ -93,6 +93,7 @@ def main() -> int:
             "run_reranker_score_suite",
             "run_scent_sweep",
             "run_scent_validation",
+            "run_scent_validation_min_distance",
             "run_scent_pipeline",
             "run_reranker_with_scent",
             "list_score_modes",
@@ -366,6 +367,9 @@ def main() -> int:
             print("ERROR: SCENT validation methods missing from score modes: " + ", ".join(missing), file=sys.stderr)
             return 2
         targets = [scent_done]
+
+    elif args.section == "run_scent_validation_min_distance":
+        targets = [f"{output_root}/{dataset}/scent_validation_min_distance/.done"]
 
     elif args.section == "run_scent_pipeline":
         missing = [m for m in scent_methods if m not in modes]
