@@ -448,6 +448,12 @@ Execution used `max_cells: 1000`, `scent_regr: poisson`, `scent_cores: 4`, and
 `scoring_celltype: ""` — meaning a synthetic `all_cells` label, so **the SCENT results are
 not cell-type-stratified**.
 
+The 100 kb SCENT window was chosen as a pragmatic runtime bound. Running SCENT across the
+full 500 kb LinkPeaks candidate window would have greatly expanded the peak–gene candidate
+set and was not feasible for this release. Consequently, SCENT validation should be read as
+strongest for promoter-proximal and near-gene links, not as a complete test of distal
+peak–gene regulation.
+
 Of the 117,811 candidates, **52,482 rows** were tested and returned by SCENT across 22
 autosomes.
 

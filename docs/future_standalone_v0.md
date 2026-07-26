@@ -249,3 +249,9 @@ fine-mapped eQTLs — is what would convert any result, positive or negative, in
 defensible. That likely means working in a cell type where such data exists, which PBMC is not.
 That is a strategic decision about the evaluation axis, and it should be made before more
 scoring code is written.
+
+A future standalone model should be treated as an HPC-scale experiment rather than a local
+reranking benchmark. In particular, de novo candidate generation at 500 kb or larger cis
+windows, repeated SCENT-style validation, cell-type-stratified analyses and multi-dataset
+checks would likely require batch scheduling and larger memory/CPU budgets. The present
+release intentionally stops short of that scope.

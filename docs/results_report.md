@@ -269,12 +269,20 @@ In `200_500kb`, `supported_high = 0` and `supported_rest = 0` for **every** meth
 artifacts on empty cells, identical across all seven methods, and carry **no information
 whatsoever**. They must not appear in any summary of these results.
 
-The cause is structural, not a bug in the enrichment code: the SCENT sweep used
+The 100 kb SCENT window was a deliberate runtime compromise. Running the autosome-wide SCENT
+sweep across the full 500 kb LinkPeaks candidate window would have greatly expanded the
+candidate set and was not feasible for this release.
+
+The cause is therefore structural, not a bug in the enrichment code: the SCENT sweep used
 `link_distance: 100000` while candidates extend to 500 kb, so no SCENT test exists beyond
 100 kb. This also affects `50_200kb` — only its 50–100 kb portion is testable, which is why
 `distance_only` scores 3.356 there. Within that bin, `distance_only`'s top decile is precisely
 the 50–100 kb subset, i.e. the only part where SCENT could return a result. That value is an
 artifact of the window, not evidence of distal performance.
+
+A larger 500 kb SCENT sweep would be the appropriate follow-up for distal claims, 
+likely requiring an HPC-scale run; this release instead scopes SCENT to a tractable 100 kb
+near-gene validation window.
 
 Net position: the distance-matched result supports the claim that the coactivity and TF terms
 carry information beyond proximity, in the **0–50 kb** range and probably to 100 kb. Beyond
