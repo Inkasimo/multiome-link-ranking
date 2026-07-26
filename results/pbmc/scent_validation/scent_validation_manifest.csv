@@ -1,0 +1,8 @@
+output,purpose
+scent_validation_method_counts.csv,Method-level size and overall SCENT support counts
+scent_validation_topN_support_summary.csv,"Top-N SCENT support, distance, distal fraction, and gene diversity summaries"
+scent_validation_distance_matched_enrichment.csv,Within-distance-bin top-decile vs rest SCENT support enrichment
+scent_validation_supported_rank_summary.csv,Rank position summaries for SCENT-supported candidate links
+scent_validation_pair_overlap_between_rankings.csv,Exact pair overlap between ranked method top-N sets
+scent_validation_all_ranked_methods_combined.csv,Combined long table of all ranked method candidates with SCENT support labels
+scent_validation_scent_filter_summary.csv,"SCENT support-filter rule, tested rows, and retained support rows"
