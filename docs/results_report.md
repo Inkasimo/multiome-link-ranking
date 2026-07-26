@@ -22,7 +22,7 @@ Two conventions used throughout:
 | `results/pbmc/features/` | 3 CSVs + `.done` — the fixed candidate universe and feature table | 7.4 MB |
 | `results/pbmc/rankings/` | 11 mode directories × 25 files | 62 MB |
 | `results/pbmc/scent_chr_sweep_100kb_frac020_1000cells/` | 22 chromosome directories, sweep summary, combined links | 17 MB |
-| `results/pbmc/scent_validation/` | 11 summary CSVs, 12 `top200_*` exports, 3 PNGs | 7.1 MB |
+| `results/pbmc/scent_validation/` | 11 summary CSVs, 14 `top200_*` exports, 3 PNGs | 7.1 MB |
 | `results/pbmc/scent_validation_min_distance/` | 4 CSVs — the proximal-removal controls | 36 KB |
 
 47 PNG plots total: 4 per ranking mode (44), plus 3 in `scent_validation/`.
@@ -54,7 +54,7 @@ From `results/pbmc/scent_validation/scent_validation_method_counts.csv`:
 | Unique peaks | 4,087 |
 | Chromosomes | 22 |
 
-Ten modes have committed results. Six were carried into SCENT validation.
+Eleven modes have committed results. Seven were carried into the SCENT comparison.
 
 | Mode | \(\lambda\) | \(\alpha\) | In SCENT validation |
 |---|---|---|---|
@@ -65,14 +65,18 @@ Ten modes have committed results. Six were carried into SCENT validation.
 | `full_moddist_lambda_0_1` | 0.10 | 0.50 | yes |
 | `distance_only` | — | — | yes |
 | `coactivity_distance` | 0.30 | 0.00 | no |
-| `full` | 0.30 | 0.50 | no |
+| `full` | 0.30 | 0.50 | yes |
 | `full_lambda_0_2` | 0.20 | 0.50 | no |
 | `full_moddist_lambda_0_2` | 0.20 | 0.50 | no |
 | `distance_mod_only_lambda_0_1` | 0.10 | 0.00 | no |
 
-Four of the ten modes, including both \(\lambda = 0.2\) variants and `full` at
-\(\lambda = 0.3\), have **no external validation at all**. Any statement about them rests on
-internal diagnostics only.
+Four of the eleven modes — `coactivity_distance`, both \(\lambda = 0.2\) variants
+(`full_lambda_0_2`, `full_moddist_lambda_0_2`) and `distance_mod_only_lambda_0_1` — have **no
+external comparison at all**. Any statement about them rests on internal diagnostics only.
+
+`full` (λ = 0.3) is now included in the SCENT comparison, but it remains an aggressive
+distance-prior sensitivity setting rather than a headline result; `full_lambda_0_1` (λ = 0.1) is
+the conservative primary setting. §5 and §11 item 12 give the reason.
 
 ---
 
@@ -107,10 +111,11 @@ recorded.
 | `full_moddist_lambda_0_1` | 4,976 | 1,259 | 0.2530 |
 | `full_lambda_0_1` | 4,976 | 1,259 | 0.2530 |
 | `distance_only` | 4,976 | 1,259 | 0.2530 |
+| `full` | 4,976 | 1,259 | 0.2530 |
 
 This is expected and carries **no discriminative information**: the universe is shared, so
 only the ordering can differ. The column exists as a consistency check. It is noted here
-because it is easy to misread as six methods independently achieving the same result.
+because it is easy to misread as seven methods independently achieving the same result.
 
 ---
 
@@ -124,6 +129,7 @@ Sorted within each N by `frac_scent_supported`.
 | Method | supported | frac | median dist (bp) | distal frac | promoter frac 10 kb |
 |---|---|---|---|---|---|
 | `distance_only` | 29 | **0.580** | 3.5 | 0.00 | 1.00 |
+| `full` | 28 | 0.560 | 3,065.75 | 0.06 | 0.76 |
 | `full_lambda_0_1` | 22 | 0.440 | 5,923.75 | 0.20 | 0.62 |
 | `full_moddist_lambda_0_1` | 22 | 0.440 | 5,923.75 | 0.20 | 0.62 |
 | `coactivity` | 21 | 0.420 | 8,598.75 | 0.30 | 0.52 |
@@ -134,7 +140,8 @@ Sorted within each N by `frac_scent_supported`.
 
 | Method | supported | frac | median dist (bp) | distal frac | promoter frac 10 kb |
 |---|---|---|---|---|---|
-| `full_lambda_0_1` | 58 | **0.580** | 7,273.75 | 0.19 | 0.56 |
+| `full` | 63 | **0.630** | 2,654.5 | 0.03 | 0.75 |
+| `full_lambda_0_1` | 58 | 0.580 | 7,273.75 | 0.19 | 0.56 |
 | `full_moddist_lambda_0_1` | 57 | 0.570 | 7,914.5 | 0.20 | 0.55 |
 | `distance_only` | 53 | 0.530 | 7.5 | 0.00 | 1.00 |
 | `coactivity_tf` | 50 | 0.500 | 10,977.5 | 0.30 | 0.48 |
@@ -145,7 +152,8 @@ Sorted within each N by `frac_scent_supported`.
 
 | Method | supported | frac | median dist (bp) | distal frac | promoter frac 10 kb |
 |---|---|---|---|---|---|
-| `full_lambda_0_1` | 121 | **0.605** | 7,855.5 | 0.195 | 0.575 |
+| `full` | 136 | **0.680** | 2,774.75 | 0.05 | 0.74 |
+| `full_lambda_0_1` | 121 | 0.605 | 7,855.5 | 0.195 | 0.575 |
 | `full_moddist_lambda_0_1` | 120 | 0.600 | 7,855.5 | 0.20 | 0.575 |
 | `coactivity` | 105 | 0.525 | 10,035 | 0.32 | 0.50 |
 | `coactivity_tf` | 103 | 0.515 | 12,530.25 | 0.32 | 0.48 |
@@ -165,50 +173,39 @@ support curve is not interpretable.*
 
 ### What this shows
 
-At N = 100 and N = 200, the two full models rank above LinkPeaks by SCENT-supported fraction,
-by a margin of 0.15–0.16. The ordering
-`full_* > coactivity ≈ coactivity_tf > linkpeaks` is consistent at both depths. Adding the
-distance and TF terms to coactivity moves the support fraction up by roughly 0.08 at N = 200
-(0.525 → 0.605).
+At N = 100 and N = 200, `full` (λ = 0.3) has the highest raw SCENT-supported
+fraction. The conservative λ = 0.1 full models also rank above LinkPeaks at both depths.
+This raw ordering is distance-sensitive: `full` is much more promoter-proximal than
+`full_lambda_0_1`, so the distance-matched analysis in §5 is required for interpretation.
 
 ### What this does not show
 
-At **N = 50, `distance_only` is the best method** by this metric, at 0.580 against 0.440 for
-the full models. Its median top-50 distance is **3.5 bp** and its 10 kb promoter fraction is
-**1.00** — every one of its top 50 links is a promoter-overlapping peak. Taken at face value
-the metric would rank a pure proximity ranking first.
+At N = 50, the two most proximity-driven rankings lead: `distance_only` is highest
+(0.580), closely followed by `full` (λ = 0.3; 0.560). `distance_only` has a median
+top-50 distance of 3.5 bp and promoter fraction 1.00; `full` also shifts strongly toward
+promoters, with median top-50 distance 3.1 kb and promoter fraction 0.76. Taken at face value,
+the raw metric rewards promoter/TSS proximity.
 
 That result is the central interpretive fact of this benchmark. It does not mean
-`distance_only` is a good method; it means **SCENT support is strongly concentrated at
-promoters**, and any metric based on SCENT support without distance control rewards proximity
-collapse. `distance_only` remains competitive at N = 200 (0.510), only 0.065 below the best
-full model, on links with a median distance of 15 bp.
+`distance_only` or the aggressive distance-prior setting is a better biological model; it means
+SCENT support is strongly affected by promoter/TSS proximity, and any raw top-N metric based on
+SCENT support must be read together with distance controls. `distance_only` remains competitive
+with the conservative λ = 0.1 full model at N = 200 (0.510 vs 0.605), while `full` reaches 0.680
+by shifting even closer to promoters.
 
 Consequently: the full models' advantage over LinkPeaks at N = 100–200 is real in the data, but
-it is partly a proximity effect. The full models' top-100 median distance (7.3 kb) is less than
-half LinkPeaks' (16.2 kb), and their promoter fraction is higher (0.56 vs 0.42). Some of the
-gain is bought by moving toward promoters. The distance-matched analysis in §5 is what
+it is partly a proximity effect. The λ = 0.1 full model's top-100 median distance (7.3 kb) is less
+than half LinkPeaks' (16.2 kb), and its promoter fraction is higher (0.56 vs 0.42). The aggressive
+λ = 0.3 setting moves even closer to promoters. The distance-matched analysis in §5 is what
 separates the two explanations, and the proximal-removal controls in §6 test whether anything
 survives.
 
 ### Rank-based view
 
-`scent_validation_supported_rank_summary.csv` — median `rank_model` of the 1,259 supported
-links, over the full 4,976:
-
-| Method | median rank | mean rank |
-|---|---|---|
-| `full_lambda_0_1` | **1,226** | 1,455.6 |
-| `full_moddist_lambda_0_1` | 1,238 | 1,462.7 |
-| `coactivity` | 1,378 | 1,585.8 |
-| `coactivity_tf` | 1,447 | 1,615.5 |
-| `distance_only` | 1,476 | 1,506.7 |
-| `linkpeaks` | 1,834 | 2,037.1 |
-
-Same ordering, using the whole ranking rather than a cut point. `distance_only` falls to fifth
-here, which is informative: proximity concentrates support at the very top but does not order
-the bulk of the list well. The median supported distance is identical (9,437.5 bp) for all
-methods, as it must be — the supported set is shared.
+`scent_validation_supported_rank_summary.csv` reports the median and mean `rank_model` of the
+1,259 supported links over the full 4,976-pair evaluated universe. This table should include the
+same seven compared methods as the top-N summaries, including `full` (λ = 0.3). The CSV is the
+source of truth for the rank-based view.
 
 ---
 
@@ -227,20 +224,27 @@ Odds ratio, top decile vs remainder, within distance bin.
 |---|---|---|---|
 | `full_lambda_0_1` | **5.057** | **3.148** | **2.233** |
 | `full_moddist_lambda_0_1` | **5.057** | **3.148** | **2.233** |
+| `full` (λ = 0.3) | 5.057 | 3.148 | 3.213 † |
 | `coactivity_tf` | 5.057 | 3.017 | 1.930 |
 | `coactivity` | 4.676 | 2.893 | 2.129 |
 | `distance_only` | 1.594 | 0.922 | 3.356 |
 | `linkpeaks` | 2.595 | 1.775 | 1.654 |
 
+† `full`'s `50_200kb` value is not comparable to the others. That bin is testable only in its
+50–100 kb portion, and `full`'s top decile there has a median distance of 82.3 kb against
+105.0 kb for the remainder — further inside SCENT's tested window than `full_lambda_0_1`'s
+98.4 kb. `distance_only` is furthest in at 54.2 kb and scores highest at 3.356. The ordering in
+this bin tracks window position, not discrimination.
+
 Bin occupancy, identical across methods: `0_10kb` 150 / 1,349; `10_50kb` 111 / 999;
 `50_200kb` 121 / 1,082.
 
-Note that in the `0_10kb` bin, `coactivity_tf`, `full_lambda_0_1` and `full_moddist_lambda_0_1`
-are numerically identical at 5.057. Within that bin \(d \ll d_0\), so \(D \approx 1\) and the
-distance modifier is effectively constant across candidates — the three modes reduce to the same
-function. The tight-bin enrichment is therefore a **coactivity + TF/motif** result, not a result
-about the distance prior. The distance term only begins to differentiate in the wider bins
-(10–50 kb: 3.017 for `coactivity_tf` against 3.148 for the full models).
+Note that in the `0_10kb` bin, `coactivity_tf`, `full_lambda_0_1`,
+`full_moddist_lambda_0_1` and `full` are numerically identical at 5.057, with identical
+supported counts (115 of 150). In `10_50kb`, all three full modes are also identical
+at 3.148, with identical supported counts (70 of 111). Within these proximal bins,
+raising λ from 0.1 to 0.3 changes nothing in the distance-matched result. The distance
+prior affects the global ordering, not within-bin discrimination.
 
 This is the strongest evidence in the benchmark. At fixed distance, the full models
 concentrate SCENT-supported links in their top decile roughly twice as strongly as LinkPeaks
@@ -258,11 +262,11 @@ explained in the next paragraph.
 
 | Method | `200_500kb` OR | `gt500kb` OR |
 |---|---|---|
-| all six | 8.906 | 0.333 |
+| all seven | 8.906 | 0.333 |
 
 In `200_500kb`, `supported_high = 0` and `supported_rest = 0` for **every** method. In
 `gt500kb`, `n_high = 1` and `n_rest = 0`. The reported odds ratios are continuity-correction
-artifacts on empty cells, identical across all six methods, and carry **no information
+artifacts on empty cells, identical across all seven methods, and carry **no information
 whatsoever**. They must not appear in any summary of these results.
 
 The cause is structural, not a bug in the enrichment code: the SCENT sweep used
@@ -289,9 +293,14 @@ Produced by `rule scent_validation_min_distance` (`workflow/Snakefile`), configu
 `python3 run_analysis.py run_scent_validation_min_distance`. Light post-processing of the
 SCENT validation output; SCENT itself is not re-run.
 
-These summaries include `full` (λ = 0.3), the aggressive distance-prior sensitivity setting,
-which was not present in the earlier version of this analysis. `full_lambda_0_1` (λ = 0.1)
-remains the conservative primary setting.
+These summaries include `full` (λ = 0.3), an aggressive distance-prior sensitivity setting.
+Seven of the eleven committed modes are compared against SCENT.
+
+`full_lambda_0_1` (λ = 0.1) remains the conservative primary setting: λ = 0.1 was chosen as a
+guard against proximity domination after the `distance_only` control showed that raw SCENT
+support can be strongly driven by promoter/TSS proximity. Although `full` has higher raw SCENT
+support, §5 shows that λ = 0.3 has no within-bin advantage over λ = 0.1 in the main proximal
+distance strata.
 
 Surviving candidates after removing links below the threshold — identical for all methods:
 
@@ -343,18 +352,7 @@ At \(\delta\) = 50 kb `distance_only` leads at every N. Its margin is roughly 2.
 `distance_only` is the only method whose top-N stays inside SCENT's tested window, `full` sits
 just outside it, and λ = 0.1 well outside.
 
-*No plot exists for the min-distance controls.* Given that this is the analysis most likely to
-be scrutinised, a figure should be produced: supported fraction against \(\delta\), one line
-per method, at fixed N = 200, with a horizontal reference at the overall support rate for each
-\(\delta\). Recommended path:
-
-```
-results/pbmc/scent_validation_min_distance/scent_min_distance_supported_fraction_by_threshold.png
-```
-
-The plotting call should be added to `scripts/summarize_scent_validation_min_distance.R`.
-The Snakemake rule itself is now in place (`rule scent_validation_min_distance`); only the
-figure is missing.
+The proximal-removal controls are reported through CSV summaries rather than a dedicated plot.
 
 ### Honest reading
 
@@ -369,16 +367,18 @@ So the advantage over the baseline is not wholly attributable to promoter-proxim
 **The λ = 0.3 result, stated carefully.** `full` achieved the highest raw SCENT support and
 remained stronger than `full_lambda_0_1` after removing links within 10 kb and 25 kb of the
 TSS, which indicates the λ = 0.3 gain is not solely due to sub-10 kb promoter links. However,
-the distance-matched analysis shows **no within-bin advantage** over λ = 0.1: in
+fine distance-matched enrichment showed little or no within-bin advantage over λ = 0.1. In
 `scent_validation_distance_matched_enrichment.csv`, `full`, `full_lambda_0_1` and
-`full_moddist_lambda_0_1` are identical at 5.057 in `0_10kb` and 3.148 in `10_50kb`. `full`'s
-higher `50_200kb` value (3.213 against 2.233) is not trustworthy, since that bin is only
-testable in its 50–100 kb portion and `distance_only` scores 3.356 there — the highest of any
-method. The mechanism is visible in the median-distance columns above: the stronger prior
-shifts the global ranking toward the 10–100 kb region the SCENT sweep covers, rather than
-discriminating better at fixed distance. `full` is therefore reported as an **aggressive
-distance-prior sensitivity setting**, and `full_lambda_0_1` is retained as the **conservative
-primary setting**.
+`full_moddist_lambda_0_1` are identical at 5.057 in `0_10kb` and 3.148 in `10_50kb`.
+
+The `50_200kb` bin is the only distance-matched bin where `full` differs from
+`full_lambda_0_1` (3.213 vs 2.233), but this bin is only partially testable by the 100 kb
+SCENT window. In that bin, `full`'s top decile has a median distance of 82.3 kb, compared with
+98.4 kb for `full_lambda_0_1`, placing it further inside the testable 50–100 kb portion. In the
+two proximal bins, the methods have identical supported counts and odds ratios.
+
+We therefore report `full` as an **aggressive distance-prior sensitivity setting**, and
+`full_lambda_0_1` is retained as the **conservative primary setting**.
 
 **Relative to `distance_only`**, the picture is mixed. `distance_only` matches or beats
 `full_lambda_0_1` at 7 of 12 threshold × N combinations, but beats `full` only at
@@ -431,11 +431,13 @@ control rather than a variant.
 
 Collected in one place, because this is the finding most likely to be understated.
 
-1. **`distance_only` wins outright at top-50** on the full universe: 0.580 vs 0.440.
+1. **`distance_only` wins outright at top-50** on the full universe: 0.580 vs 0.560 for
+   `full` and 0.440 for the conservative λ = 0.1 full models.
 2. Its top-ranked links are **degenerate**: median distance 3.5 bp at N = 50, 7.5 bp at
    N = 100, 15 bp at N = 200. Promoter fraction 1.00 and distal fraction 0.00 at every N.
    These are peaks overlapping the TSS.
-3. It remains within 0.065 of the best model at **top-200** (0.510 vs 0.605).
+3. It remains close to the conservative λ = 0.1 full model at **top-200** (0.510 vs 0.605),
+   but below aggressive `full` (0.680).
 4. It **beats every model at \(\delta\) = 50 kb** at all four N, by roughly 2×.
 5. Its distance-matched odds ratio is 1.594 in `0_10kb` and **0.922** in `10_50kb`. Within a
    distance bin it is uninformative — as it must be, since it is ranking by the binning
@@ -446,9 +448,10 @@ Items 1–4 constrain how strongly any positive claim can be phrased. Items 5–
 positive claim to be made at all: the full models' within-bin enrichment (5.06, 3.15, 2.23)
 cannot be produced by distance, because distance produces 1.59, 0.92 and an artifact.
 
-The correct summary is: **the full models add information beyond proximity at fixed distance,
+The correct summary is: **the full models add information beyond proximity at fixed distance
 in the 0–50 kb range, while their advantage on raw top-N metrics is partly a proximity
-effect.** Both halves of that sentence are needed.
+effect. `full` (λ = 0.3) strengthens the raw metric but does not strengthen the
+distance-controlled claim.** Both halves of that sentence are needed.
 
 ---
 
@@ -522,17 +525,18 @@ Tiers are monotone in distance as well as in score — median distance rises 9.6
 
 Each of these is directly supported by a named file.
 
-1. The pipeline runs end to end and produces a controlled comparison: ten score modes over one
+1. The pipeline runs end to end and produces a controlled comparison: eleven score modes over one
    byte-identical 5,000-pair candidate universe, with a genome-wide SCENT sweep across 22
    autosomes (52,482 tested rows, 4,758 supporting).
-2. At top-100 and top-200, `full_lambda_0_1` and `full_moddist_lambda_0_1` show a higher
-   SCENT-supported fraction than the LinkPeaks ordering on the same universe
-   (0.580 / 0.570 vs 0.430; 0.605 / 0.600 vs 0.445).
+2. At top-100 and top-200, `full` (λ = 0.3) has the highest raw SCENT-supported fraction
+   (0.630 and 0.680). The conservative λ = 0.1 full models also show higher support than the
+   LinkPeaks ordering on the same universe (0.580 / 0.570 vs 0.430; 0.605 / 0.600 vs 0.445).
    *Source: `scent_validation_topN_support_summary.csv`.*
-3. Within the 0–10 kb, 10–50 kb and 50–200 kb distance bins, the full models show higher
-   top-decile SCENT enrichment than LinkPeaks (5.06 vs 2.60; 3.15 vs 1.78; 2.23 vs 1.65), and
-   substantially higher than `distance_only` in the two proximal bins. This is the strongest
-   available evidence that the coactivity and TF terms contribute beyond proximity.
+3. Within the 0–10 kb and 10–50 kb distance bins, the full models show higher top-decile
+   SCENT enrichment than LinkPeaks (5.06 vs 2.60; 3.15 vs 1.78), and substantially higher than
+   `distance_only`. This is the strongest available evidence that the coactivity and TF terms
+   contribute beyond proximity. The `50_200kb` bin is only partially testable because SCENT used
+   a 100 kb window and should be read cautiously.
    *Source: `scent_validation_distance_matched_enrichment.csv`.*
 4. Removing links within 10 kb or 25 kb of the TSS leaves the full models ahead of LinkPeaks
    (`full_lambda_0_1` `delta_vs_linkpeaks` +0.08 to +0.16). At 50 kb it narrows to +0.00 to
@@ -546,8 +550,8 @@ Each of these is directly supported by a named file.
    grounds only.
 7. Gene-level ORA favours the LinkPeaks baseline (17 terms vs 5 for `full_lambda_0_1`).
 8. `distance_only` remains the strongest method after removing links within 50 kb
-   (0.35–0.38 vs 0.13–0.17), so the proximity confound is displaced by the controls rather
-   than eliminated.
+   (0.35–0.38 vs 0.22–0.30 for `full` and 0.13–0.17 for λ = 0.1), so the proximity
+   confound is displaced by the controls rather than eliminated.
 
 ---
 
@@ -569,7 +573,9 @@ Each of these is directly supported by a named file.
 7. **Not** that any result is cell-type-specific. No score or validation step is stratified by
    cell type; SCENT ran with a synthetic `all_cells` label.
 8. **Not** that \(\lambda\) and \(\alpha\) are optimal or fitted. Hand-set, no held-out
-   selection. Four of ten modes have no external validation.
+   selection. Seven of the eleven committed modes are compared against SCENT; four —
+    `coactivity_distance`, `full_lambda_0_2`, `full_moddist_lambda_0_2` and
+    `distance_mod_only_lambda_0_1` — have none.
 9. **Not** that results generalise. One dataset, one tissue, one sample, 5,000 pairs over
    1,390 genes drawn from the top of a LinkPeaks ranking — not a random sample of candidates.
 10. **Not** that SCENT-supported labels are individually reliable. The rule was applied to 52,482
@@ -585,7 +591,11 @@ Each of these is directly supported by a named file.
     higher raw SCENT support at every proximal-removal threshold, but zero within-bin advantage in
     the distance-matched analysis (identical odds ratios of 5.057 and 3.148). Its gain is
     consistent with a shift of the global ranking into SCENT's 100 kb tested window, not with
-    better discrimination at fixed distance. λ and α remain hand-set, not fitted.
+    better discrimination at fixed distance. The `50_200kb` bin is the only distance-matched bin
+    where `full` differs from `full_lambda_0_1` (3.213 vs 2.233), and there `full`'s top decile
+    sits at a median 82.3 kb against λ = 0.1's 98.4 kb — further inside the 50–100 kb band that
+    SCENT could actually test. In both proximal bins the two are identical to the supported count.
+    λ and α remain hand-set, not fitted.
 
 ---
 
@@ -597,8 +607,10 @@ The defensible position, stated once:
 > data, an interpretable score combining RNA–ATAC coactivity, a mild distance prior
 > (\(\lambda = 0.1\)) and peak-level TF/motif support reorders the candidates such that
 > SCENT-supported links are concentrated higher than in the LinkPeaks ordering, at top-100 and
-> top-200. Within distance bins up to 200 kb, the same score shows roughly twice the top-decile
-> SCENT enrichment of the baseline, which proximity alone does not explain. However, a
+> top-200. The aggressive λ = 0.3 sensitivity setting gives the highest raw SCENT support but does
+> not improve within-bin discrimination over λ = 0.1. Within proximal distance bins, the same score
+> shows roughly twice the top-decile SCENT enrichment of the baseline, which proximity alone does
+> not explain. However, a
 > distance-only control wins outright at top-50 and remains the strongest method after removing
 > links within 50 kb, and SCENT itself only tested pairs within 100 kb, so the benchmark
 > provides no evidence about distal links and does not establish that the proximity confound has
@@ -606,11 +618,13 @@ The defensible position, stated once:
 > benchmark and using it to motivate a test of de novo candidate generation. They do not
 > establish a peak–gene linking method.
 
+
 ### Strongest positive
 
-The distance-matched enrichment (§5). Odds ratios of 5.06, 3.15 and 2.23 against LinkPeaks'
-2.60, 1.78 and 1.65, at approximately fixed distance, with the distance-only control at 1.59
-and 0.92 in the same bins. This is the one result that survives the obvious objection.
+The distance-matched enrichment (§5). Odds ratios of 5.06 and 3.15 against LinkPeaks'
+2.60 and 1.78 in the two proximal bins, at approximately fixed distance, with the distance-only
+control at 1.59 and 0.92 in the same bins. This is the one result that survives the obvious
+objection.
 
 ### Weakest / most negative
 
@@ -648,7 +662,7 @@ Four things this benchmark establishes for the next phase. Detail in
    SCENT validator is ±100 kb. Scoring it and validating against SCENT would give candidates
    and validator identical support, making the confound worse than it is here, with no
    proximal-removal escape route. Generate candidates at 500 kb, or accept that the experiment
-   answers only a proximal question.
+   answers only a proximal question. Running the analyses with 500 kb increases the runtime significantly. 
 4. **Any future claim should be about calibration, not superiority.** "Tier 1 links have
    measurably higher orthogonal support than tier 3" is testable with the existing harness and
    does not require beating eleven established methods. "Better ranking" is not supportable on

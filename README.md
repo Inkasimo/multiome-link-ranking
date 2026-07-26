@@ -20,7 +20,7 @@ prioritization method, but that is next-phase work and is not implemented here. 
 
 ```text
 implemented here:
-  LinkPeaks candidates -> fixed feature table -> 10 interpretable score modes
+  LinkPeaks candidates -> fixed feature table -> 11 interpretable score modes
                        -> SCENT comparison -> proximity controls
 
 next phase (not implemented):
@@ -36,7 +36,7 @@ next phase (not implemented):
 | Stage | Frozen benchmark. Complete, documented, not under active development |
 | Dataset | 10x PBMC multiome, hg38 (accession not yet recorded — see [`TODO.md`](TODO.md) §9) |
 | Candidate universe | 5,000 LinkPeaks-derived pairs over 1,390 genes |
-| Score modes | 10 committed; 6 externally validated |
+| Score modes | 11 committed; 7 compared against SCENT |
 | External comparator | SCENT, 22 autosomes, 52,482 tested pairs |
 | Headline result | Full models rank above LinkPeaks at top-100/200 SCENT support; a distance-only control wins at top-50 |
 | Conclusion | Sufficient to justify a de novo candidate-generation test. Not sufficient to claim a method |
@@ -57,13 +57,14 @@ This benchmark was built to answer one narrow question honestly:
 > coactivity, distance and TF/motif terms produce a ranking with more external support than the
 > LinkPeaks ordering — and does any advantage survive controlling for promoter proximity?
 
-The answer, in short: partly yes on the first clause, and only partly on the second. The
-proximity control turned out to be the most informative component of the whole study.
-
-This benchmark shows that the reranking score can move SCENT-supported links above the original LinkPeaks ordering, 
-especially at top-100/top-200. However, the strongest lesson is that promoter proximity can look like biological success: 
-a distance-only ranking performs very well near the top, so all future standalone scoring must include explicit distance-only, 
-distance-matched, and proximal-removal controls.
+In short, this repository tests whether interpretable coactivity, distance and TF/motif terms can
+rerank an existing LinkPeaks candidate set better than the original LinkPeaks ordering. The answer
+is mixed but useful: the full scores enrich SCENT-supported links above LinkPeaks, especially after
+distance matching in the 0–50 kb range, but raw top-N gains are strongly affected by promoter/TSS
+proximity. The λ = 0.3 `full` setting gives the strongest raw SCENT support, while λ = 0.1
+(`full_lambda_0_1`) remains the conservative primary setting because λ = 0.3 does not improve
+within-bin discrimination. The repo is therefore a reproducible reranking benchmark and
+proximity-bias diagnostic, not a validated standalone peak–gene linking method.
 
 ---
 
@@ -76,9 +77,10 @@ distance-matched, and proximal-removal controls.
    positive-score candidates, and keeps the top 5,000.
 4. Builds one fixed feature table for those candidates: coactivity variants, peak–TSS distance
    and distance score, peak-level motif and TF/motif-expression scores.
-5. Reranks the identical candidate set under 10 interpretable score modes — LinkPeaks baseline,
-   coactivity-only, distance-only, coactivity+distance, coactivity+TF, full score at three
-   \(\lambda\) values, and a modified distance prior at two.
+5. Reranks the identical candidate set under 11 interpretable score modes — LinkPeaks baseline,
+   coactivity-only, distance-only, a modified-distance control, coactivity+distance,
+   coactivity+TF, the full score at three \(\lambda\) values (0.1, 0.2, and 0.3 as the mode named
+   `full`), and the modified distance prior at two.
 6. Runs SCENT independently across all 22 autosomes as an external comparator, using its own
    cis-window candidate set.
 7. Compares every score mode against SCENT support: top-N supported fraction, rank of supported
@@ -220,6 +222,7 @@ sections:
   run_reranker_score_suite    feature table + all score modes
   run_scent_sweep             SCENT producer across configured chromosomes
   run_scent_validation        SCENT consumer, cross-method comparison
+  run_scent_validation_min_distance   proximal-removal controls (post-processing only)
   run_scent_pipeline          sweep + validation
   run_reranker_with_scent     everything
   list_score_modes            print configured modes
@@ -256,23 +259,22 @@ docker run --rm -it -v "$PWD":/work -w /work \
   snakemake --snakefile workflow/Snakefile --configfile config/default.yaml --cores 4 all_with_scent
 ```
 
-Targets: `all` (features + all rankings), `all_with_scent` (adds the sweep and validation).
+Targets: `all` (features + all rankings), `all_with_scent` (adds the SCENT sweep, the
+cross-method validation and the proximal-removal controls).
 
-The proximal-removal controls are a separate target, wired via
-`config/scent_validation_min_distance.yaml` and `rule scent_validation_min_distance`:
+The proximal-removal controls are a rule of their own and can also be requested directly. They
+are light post-processing of the validation output and do **not** re-run SCENT:
 
 ```bash
 python3 run_analysis.py run_scent_validation_min_distance
 ```
 
-Or directly:
+Thresholds and rank depths are version-controlled in
+`config/scent_validation_min_distance.yaml` (`min_distances: 10000,25000,50000`,
+`top_n_values: 50,100,200,500`, `high_fraction: 0.10`), so the committed outputs and the
+configuration agree.
+````
 
-```bash
-docker run --rm -it -v "$PWD":/work -w /work \
-  multiome-reranking-benchmark:v0.1.0 \
-  snakemake --snakefile workflow/Snakefile --configfile config/default.yaml --cores 4 \
-    results/pbmc/scent_validation_min_distance/.done
-```
 
 This is light post-processing of
 `results/pbmc/scent_validation/scent_validation_all_ranked_methods_combined.csv`.
@@ -323,6 +325,12 @@ SCENT-covered chromosomes). SCENT: 52,482 tested rows, 4,758 supporting under
 | `coactivity_tf` | 0.515 | 12,530 bp |
 | `distance_only` | 0.510 | **15 bp** |
 | `linkpeaks` | 0.445 | 13,473 bp |
+| `full` (λ = 0.3) | 0.680 | 2,774.75 bp |
+
+
+full_lambda_0_1` (λ = 0.1) is the conservative primary setting. `full` (λ = 0.3) is an
+aggressive distance-prior sensitivity setting; see the distance-matched table below before
+reading its raw support figure.
 
 **At top 50, the distance-only control wins** (0.580 vs 0.440), with a median distance of
 3.5 bp and a promoter fraction of 1.00.
@@ -333,11 +341,16 @@ SCENT-covered chromosomes). SCENT: 52,482 tested rows, 4,758 supporting under
 | Method | 0–10 kb | 10–50 kb | 50–200 kb |
 |---|---|---|---|
 | `full_lambda_0_1` | 5.06 | 3.15 | 2.23 |
+| `full` (λ = 0.3) | 5.06 | 3.15 | 3.21 † |
 | `coactivity` | 4.68 | 2.89 | 2.13 |
 | `linkpeaks` | 2.60 | 1.78 | 1.65 |
 | `distance_only` | 1.59 | **0.92** | 3.36 † |
 
 † window artifact, see below.
+
+λ = 0.3 is **identical** to λ = 0.1 in both proximal bins — same odds ratio, same supported
+counts. Its only difference is in `50_200kb`, where SCENT tested just the 50–100 kb portion.
+Raising the distance prior does not improve discrimination at fixed distance.
 
 **Proximal removal** — `scent_min_distance_delta_vs_linkpeaks.csv`. The conservative primary
 setting `full_lambda_0_1` stays ahead of LinkPeaks at 10 kb and 25 kb (delta +0.08 to +0.16),
@@ -349,6 +362,10 @@ carried solely by sub-10 kb promoter links. However, `full`'s top-N sits far clo
 tested window, and it shows no within-bin advantage over λ = 0.1 in the distance-matched
 analysis. `distance_only` still wins at δ = 50 kb (0.35–0.38), where every method's surviving
 median distance exceeds SCENT's tested window.
+
+`full` (λ = 0.3) is stronger than λ = 0.1 at every threshold (delta +0.09 to +0.34), but it
+gains no within-bin advantage, so this is reported as a distance-prior sensitivity result and
+not as a better model.
 
 ## How to interpret these results
 
@@ -391,8 +408,15 @@ Full analysis, including the gene-level ORA result that points the other way:
 - The TF/motif score is peak-level with no gene or cell-type dependence, so it cannot represent
   TF-to-target specificity. Its contribution is small and inconsistent.
 - Scores use min–max rescaling and are therefore dataset-dependent and not portable.
-- \(\lambda\) and \(\alpha\) are hand-set, not fitted. Four of ten modes have no external
-  validation.
+- \(\lambda\) and \(\alpha\) are hand-set, not fitted. Seven of the eleven committed modes are
+  compared against SCENT; four — `coactivity_distance`, `full_lambda_0_2`,
+  `full_moddist_lambda_0_2` and `distance_mod_only_lambda_0_1` — have no external comparison at
+  all, and any statement about them rests on internal diagnostics only.
+- `full_lambda_0_1` (λ = 0.1) is the conservative primary setting, chosen a priori as a guard
+  against proximity domination. `full` (λ = 0.3) is an aggressive distance-prior sensitivity
+  setting: it shows higher raw SCENT support but no within-bin advantage over λ = 0.1, so its
+  gain is consistent with a shift of the ranking into SCENT's 100 kb tested window rather than
+  better discrimination.
 - One dataset, one tissue, one sample; 5,000 pairs over 1,390 genes, drawn from the top of a
   LinkPeaks ranking rather than sampled at random.
 - The reranker used all cells; SCENT used 1,000. TSS conventions and peak ID formats differ

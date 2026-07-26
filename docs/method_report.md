@@ -133,7 +133,7 @@ Recall is bounded by LinkPeaks at every mode.
 
 ## 5. Feature table construction
 
-Built once by `scripts/run_linkpeaks_reranker.R`; all ten score modes read from it. This is
+Built once by `scripts/run_linkpeaks_reranker.R`; all eleven committed score modes read from it. This is
 the central engineering decision — the heavy Seurat/Signac/motif work is not repeated per mode.
 
 Stages:
@@ -346,9 +346,10 @@ consistent with the observed near-identity of the two families (§ `docs/results
 
 ## 10. Score modes and ablations
 
-Eleven modes are defined in `config/ablations.yaml`; ten have committed results. The eleventh,
-`full_linkpeaks_anchored`, is implemented in `evaluate_rankings.R:527` but has no
-configuration entry and no committed output.
+Twelve `score_mode` branches are implemented in `evaluate_rankings.R`; eleven are configured in
+`config/ablations.yaml`, and all eleven have committed results. The twelfth,
+`full_linkpeaks_anchored` (`evaluate_rankings.R:527`), has no configuration entry and was never
+run.
 
 | Mode | `score_mode` | \(\lambda\) | \(\alpha\) | \(S_{pg}\) | Role |
 |---|---|---|---|---|---|
@@ -378,14 +379,22 @@ Its behaviour is the primary interpretive constraint on the whole benchmark.
 - `coactivity_distance` vs `coactivity` — does the distance prior add or merely reshuffle?
 - `coactivity_tf` vs `coactivity` — does peak-level TF/motif support add?
 - `full` vs its parts — do the components combine constructively?
-- `full_lambda_{0_1, 0_2, 0_3}` — sensitivity to \(\lambda\).
+- `full_lambda_0_1`, `full_lambda_0_2`, `full` (λ = 0.3) — sensitivity to \(\lambda\).
 - `full_moddist_*` vs `full_*` — does the reparameterisation change anything empirically?
 - `distance_only`, `distance_mod_only_*` — controls.
 
-Only six of the eleven modes were carried into SCENT validation
+Seven of the eleven modes were carried into the SCENT comparison
 (`config/scent_validation.yaml`): `linkpeaks`, `coactivity`, `coactivity_tf`,
-`full_lambda_0_1`, `full_moddist_lambda_0_1`, `distance_only`. The \(\lambda=0.2\) and
-\(\lambda=0.3\) variants and `coactivity_distance` were not externally validated.
+`full_lambda_0_1`, `full_moddist_lambda_0_1`, `full`, `distance_only`. Four —
+`coactivity_distance`, `full_lambda_0_2`, `full_moddist_lambda_0_2` and
+`distance_mod_only_lambda_0_1` — have no external comparison.
+
+`full` (λ = 0.3) is included as an aggressive distance-prior sensitivity setting, not as a
+candidate primary model. `full_lambda_0_1` (λ = 0.1) remains the conservative primary setting.
+
+SCENT is a comparator, not ground truth: it consumes the same RNA and ATAC matrices, is
+correlational, and was run with a 100 kb candidate window while these candidates extend to
+500 kb.
 
 ---
 
@@ -510,6 +519,11 @@ A second, blunter control, implemented in
 `scripts/summarize_scent_validation_min_distance.R`. Rather than stratifying by distance, it
 **removes** all links below a threshold and recomputes the comparison on what remains:
 
+It is wired into the workflow as `rule scent_validation_min_distance` (`workflow/Snakefile`),
+configured by `config/scent_validation_min_distance.yaml`, and invoked as
+`python3 run_analysis.py run_scent_validation_min_distance`. It is post-processing of the
+validation output and does not re-run SCENT.
+
 $$
 \mathcal{C}_{\delta} \;=\; \left\{ (p,g) \;:\; d_{pg} > \delta \right\},
 \qquad \delta \in \{10\,\mathrm{kb},\ 25\,\mathrm{kb},\ 50\,\mathrm{kb}\}
@@ -572,31 +586,31 @@ Ordered by how much they constrain the conclusions.
 8. **Min–max rescaling of \(T_p\), \(w_k\), and the motif matrix** makes scores
    dataset-dependent and outlier-sensitive. No score in this repository is portable across
    datasets.
-8. **TSS conventions differ between subsystems** (§7): closest transcript TSS in the
+9. **TSS conventions differ between subsystems** (§7): closest transcript TSS in the
    reranker, one representative TSS in the SCENT sweep.
-9. **\(\lambda\) and \(\alpha\) are set by hand, not fitted.** Deliberate, for
+10. **\(\lambda\) and \(\alpha\) are set by hand, not fitted.** Deliberate, for
    interpretability, but it means the ablation grid is a sensitivity sweep and not an
    optimisation. No held-out selection was performed.
-10. **\(f^{\mathrm{orig}}_\lambda \leq 1\) always** (§9.1), so the original distance prior can
+11. **\(f^{\mathrm{orig}}_\lambda \leq 1\) always** (§9.1), so the original distance prior can
     only demote. This asymmetry was unintended and motivated the modified form.
 
 ### Scale and generality
 
-11. **One dataset, one tissue, one sample.** No replicate, no second tissue, no cross-dataset
+12. **One dataset, one tissue, one sample.** No replicate, no second tissue, no cross-dataset
     check.
-12. **5,000 pairs over 1,390 genes** — a small fraction of the cis-regulatory space, and
+13. **5,000 pairs over 1,390 genes** — a small fraction of the cis-regulatory space, and
     already the top of a LinkPeaks ranking, so not a random sample of candidates.
-13. **`max_cells: 1000` for SCENT** but all cells for the reranker. The two sides of the
+14. **`max_cells: 1000` for SCENT** but all cells for the reranker. The two sides of the
     comparison were computed on different cell sets.
-14. **No orthogonal validation.** No CRISPRi perturbation data, no fine-mapped eQTLs, no
+15. **No orthogonal validation.** No CRISPRi perturbation data, no fine-mapped eQTLs, no
     chromatin-contact data. All available evidence is derived from the same two matrices.
 
 ### Data provenance
 
-15. **No cell-level QC.** All ~12,012 barcodes are used, with no filtering on counts,
+16. **No cell-level QC.** All ~12,012 barcodes are used, with no filtering on counts,
     nucleosome signal or TSS enrichment. Low-quality nuclei contribute to every coactivity
     estimate.
-16. **Annotation versions are mismatched between quantification and TSS assignment.** The count
+17. **Annotation versions are mismatched between quantification and TSS assignment.** The count
     matrix comes from the Cell Ranger ARC `GRCh38-2020-A` reference (a GENCODE-based build; the
     exact GENCODE/Ensembl correspondence should be confirmed from 10x's reference build notes
     before citing). TSS coordinates driving `distance_bp` and `distance_score` come from
@@ -608,10 +622,14 @@ Ordered by how much they constrain the conclusions.
 
 ### Reproducibility
 
-17. **Dataset provenance was unrecorded in the repository** and had to be recovered from the
+18. **Dataset provenance was unrecorded in the repository** and had to be recovered from the
     fragment-file header (§2). Now resolved; record it in `config/default.yaml`.
-18. **`--candidate-filter` not exposed** in configuration.
-19. **The min-distance controls have no Snakemake rule**, and the exact arguments used for
-    the committed outputs are not recorded.
-20. **The JASPAR sqlite pinning is undocumented** outside the script body, and the file is
+19. **`--candidate-filter` not exposed** in configuration.
+20. ~~The min-distance controls have no Snakemake rule, and the exact arguments used for the
+    committed outputs are not recorded.~~ **Resolved.** Implemented as
+    `rule scent_validation_min_distance` (`workflow/Snakefile`), configured by
+    `config/scent_validation_min_distance.yaml` (`min_distances: 10000,25000,50000`,
+    `top_n_values: 50,100,200,500`, `high_fraction: 0.10`), exposed as
+    `python3 run_analysis.py run_scent_validation_min_distance`.
+21. **The JASPAR sqlite pinning is undocumented** outside the script body, and the file is
     not in the container image.
