@@ -629,5 +629,7 @@ Ordered by how much they constrain the conclusions.
     `config/scent_validation_min_distance.yaml` (`min_distances: 10000,25000,50000`,
     `top_n_values: 50,100,200,500`, `high_fraction: 0.10`), exposed as
     `python3 run_analysis.py run_scent_validation_min_distance`.
-21. **The JASPAR sqlite pinning is undocumented** outside the script body, and the file is
-    not in the container image.
+21. **JASPAR2022 is an external reproducibility resource.** `resources/jaspar/JASPAR2022.sqlite`
+    is required for offline feature generation. It is not tracked in Git, but it should be included
+    in the Zenodo release archive with JASPAR attribution under CC BY 4.0, together with
+    `JASPAR2022.sqlite.sha256`.

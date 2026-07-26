@@ -159,6 +159,10 @@ Place under `data/`:
 
 ### Required resource — JASPAR2022
 
+`JASPAR2022.sqlite` is not tracked in Git. It should be included in the Zenodo release archive
+together with `JASPAR2022.sqlite.sha256`, with JASPAR attribution under CC BY 4.0.
+
+
 ```
 resources/jaspar/JASPAR2022.sqlite
 resources/jaspar/JASPAR2022.sqlite.sha256
@@ -232,7 +236,7 @@ sections:
 
 options:
   --mode MODE                 score mode for run_score_mode
-  --image IMAGE               default: multiome-link-ranking:pilot
+  --image IMAGE               default: multiome-reranking-benchmark:v0.1.0
   --snakefile PATH            default: workflow/Snakefile
   --configfile PATH           default: config/default.yaml
   --cores N / --cpus N        default: 4
@@ -242,7 +246,7 @@ options:
   --extra ...                 passed through to Snakemake; use last
 ```
 
-> **Note:** `--image` currently defaults to `multiome-link-ranking:pilot`, inherited from an
+> **Note:** `--image` currently defaults to `multiome-reranking-benchmark:v0.1.0`, inherited from an
 > earlier name. Pass `--image` explicitly, or reconcile the default with the image you build.
 > See [`TODO.md`](TODO.md) §9.
 
@@ -461,14 +465,18 @@ archival. See [`docs/release_checklist.md`](docs/release_checklist.md).
 
 ## Citation
 
-`CITATION.cff` is not yet present. See
-[`docs/release_checklist.md`](docs/release_checklist.md) for the fields to complete.
+Please cite this repository using `CITATION.cff` and the archived Zenodo DOI for the version used.
 
-External methods used and to be cited: `Signac` / `LinkPeaks`, `Seurat`, `SCENT`
+This workflow also depends on external software and resources. Cite the relevant upstream
+projects when using or reusing the workflow: `Signac` / `LinkPeaks`, `Seurat`, `SCENT`
 (`immunogenomics/SCENT` v1.0.1, commit `e80b5ba6b445f972c7fe28fb41e24ef4f5b2e373`),
 `JASPAR2022`, `motifmatchr`, `TFBSTools`, `EnsDb.Hsapiens.v86`,
-`BSgenome.Hsapiens.UCSC.hg38`, `clusterProfiler`, `Snakemake`. Exact references are pending —
-see [`TODO.md`](TODO.md) §9.
+`BSgenome.Hsapiens.UCSC.hg38`, `clusterProfiler` and `Snakemake`.
+
+The Zenodo archive includes `resources/jaspar/JASPAR2022.sqlite` for reproducibility.
+The JASPAR database is licensed under Creative Commons Attribution 4.0 International; cite
+the JASPAR 2022 Nucleic Acids Research database paper and retain attribution when reusing
+the file.
 
 ## License
 

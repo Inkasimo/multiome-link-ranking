@@ -114,9 +114,9 @@ Three names currently disagree and must be reconciled:
 
 | Location | Current value |
 |---|---|
-| `containers/Dockerfile` | `org.opencontainers.image.title="multiome-link-ranking"` |
-| `run_analysis.py` | `DEFAULT_IMAGE = "multiome-link-ranking:pilot"` |
-| `README_SPLIT.md` | `multiome-link-ranking:pilot` |
+| `containers/Dockerfile` | `org.opencontainers.image.title="multiome-reranking-benchmark"` |
+| `run_analysis.py` | `DEFAULT_IMAGE = "multiome-reranking-benchmark:v0.1.0"` |
+| `README_SPLIT.md` | `multiome-reranking-benchmark:v0.1.0` |
 
 Recommended, by analogy with `ghcr.io/inkasimo/scrnaseq-pbmc-workflow:v2.0.0`:
 

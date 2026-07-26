@@ -140,7 +140,7 @@ still improves the public repo, because it closes the question the current bench
 
 JASPAR2022 sqlite redistribution terms (only remaining release blocker). Author ORCID and
 affiliation. Final repo and image names — three names currently disagree
-(`multiome-link-ranking` in the Dockerfile, `multiome-link-ranking:pilot` in `run_analysis.py`).
+(`multiome-reranking-benchmark` in the Dockerfile, `multiome-reranking-benchmark:v0.1.0` in `run_analysis.py`).
 Cell count after QC — **there is no QC step**, so N = barcodes in the filtered matrix ≈ 12,012.
 Total runtime — all sweep rows say `skipped_existing` with blank `runtime_minutes`. The
 `--min-distances` / `--high-fraction` values behind the committed control outputs. Contents of

@@ -494,7 +494,7 @@ is cell-type-specific, on either the ranking or the validation side.
 
 ## 10. Reproducing each stage
 
-Via the wrapper (defaults `--image multiome-link-ranking:pilot`,
+Via the wrapper (defaults `--image multiome-reranking-benchmark:v0.1.0`,
 `--snakefile workflow/Snakefile`, `--configfile config/default.yaml`, `--cores 4`):
 
 ```bash

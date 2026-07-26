@@ -608,8 +608,8 @@ These block or constrain the release and require your input.
 6. Final Docker image name and registry. By analogy with the existing
    `ghcr.io/inkasimo/scrnaseq-pbmc-workflow:v2.0.0`, suggest
    `ghcr.io/inkasimo/multiome-peak-gene-reranking-benchmark:v0.1.0`.
-   The Dockerfile currently carries `org.opencontainers.image.title="multiome-link-ranking"`
-   and `run_analysis.py` defaults to `DEFAULT_IMAGE = "multiome-link-ranking:pilot"` — these
+   The Dockerfile currently carries `org.opencontainers.image.title="multiome-reranking-benchmark"`
+   and `run_analysis.py` defaults to `DEFAULT_IMAGE = "multiome-reranking-benchmark:v0.1.0"` — these
    must be reconciled with whatever is chosen.
 7. Git release tag. Suggest `v0.1.0`, reflecting benchmark-not-method status.
 8. Zenodo concept DOI target.

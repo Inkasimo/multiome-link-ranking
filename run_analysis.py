@@ -10,7 +10,7 @@ from pathlib import Path
 import yaml
 
 
-DEFAULT_IMAGE = "multiome-link-ranking:pilot"
+DEFAULT_IMAGE = "multiome-reranking-benchmark:v0.1.0"
 
 
 def q(x: str) -> str:
