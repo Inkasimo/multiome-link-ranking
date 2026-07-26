@@ -273,22 +273,6 @@ Thresholds and rank depths are version-controlled in
 `config/scent_validation_min_distance.yaml` (`min_distances: 10000,25000,50000`,
 `top_n_values: 50,100,200,500`, `high_fraction: 0.10`), so the committed outputs and the
 configuration agree.
-````
-
-
-This is light post-processing of
-`results/pbmc/scent_validation/scent_validation_all_ranked_methods_combined.csv`.
-**It does not re-run SCENT.** Note that the target is not included in `all_with_scent`
-and must be requested explicitly.
-
-Thresholds and cut points are version-controlled in
-`config/scent_validation_min_distance.yaml`:
-
-```yaml
-min_distances: "10000,25000,50000"
-top_n_values: "50,100,200,500"
-high_fraction: 0.10
-```
 
 ---
 
