@@ -34,7 +34,7 @@ next phase (not implemented):
 | | |
 |---|---|
 | Stage | Frozen benchmark. Complete, documented, not under active development |
-| Dataset | 10x PBMC multiome, hg38 (accession not yet recorded — see [`TODO.md`](TODO.md) §9) |
+| Dataset | 10x Genomics `pbmc_unsorted_10k`, Cell Ranger ARC 2.0.0, hg38 / GRCh38-2020-A |
 | Candidate universe | 5,000 LinkPeaks-derived pairs over 1,390 genes |
 | Score modes | 11 committed; 7 compared against SCENT |
 | External comparator | SCENT, 22 autosomes, 52,482 tested pairs |
@@ -452,8 +452,8 @@ conclusions that were later revised. `docs/results_report.md` is the current sta
 
 ## Data availability
 
-Raw input data is not included. The dataset accession is not yet recorded — see
-[`TODO.md`](TODO.md) §9.
+Raw input data is not included. Dataset provenance, download URLs, file sizes and SHA256
+checksums are recorded in `config/default.yaml`.
 
 Large outputs — the eleven `*_ranked_links.csv` files, per-chromosome SCENT output, and the
 combined validation table — are excluded from version control and intended for external

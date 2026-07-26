@@ -620,8 +620,8 @@ Ordered by how much they constrain the conclusions.
 
 ### Reproducibility
 
-18. **Dataset provenance was unrecorded in the repository** and had to be recovered from the
-    fragment-file header (§2). Now resolved; record it in `config/default.yaml`.
+18. **Dataset provenance is resolved.** Dataset provenance, download URLs, file sizes and
+    SHA256 checksums are now recorded in `config/default.yaml`.
 19. **`--candidate-filter` not exposed** in configuration.
 20. ~~The min-distance controls have no Snakemake rule, and the exact arguments used for the
     committed outputs are not recorded.~~ **Resolved.** Implemented as
