@@ -116,6 +116,54 @@ interpret the result.
 
 ---
 
+### Distance in standalone v0
+
+Distance should not be treated as independent biological evidence in v0. The current benchmark
+shows that a monotone proximity prior can improve raw SCENT support by moving candidates toward
+the TSS, but it does not improve within-bin discrimination. In the standalone model, distance
+therefore has three roles:
+
+1. define the candidate search window;
+2. provide mandatory controls and stratification;
+3. optionally supply a weak prior, only if it does not recreate promoter collapse.
+
+The primary standalone score should be tested with no distance multiplier, or with distance
+used only for reporting and stratification. A weak $\lambda = 0.1$ prior can be retained for
+continuity with the current benchmark, but it should not be the headline setting unless it
+improves performance within distance bins.
+
+The only new distance prior worth testing in v0 is a promoter-dampened or hump-shaped form that
+does not peak at $d = 0$. The current squared-Lorentzian prior decreases monotonically with
+distance, while the strongest distance-matched enrichment in the current benchmark is not
+monotone. A future prior should therefore be fitted against distance-stratified validation
+rather than hand-set.
+
+A learned distance prior is possible, but it should not be trained directly against the current
+SCENT labels alone. The 100 kb SCENT validation window would reward proximity and censor distal
+candidates, so a model trained naively on those labels could simply learn the validation-window
+artifact. If distance is trained, the target should ideally be less proximity-circular than
+SCENT, for example:
+
+- CRISPRi enhancer-perturbation effects;
+- fine-mapped eQTL or caQTL links;
+- ABC-style enhancer-gene links;
+- Hi-C or promoter-capture Hi-C contact support;
+- reproducible links across independent datasets.
+
+Training should use held-out genes, chromosomes or datasets, and the trained prior must still
+pass the same proximity controls. A learned distance term is useful only if it improves ranking
+within distance bins, not merely raw top-N support.
+
+Every standalone result must keep the following controls:
+
+- `distance_only`;
+- distance-matched enrichment;
+- proximal-removal analysis;
+- explicit reporting of candidate support inside and outside the validator's tested window.
+
+A model should be rejected if its apparent gain appears only at parameter settings that increase
+promoter fraction or improve raw top-N support without improving within-bin enrichment.
+
 ## 4. Scoring
 
 Keep the score unchanged for v0. Changing candidate generation and scoring simultaneously makes
