@@ -163,20 +163,9 @@ benchmark it is a peak-level regulatory-potential score:
 That construction gives every gene paired to the same peak the same TF/motif score. It cannot
 say whether a motif-bearing peak plausibly regulates a particular target gene, and it cannot
 distinguish TF programs active in different cell states. In standalone work, the term should be
-redesigned from a peak-level score,
-
-\[
-T_p
-\]
-
-to a peak-gene-cell-state score,
-
-\[
-T_{pgc}
-\]
-
-where \(p\) is the peak, \(g\) is the candidate target gene and \(c\) is a cell type, metacell
-state or latent cell state.
+redesigned from a peak-level score, $T_p$, to a peak-gene-cell-state score, $T_{pgc}$, where
+$p$ is the peak, $g$ is the candidate target gene and $c$ is a cell type, metacell state or
+latent cell state.
 
 The intended question should change from:
 
@@ -186,25 +175,21 @@ to:
 
     Does this peak contain motifs for TFs that are active in this cell state and plausibly regulate this gene?
 
-A useful standalone TF/motif score should combine three evidence layers:
+A useful standalone TF/motif score should combine evidence across candidate TFs:
 
-\[
-T_{pgc}
-=
-\mathrm{motif}_{pc}
-\times
-\mathrm{TFactivity}_{tc}
-\times
-\mathrm{TFtarget}_{tgc}
-\]
+$$
+T_{pgc} = \sum_{t \in \mathcal{T}} M_{ptc} \cdot A_{tc} \cdot G_{tgc}
+$$
 
-where the components are interpreted as:
+where $M_{ptc}$ is motif or motif-module support for TF $t$ at peak $p$ in cell state $c$,
+$A_{tc}$ is TF activity in that cell state and $G_{tgc}$ is evidence that gene $g$ is a
+plausible target of TF $t$ in that same cell state.
 
 | Component | Meaning |
 |---|---|
-| \(\mathrm{motif}_{pc}\) | The peak contains a motif, motif module or motif grammar active/accessible in cell state \(c\). |
-| \(\mathrm{TFactivity}_{tc}\) | The matching TF is active in the same cell state, preferably by motif activity or regulon activity rather than raw RNA alone. |
-| \(\mathrm{TFtarget}_{tgc}\) | The target gene behaves like a plausible target of that TF in the same cell state. |
+| $M_{ptc}$ | Motif, motif-module or motif-grammar support for TF $t$ at peak $p$ in cell state $c$. |
+| $A_{tc}$ | Activity of TF $t$ in cell state $c$, preferably from motif activity or regulon activity rather than raw RNA alone. |
+| $G_{tgc}$ | Evidence that gene $g$ is a plausible target of TF $t$ in cell state $c$. |
 
 Raw TF RNA expression should not be the main activity proxy. Better activity estimates include
 chromVAR motif deviation scores, motif accessibility activity, SCENIC/pySCENIC-style regulon
@@ -222,7 +207,7 @@ This design deliberately separates two things that are collapsed in the current 
 
 For PBMC-like data, single motifs are likely too noisy. The standalone score should consider
 motif families or modules, motif density, motif strength, co-occurring motifs and immune-cell
-TF programs such as AP-1, ETS, IRF, NF-\(\kappa\)B, CEBP, RUNX, GATA and TCF/LEF. Ubiquitous
+TF programs such as AP-1, ETS, IRF, NF-$\kappa$B, CEBP, RUNX, GATA and TCF/LEF. Ubiquitous
 motifs should be downweighted, for example by IDF-like weighting across peaks, collapsing
 redundant TF-family motifs, or removing low-information motifs.
 
