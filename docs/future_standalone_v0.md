@@ -153,6 +153,106 @@ Two prerequisites before anything cell-type-specific (§7):
 
 ---
 
+### Gene- and cell-type-aware TF/motif support
+
+The current TF/motif term should not be carried forward unchanged as a central signal. In this
+benchmark it is a peak-level regulatory-potential score:
+
+    peak has motifs for expressed TFs -> peak gets higher score
+
+That construction gives every gene paired to the same peak the same TF/motif score. It cannot
+say whether a motif-bearing peak plausibly regulates a particular target gene, and it cannot
+distinguish TF programs active in different cell states. In standalone work, the term should be
+redesigned from a peak-level score,
+
+\[
+T_p
+\]
+
+to a peak-gene-cell-state score,
+
+\[
+T_{pgc}
+\]
+
+where \(p\) is the peak, \(g\) is the candidate target gene and \(c\) is a cell type, metacell
+state or latent cell state.
+
+The intended question should change from:
+
+    Does this peak contain motifs for expressed TFs?
+
+to:
+
+    Does this peak contain motifs for TFs that are active in this cell state and plausibly regulate this gene?
+
+A useful standalone TF/motif score should combine three evidence layers:
+
+\[
+T_{pgc}
+=
+\mathrm{motif}_{pc}
+\times
+\mathrm{TFactivity}_{tc}
+\times
+\mathrm{TFtarget}_{tgc}
+\]
+
+where the components are interpreted as:
+
+| Component | Meaning |
+|---|---|
+| \(\mathrm{motif}_{pc}\) | The peak contains a motif, motif module or motif grammar active/accessible in cell state \(c\). |
+| \(\mathrm{TFactivity}_{tc}\) | The matching TF is active in the same cell state, preferably by motif activity or regulon activity rather than raw RNA alone. |
+| \(\mathrm{TFtarget}_{tgc}\) | The target gene behaves like a plausible target of that TF in the same cell state. |
+
+Raw TF RNA expression should not be the main activity proxy. Better activity estimates include
+chromVAR motif deviation scores, motif accessibility activity, SCENIC/pySCENIC-style regulon
+activity, DoRothEA/VIPER-like TF activity and, if depth allows, footprinting.
+
+The operational question is whether a motif-bearing peak is accessible when the matching TF is
+active and the candidate target gene is expressed in the same cell state or metacell context.
+
+This design deliberately separates two things that are collapsed in the current benchmark:
+
+| Feature | Question |
+|---|---|
+| Peak regulatory potential | Does the peak look like a regulatory element? |
+| Gene-specific TF support | Does the motif/TF evidence point to this specific target gene? |
+
+For PBMC-like data, single motifs are likely too noisy. The standalone score should consider
+motif families or modules, motif density, motif strength, co-occurring motifs and immune-cell
+TF programs such as AP-1, ETS, IRF, NF-\(\kappa\)B, CEBP, RUNX, GATA and TCF/LEF. Ubiquitous
+motifs should be downweighted, for example by IDF-like weighting across peaks, collapsing
+redundant TF-family motifs, or removing low-information motifs.
+
+External TF-target priors can be used as weak priors rather than hard truth. Candidate sources
+include JASPAR motif families, ENCODE/ChIP-derived support where cell-type-relevant, ChEA,
+DoRothEA, TRRUST, SCENIC regulons, Perturb-seq and CRISPRi/eQTL evidence where available. The
+goal is not to infer a full TF-to-site-to-gene circuit. The goal is to make motif support useful
+for peak-gene prioritisation.
+
+The evaluation must include direct motif ablations:
+
+    coactivity only
+    coactivity + motif
+    coactivity + distance
+    coactivity + motif + distance
+    motif only
+    distance only
+    motif + distance only
+
+The key test is stricter than asking whether the full model improves:
+
+    Does motif support improve ranking at fixed distance and fixed coactivity?
+
+If the answer is no, the motif term should remain optional or diagnostic rather than central.
+
+Best-case standalone interpretation:
+
+> A motif helps only when the matching TF is active in the same cell state, the peak is
+> accessible in that cell state and the candidate target gene behaves like a target of that TF.
+
 ## 5. Baselines and comparison
 
 Same fixed-universe discipline: every method ranked on the identical candidate set.
