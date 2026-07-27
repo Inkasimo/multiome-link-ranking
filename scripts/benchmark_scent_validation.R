@@ -136,8 +136,8 @@ add_distance_bins <- function(dt) {
   dt <- copy(dt)
   dt[, distance_bin := as.character(cut(
     as.numeric(distance_bp),
-    breaks = c(-Inf, 10000, 50000, 200000, 500000, Inf),
-    labels = c("0_10kb", "10_50kb", "50_200kb", "200_500kb", "gt500kb"),
+    breaks = c(-Inf, 10000, 50000, 100000, 200000, 500000, Inf),
+    labels = c("0_10kb", "10_50kb", "50_100kb", "100_200kb", "200_500kb", "gt500kb"),
     right = TRUE
   ))]
   dt[is.na(distance_bin), distance_bin := "unknown"]
@@ -635,17 +635,130 @@ if (nrow(plot_dt) > 0) {
 }
 
 if (nrow(distance_enrichment) > 0) {
-  p3 <- ggplot(distance_enrichment, aes(x = distance_bin, y = method, fill = odds_ratio_high_vs_rest)) +
-    geom_tile() +
-    geom_text(aes(label = sprintf("%.2f", odds_ratio_high_vs_rest)), size = 3) +
-    theme_bw() +
+  distance_bin_levels <- c(
+    "0_10kb",
+    "10_50kb",
+    "50_100kb",
+    "100_200kb",
+    "200_500kb",
+    "gt500kb"
+  )
+
+  distance_bin_labels <- c(
+    "0_10kb" = "0–10 kb",
+    "10_50kb" = "10–50 kb",
+    "50_100kb" = "50–100 kb",
+    "100_200kb" = "100–200 kb",
+    "200_500kb" = "200–500 kb",
+    "gt500kb" = ">500 kb"
+  )
+
+  method_labels <- c(
+    "linkpeaks" = "LinkPeaks",
+    "distance_only" = "Distance only",
+    "coactivity" = "Coactivity",
+    "coactivity_tf" = "Coactivity + TF",
+    "full_lambda_0_1" = "Full, λ = 0.1",
+    "full_moddist_lambda_0_1" = "Full moddist, λ = 0.1",
+    "full" = "Full, λ = 0.3"
+  )
+
+  scent_tested_bins <- c("0_10kb", "10_50kb", "50_100kb")
+
+  distance_plot <- copy(distance_enrichment)
+
+  distance_plot[, distance_bin := factor(distance_bin, levels = distance_bin_levels)]
+
+  distance_plot[, method_label := method_labels[as.character(method)]]
+  distance_plot[is.na(method_label), method_label := as.character(method)]
+  distance_plot[, method_label := factor(method_label, levels = rev(unname(method_labels)))]
+
+  # Only colour bins where SCENT actually provides support labels.
+  # The >100 kb bins are outside the 100 kb SCENT validation window and should not
+  # visually dominate the heatmap through continuity-correction odds ratios.
+  distance_plot[, interpretable := (
+    as.character(distance_bin) %in% scent_tested_bins &
+      n_high > 0 &
+      n_rest > 0 &
+      is.finite(odds_ratio_high_vs_rest) &
+      odds_ratio_high_vs_rest > 0 &
+      !(supported_high == 0 & supported_rest == 0)
+  )]
+
+  distance_plot[, plot_log2_or := fifelse(
+    interpretable,
+    log2(odds_ratio_high_vs_rest),
+    NA_real_
+  )]
+
+  max_abs_log2_or <- max(abs(distance_plot$plot_log2_or), na.rm = TRUE)
+  if (!is.finite(max_abs_log2_or) || max_abs_log2_or <= 0) {
+    max_abs_log2_or <- 1
+  }
+
+  distance_plot[, cell_label := fifelse(
+    interpretable,
+    sprintf("%.2f", odds_ratio_high_vs_rest),
+    "outside\nSCENT"
+  )]
+
+  distance_plot[, label_colour := fifelse(
+    !interpretable,
+    "grey35",
+    fifelse(abs(plot_log2_or) >= 1.4, "white", "black")
+  )]
+
+  p3 <- ggplot(
+    distance_plot,
+    aes(x = distance_bin, y = method_label, fill = plot_log2_or)
+  ) +
+    geom_tile(color = "white", linewidth = 0.45) +
+    geom_vline(xintercept = 3.5, linetype = "dashed", linewidth = 0.35, color = "grey35") +
+    geom_text(aes(label = cell_label, colour = label_colour), size = 3.2, lineheight = 0.9) +
+    scale_colour_identity() +
+    scale_x_discrete(
+      labels = distance_bin_labels,
+      drop = FALSE
+    ) +
+    scale_fill_gradient2(
+      name = "OR\n(top decile / rest)",
+      low = "#b2182b",
+      mid = "white",
+      high = "#2166ac",
+      midpoint = 0,
+      limits = c(-max_abs_log2_or, max_abs_log2_or),
+      breaks = log2(c(0.5, 1, 2, 4)),
+      labels = c("0.5×", "1×", "2×", "4×"),
+      na.value = "grey88"
+    ) +
     labs(
       title = "Distance-matched SCENT support enrichment",
-      x = "Distance bin",
+      subtitle = "Odds ratio for SCENT support in each method's top decile versus the remainder of the same distance bin",
+      x = "Distance from gene TSS",
       y = NULL,
-      fill = "OR"
+      caption = "Blue: enrichment for SCENT-supported links. White: no enrichment. Red: depletion. Grey cells are outside the 100 kb SCENT validation window."
+    ) +
+    theme_minimal(base_size = 12) +
+    theme(
+      panel.grid = element_blank(),
+      axis.text.x = element_text(size = 10),
+      axis.text.y = element_text(size = 10),
+      plot.title = element_text(face = "bold", size = 15),
+      plot.subtitle = element_text(size = 10, margin = margin(b = 8)),
+      plot.caption = element_text(size = 8.5, hjust = 0, margin = margin(t = 8)),
+      legend.title = element_text(size = 9),
+      legend.text = element_text(size = 8),
+      plot.margin = margin(8, 12, 8, 8)
     )
-  ggsave(file.path(opt$output_dir, "scent_validation_distance_matched_enrichment_heatmap.png"), p3, width = 11, height = 6, dpi = 300)
+
+  ggsave(
+    file.path(opt$output_dir, "scent_validation_distance_matched_enrichment_heatmap.png"),
+    p3,
+    width = 11,
+    height = 6,
+    dpi = 300,
+    bg = "white"
+  )
 }
 
 msg("")

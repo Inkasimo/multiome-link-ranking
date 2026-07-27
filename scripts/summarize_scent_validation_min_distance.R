@@ -3,6 +3,7 @@
 suppressPackageStartupMessages({
   library(optparse)
   library(data.table)
+  library(ggplot2)
 })
 
 option_list <- list(
@@ -35,6 +36,9 @@ parse_ints <- function(x) {
 min_distances <- parse_nums(opt$min_distances)
 top_ns <- parse_ints(opt$top_n_values)
 
+# Must match the SCENT sweep link_distance used to generate validation labels.
+SCENT_WINDOW_BP <- 100000
+
 x <- fread(opt$input)
 
 required <- c("method", "peak", "gene", "score", "distance_bp", "scent_supported")
@@ -63,7 +67,7 @@ add_distance_bins_fine <- function(dt) {
 }
 
 method_counts <- rbindlist(lapply(min_distances, function(md) {
-  y <- x[distance_bp > md]
+  y <- x[distance_bp > md & distance_bp <= SCENT_WINDOW_BP]
   y[, .(
     n_links = .N,
     unique_genes = uniqueN(gene),
@@ -78,15 +82,23 @@ setcolorder(method_counts, c("min_distance_bp", "method"))
 fwrite(method_counts, file.path(opt$output_dir, "scent_min_distance_method_counts.csv"))
 
 topn_summary <- rbindlist(lapply(min_distances, function(md) {
-  y <- x[distance_bp > md]
+  y <- x[distance_bp > md & distance_bp <= SCENT_WINDOW_BP]
+
   rbindlist(lapply(sort(unique(y$method)), function(m) {
     ym <- y[method == m][order(-score)]
+
     rbindlist(lapply(top_ns, function(n) {
       top <- head(ym, n)
+      n_available <- nrow(ym)
+      pool_fraction <- if (n_available > 0) min(n, n_available) / n_available else NA_real_
+
       data.table(
         min_distance_bp = md,
         method = m,
         top_n = n,
+        n_available = n_available,
+        pool_fraction = pool_fraction,
+        pool_limited = if (!is.na(pool_fraction)) pool_fraction > 0.5 else NA,
         n_links = nrow(top),
         unique_genes = uniqueN(top$gene),
         unique_peaks = uniqueN(top$peak),
@@ -119,7 +131,7 @@ setorder(delta, min_distance_bp, top_n, -delta_vs_linkpeaks)
 fwrite(delta, file.path(opt$output_dir, "scent_min_distance_delta_vs_linkpeaks.csv"))
 
 distance_enrichment <- rbindlist(lapply(min_distances, function(md) {
-  y <- add_distance_bins_fine(x[distance_bp > md])
+  y <- add_distance_bins_fine(x[distance_bp > md & distance_bp <= SCENT_WINDOW_BP])
   y <- y[distance_bin_fine != "unknown"]
 
   if (nrow(y) == 0) return(data.table())
@@ -157,8 +169,144 @@ distance_enrichment <- rbindlist(lapply(min_distances, function(md) {
 
 fwrite(distance_enrichment, file.path(opt$output_dir, "scent_min_distance_distance_matched_enrichment.csv"))
 
+# ============================================================
+# Plot: proximal-removal support fraction
+# ============================================================
+
+plot_methods <- c(
+  "linkpeaks",
+  "coactivity",
+  "coactivity_tf",
+  "full_lambda_0_1",
+  "full",
+  "distance_only"
+)
+
+method_labels <- c(
+  "linkpeaks" = "LinkPeaks",
+  "coactivity" = "Coactivity",
+  "coactivity_tf" = "Coactivity + TF",
+  "full_lambda_0_1" = "Full, λ = 0.1",
+  "full" = "Full, λ = 0.3",
+  "distance_only" = "Distance only"
+)
+
+method_colours <- c(
+  "LinkPeaks" = "#4D4D4D",
+  "Coactivity" = "#A6761D",
+  "Coactivity + TF" = "#1B9E77",
+  "Full, λ = 0.1" = "#377EB8",
+  "Full, λ = 0.3" = "#984EA3",
+  "Distance only" = "#E66101"
+)
+
+method_linetypes <- c(
+  "LinkPeaks" = "solid",
+  "Coactivity" = "longdash",
+  "Coactivity + TF" = "dotdash",
+  "Full, λ = 0.1" = "solid",
+  "Full, λ = 0.3" = "solid",
+  "Distance only" = "twodash"
+)
+
+method_shapes <- c(
+  "LinkPeaks" = 16,
+  "Coactivity" = 17,
+  "Coactivity + TF" = 15,
+  "Full, λ = 0.1" = 18,
+  "Full, λ = 0.3" = 8,
+  "Distance only" = 4
+)
+
+plot_dt <- copy(topn_summary[
+  method %in% plot_methods &
+    top_n %in% c(50L, 100L, 200L)
+])
+
+plot_dt[, min_distance_kb := min_distance_bp / 1000]
+
+plot_dt[, method_label := method_labels[method]]
+plot_dt[is.na(method_label), method_label := method]
+plot_dt[, method_label := factor(method_label, levels = unname(method_labels))]
+
+plot_dt[, top_n_label := factor(
+  paste0("Top ", top_n),
+  levels = paste0("Top ", sort(unique(top_n)))
+)]
+
+percent_label <- function(z) paste0(round(100 * z), "%")
+
+p_support <- ggplot(
+  plot_dt,
+  aes(
+    x = min_distance_kb,
+    y = frac_scent_supported,
+    group = method_label,
+    colour = method_label,
+    linetype = method_label,
+    shape = method_label
+  )
+) +
+  geom_line(linewidth = 0.8) +
+  geom_point(size = 2.4, stroke = 0.9) +
+  facet_wrap(~ top_n_label, ncol = 3) +
+  scale_x_continuous(
+    breaks = c(10, 25, 50),
+    labels = c("10", "25", "50"),
+    expand = expansion(mult = c(0.05, 0.08))
+  ) +
+  scale_y_continuous(
+    labels = percent_label,
+    limits = c(0, NA),
+    expand = expansion(mult = c(0, 0.08))
+  ) +
+  scale_colour_manual(values = method_colours, drop = FALSE) +
+  scale_linetype_manual(values = method_linetypes, drop = FALSE) +
+  scale_shape_manual(values = method_shapes, drop = FALSE) +
+  labs(
+    title = "Proximal-removal stress test",
+    subtitle = "SCENT support after removing candidate links within each TSS-distance threshold",
+    x = "Removed links within TSS distance (kb)",
+    y = "SCENT-supported fraction",
+    colour = NULL,
+    linetype = NULL,
+    shape = NULL,
+    caption = sprintf(
+      "Analysis restricted to candidate links within the %d kb SCENT validation window.",
+      SCENT_WINDOW_BP / 1000
+    )
+  ) +
+  theme_classic(base_size = 12) +
+  theme(
+    panel.grid.major.y = element_line(color = "grey88", linewidth = 0.35),
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.border = element_rect(color = "grey35", fill = NA, linewidth = 0.45),
+    strip.background = element_rect(fill = "grey92", color = "grey35", linewidth = 0.45),
+    strip.text = element_text(face = "bold", size = 10),
+    axis.text = element_text(color = "grey20"),
+    axis.title = element_text(color = "grey10"),
+    plot.title = element_text(face = "bold", size = 15),
+    plot.subtitle = element_text(size = 10, margin = margin(b = 8)),
+    plot.caption = element_text(size = 8.5, hjust = 0, margin = margin(t = 8)),
+    legend.position = "right",
+    legend.key.width = grid::unit(1.4, "lines"),
+    legend.text = element_text(size = 9),
+    plot.margin = margin(8, 12, 8, 8)
+  )
+
+ggsave(
+  file.path(opt$output_dir, "scent_min_distance_topN_supported_fraction.png"),
+  p_support,
+  width = 8.5,
+  height = 6.5,
+  dpi = 300,
+  bg = "white"
+)
+
 cat("Wrote:\n")
 cat(file.path(opt$output_dir, "scent_min_distance_method_counts.csv"), "\n")
 cat(file.path(opt$output_dir, "scent_min_distance_topN_support_summary.csv"), "\n")
 cat(file.path(opt$output_dir, "scent_min_distance_delta_vs_linkpeaks.csv"), "\n")
 cat(file.path(opt$output_dir, "scent_min_distance_distance_matched_enrichment.csv"), "\n")
+cat(file.path(opt$output_dir, "scent_min_distance_topN_supported_fraction.png"), "\n")

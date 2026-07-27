@@ -240,6 +240,32 @@ therefore not guaranteed identical for the same pair. This does not affect the i
 consistency of the reranking comparison, since all modes share one feature table, but it does
 affect distance-stratified comparisons against SCENT.
 
+### Why this form, and its limits
+
+This distance score is deliberately simple. It is a proximity prior for a reranking benchmark
+and for proximity-bias diagnostics, not a mechanistic model of enhancer–gene regulation. Both
+of its constants are hand-set rather than fitted: the 50 kb half-strength point \(d_0\), and
+\(\lambda\), which scales how much the prior is allowed to move a ranking. Note that
+`distance_d0` and the `distal_threshold` used for proximal/distal reporting are both 50,000;
+they serve different purposes — one shapes the score, the other labels bins — but they are the
+same hand-set number.
+
+Simplicity here is a scoping decision, not a claim of adequacy, and it is what makes the
+proximity diagnostics checkable. At \(\lambda = 0.1\) the modifier is confined to
+[0.90, 1.00], and below 10 kb \(D \approx 1\) for every candidate, so the term is effectively
+constant within that bin and cannot reorder it. This is visible in the results:
+`coactivity_tf`, both \(\lambda = 0.1\) modes and `full` (\(\lambda = 0.3\)) all give an
+identical odds ratio of 5.057 in `0_10kb`. The 0–10 kb enrichment is a coactivity and
+TF/motif result; the distance prior contributes nothing to it.
+
+The distance-matched results also show the form is the wrong shape. Top-decile enrichment is
+**not monotone in distance** — the 25–50 kb bin (4.21–4.66) is stronger than 10–25 kb
+(2.20–2.55) for every reranking mode — while \(D\) decreases monotonically throughout. A
+prior peaking at intermediate distance would fit the observed pattern better than this one.
+
+A future standalone model would need a richer distance or contact prior. See
+`docs/future_standalone_v0.md`.
+
 This distance score is deliberately simple. It is a proximity prior for a reranking
 benchmark and for proximity-bias diagnostics, not a mechanistic model of enhancer–gene
 regulation. Both of its constants are hand-set rather than fitted: the 50 kb
@@ -521,16 +547,19 @@ Two limits on this analysis, both structural:
 
 1. **Bin occupancy is fixed by the candidate set, not by the method.** `n_high` and `n_rest`
    are identical across methods within a bin (150 / 1,349 in `0_10kb`; 111 / 999 in
-   `10_50kb`). Only the supported counts vary.
+   `10_50kb`; 58 / 517 in `50_100kb`). Only the supported counts vary.
 2. **Bins beyond 100 kb are untested, not negative.** The SCENT sweep used a 100 kb window
-   while candidates extend to 500 kb. In `200_500kb` and `gt500kb`, `supported_high` and
-   `supported_rest` are both **0** for every method — no SCENT test exists there. The odds
-   ratios reported for those bins (8.906 and 0.333) are continuity-correction artifacts on
-   empty cells and carry no information. The `50_200kb` bin is partially affected: only its
-   50–100 kb portion is testable.
+   while candidates extend to 500 kb. In `100_200kb`, `200_500kb` and `gt500kb`,
+   `supported_high` and `supported_rest` are both **0** for every method — no SCENT test exists
+   there. The odds ratios reported for those bins (8.906, 8.906 and 0.333) are
+   continuity-correction artifacts on empty cells and carry no information.
 
-Interpretable bins are therefore `0_10kb`, `10_50kb`, and — with the above caveat —
-`50_200kb`.
+Bin boundaries are aligned to the 100 kb validation window, so the testable and untestable
+ranges are separated rather than mixed. Interpretable bins are `0_10kb`, `10_50kb` and
+`50_100kb`. An earlier binning used a single `50_200kb` bin spanning the window boundary; it
+inflated the odds ratio of any method whose top decile happened to fall inside the window, and
+the values it produced for `distance_only` (3.356) and `full` (3.213) were window artifacts.
+See `docs/results_report.md` §5.
 
 ---
 
@@ -557,22 +586,29 @@ baseline at that threshold.
 The logic: if a method's apparent advantage is carried by promoter-proximal links, removing
 them should erase it.
 
+**Candidates are restricted to the 100 kb SCENT validation window before the threshold is
+applied.** The filter is `distance_bp > delta & distance_bp <= 100000`, applied identically to
+the method counts, the top-N summaries and the fine-bin enrichment. Without it, candidates
+beyond 100 kb — which SCENT never tested — are counted as unsupported, which penalises distal
+ranking instead of measuring it. The upper bound must match `link_distance` in the SCENT sweep
+configuration; it is currently a constant in the summarisation script, and a change to one
+without the other would silently misreport.
+
 Filtering is method-independent — \(\mathcal{C}_\delta\) is the same set for all methods —
 so `scent_min_distance_method_counts.csv` shows identical surviving counts across methods at
-each threshold (3,477 at 10 kb; 2,871 at 25 kb; 2,367 at 50 kb).
+each threshold: 1,685 at 10 kb, 1,079 at 25 kb, 575 at 50 kb.
 
-**This control has a ceiling that must be stated.** As \(\delta\) grows, the surviving median
-distance grows: 105.8 kb at \(\delta\) = 10 kb, 150.0 kb at 25 kb, 196.2 kb at 50 kb. But
-SCENT only tested pairs within 100 kb. At \(\delta\) = 50 kb the surviving candidates are
-mostly beyond SCENT's tested range, so support can only arise from the narrow 50–100 kb band.
-The control becomes progressively less able to discriminate exactly as it becomes most
-relevant. The \(\delta\) = 50 kb result should be read as weak evidence in either direction,
-not as a clean negative.
+The number of supported links surviving each threshold is 616, 384 and 196, unchanged from the
+unrestricted version of this analysis, because every SCENT-supported link lies within 100 kb by
+construction. Only the denominators changed. The support rate is therefore roughly flat across
+thresholds — 0.366, 0.356, 0.341 — rather than falling steeply, and the earlier apparent
+collapse to 0.083 at \(\delta\) = 50 kb was dilution by untested candidates.
 
-The overall SCENT support rate falls sharply with \(\delta\) — 0.177 at 10 kb, 0.134 at
-25 kb, 0.083 at 50 kb — which is consistent both with genuine biology (proximal links are
-more often real) and with the window artifact. These two explanations cannot be separated
-using SCENT alone.
+**Pool exhaustion must be checked before quoting a depth.** At \(\delta\) = 50 kb only 575
+candidates survive, so a top-500 selection covers 87% of the available pool and all methods
+converge by construction. The summary carries `n_available`, `pool_fraction` and a
+`pool_limited` flag for exactly this reason; rows flagged `pool_limited` are excluded from the
+plot and must not be quoted as results.
 
 ---
 
@@ -589,9 +625,12 @@ Ordered by how much they constrain the conclusions.
    between two correlational methods on shared input is weaker evidence than it appears.
 3. **The validation window is narrower than the candidate window** — 100 kb vs 500 kb. The
    distal regime, which is the field's actual open problem, is unmeasured here.
-4. **`distance_only` is not cleanly beaten.** It wins at top-50 on the full universe and
-   remains the strongest method at every proximal-removal threshold. See
-   `docs/results_report.md` §5, §6.
+4. **`distance_only` wins at top-50 on the unrestricted universe**, with a median top-50
+   distance of 3.5 bp, so raw top-N metrics over the full 500 kb candidate set are
+   proximity-driven. Within SCENT's 100 kb tested window the control is cleanly beaten — it is
+   the weakest method at every proximal-removal threshold and depth, and below 1 in the
+   distance-matched odds ratio in two fine bins. Both statements hold and neither replaces the
+   other. See `docs/results_report.md` §4, §5, §6, §8.
 
 ### Methodological
 
@@ -645,7 +684,10 @@ Ordered by how much they constrain the conclusions.
 
 18. **Dataset provenance is resolved.** Dataset provenance, download URLs, file sizes and
     SHA256 checksums are now recorded in `config/default.yaml`.
-19. **`--candidate-filter` not exposed** in configuration.
+19. **`--candidate-filter` not exposed** in configuration. The 100 kb SCENT validation window
+    used by the proximal-removal controls is likewise a constant in
+    `scripts/summarize_scent_validation_min_distance.R` rather than a configured value, and must
+    be kept in step with `link_distance` in the SCENT sweep configuration by hand.
 20. ~~The min-distance controls have no Snakemake rule, and the exact arguments used for the
     committed outputs are not recorded.~~ **Resolved.** Implemented as
     `rule scent_validation_min_distance` (`workflow/Snakefile`), configured by

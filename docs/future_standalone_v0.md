@@ -29,21 +29,38 @@ another ranking method — see §7.
 
 Six findings that constrain the next phase. Sources in `docs/results_report.md`.
 
-1. **Coactivity carries real signal.** `coactivity` alone raises the top-200 SCENT-supported
-   fraction from 0.445 (LinkPeaks) to 0.525, and its within-bin odds ratios (4.68, 2.89, 2.13)
-   are well above the baseline's (2.60, 1.78, 1.65).
-2. **A mild distance prior helps; an aggressive one collapses.** \(\lambda = 0.1\) gave the best
-   validated result. Higher \(\lambda\) recovered gene-level enrichment mainly by becoming more
-   promoter-proximal.
-3. **Proximity is the dominant confound and must be controlled by construction.**
-   `distance_only` wins at top-50 with a median distance of 3.5 bp, and beats every model after
-   removing links within 50 kb. The control suite — distance-only ranking, distance-matched
-   stratification, proximal removal — is the most reusable output of this work and should be
-   carried forward unchanged.
-4. **Peak-level TF/motif support contributes little.** \(T_p\) has no gene and no cell-type
-   dependence. `coactivity_tf` improves on `coactivity` at top-100 but is worse at top-200 and
-   in the 50–200 kb bin. A gene- and cell-type-aware TF term is required for this component to
-   be worth its complexity.
+1. **Coactivity is the dominant signal.** `coactivity` alone raises the top-200
+   SCENT-supported fraction from 0.445 (LinkPeaks) to 0.525, and its within-bin odds ratios
+   (4.68, 2.89, 3.08) are well above the baseline's (2.60, 1.78, 1.94). In the outermost
+   testable bin, 50–100 kb, coactivity alone is the **strongest** method — ahead of every
+   composite score.
+2. **The distance prior is inert where it matters, and the wrong shape.** \(\lambda = 0.1\)
+   and \(\lambda = 0.3\) give identical within-bin odds ratios in every proximal bin, and
+   \(\lambda = 0.3\) is slightly worse at 25–50 kb and 50–100 kb. Raising \(\lambda\) buys
+   raw support only by becoming more promoter-proximal. Separately, top-decile enrichment is
+   **not monotone in distance** — 25–50 kb (4.21–4.66) exceeds 10–25 kb (2.20–2.55) — while the
+   prior decreases monotonically. For v0 the defensible primary is \(\lambda = 0\), with
+   distance retained purely as a stratifier and control, and \(\lambda = 0.1\) kept only for
+   continuity with these results. If a distance term returns it should be the hump-shaped
+   variant in §4, with \(d_0\) fitted against the fine bins rather than hand-set.
+3. **Proximity dominates raw top-N selection but carries no within-bin signal.**
+   `distance_only` wins at top-50 on the unrestricted 500 kb universe with a median distance of
+   3.5 bp, so any support fraction quoted without a distance control is uninterpretable.
+   Restricted to SCENT's 100 kb tested window, however, `distance_only` is the **weakest**
+   method at every proximal-removal threshold and depth, and its distance-matched odds ratio is
+   **below 1** in two fine bins (0.840 at 10–25 kb, 0.687 at 25–50 kb). Ranking by proximity
+   inside a distance bin is worse than arbitrary. The control suite — distance-only ranking,
+   distance-matched stratification, proximal removal, and restriction to the validator's tested
+   window — is the most reusable output of this work and should be carried forward unchanged.
+   *An earlier version of this section stated that `distance_only` beats every model after 50 kb
+   removal. That was an artifact of scoring untested distal candidates as unsupported and is
+   retracted; see `docs/results_report.md` §6.*
+4. **Peak-level TF/motif support helps proximally and costs distally.** \(T_p\) has no gene and
+   no cell-type dependence. `coactivity_tf` improves on `coactivity` at 0–10 kb (5.06 vs 4.68)
+   and 10–25 kb (2.55 vs 2.20), but is worse at 50–100 kb (2.64 vs 3.08) and at top-200 on the
+   raw universe. The term behaves as a promoter-context proxy rather than as evidence of
+   TF-to-target regulation, and the sign flip is the clearest available argument that a gene-
+   and cell-type-aware TF term is required for this component to be worth its complexity.
 5. **The distance reparameterisation is empirically inert.** `full_moddist` overlaps
    `full_lambda_0_1` at 199/200 in the top 200, with identical odds ratios. Keep the cleaner
    form; do not spend more time on distance-prior shape without a better validator.
@@ -183,15 +200,20 @@ Time-box to two weeks. Write the stop rule down before starting.
    — establishing the candidate step is not silently dropping real links.
 2. Within distance bins up to the validator's window, the full model's top-decile SCENT
    enrichment exceeds both LinkPeaks and `distance_only`, at magnitudes comparable to the
-   current 5.06 / 3.15 / 2.23.
+   current 5.06 / 3.15 / 2.64.
 3. **Tier separation is measurable**: tier 1 links show a materially higher supported fraction
    than tier 3 on the standalone universe. This is the criterion that matters for §7.
-4. After proximal removal at 25 kb, the full model retains an advantage over `distance_only`,
-   not merely over LinkPeaks. This is the specific bar the current benchmark fails.
+4. After proximal removal at 25 kb, and with candidates restricted to the validator's tested
+   window, the full model retains an advantage over `distance_only` **and over `coactivity`
+   alone**. The current benchmark already clears the `distance_only` bar once the window is
+   applied — by +0.28 to +0.32 at \(\delta\) = 25 kb — so that comparison no longer
+   discriminates. Beating unadorned coactivity is the bar that does: on this dataset the
+   composite score does not beat it in the outermost testable bin.
 
 **No-go** if any of:
 
-1. The full model does not beat `distance_only` within distance bins.
+1. The full model does not beat `distance_only` within distance bins, or does not beat
+   `coactivity` alone.
 2. Tiers do not separate on the standalone universe. If tiers do not separate globally they will
    not separate after splitting the cells by type.
 3. Candidate generation drops most SCENT-supported pairs.

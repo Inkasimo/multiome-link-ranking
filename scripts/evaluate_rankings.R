@@ -266,8 +266,8 @@ add_distance_bins <- function(dt) {
   dt <- copy(dt)
   dt[, distance_bin := as.character(cut(
     as.numeric(distance_bp),
-    breaks = c(-Inf, 10000, 50000, 200000, 500000, Inf),
-    labels = c("0_10kb", "10_50kb", "50_200kb", "200_500kb", "gt500kb"),
+    breaks = c(-Inf, 10000, 50000, 100000, 200000, 500000, Inf),
+    labels = c("0_10kb", "10_50kb", "50_100kb", "100_200kb", "200_500kb", "gt500kb"),
     right = TRUE
   ))]
   dt[is.na(distance_bin), distance_bin := "unknown"]
