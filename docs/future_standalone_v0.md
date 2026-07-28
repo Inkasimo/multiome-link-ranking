@@ -464,7 +464,7 @@ One longer-term item does belong on the record, though not in v0: the deeper con
 every validator available here is correlational and derived from the same two matrices. An
 orthogonal, distance-decoupled truth set — CRISPRi enhancer-perturbation effect sizes, or
 fine-mapped eQTLs — is what would convert any result, positive or negative, into something
-defensible. That likely means working in a cell type where such data exists, which PBMC is not.
+defensible. That likely means working in a cell type where such data exists, which PBMC probably isn't.
 That is a strategic decision about the evaluation axis, and it should be made before more
 scoring code is written.
 
