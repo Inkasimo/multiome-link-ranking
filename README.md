@@ -99,7 +99,7 @@ Steps 7 and 8 are the point. Steps 1–6 exist to make them possible.
 - It does **not** map cis-regulatory circuitry or TF→site→gene relationships.
 - It does **not** replace SCENT, SCARlink, CREMA, SCENIC+, Pando, LINGER, FigR, ArchR
   Peak2GeneLinks, Cicero or TRIPOD. See
-  [`docs/competitor_positioning.md`](docs/competitor_positioning.md).
+  [`docs/similar_tools.md`](docs/similar_tools.md).
 - It does **not** produce cell-type-specific output. No score or validation step is stratified
   by cell type.
 - It does **not** validate against orthogonal data. No CRISPRi perturbation, eQTL or
@@ -123,7 +123,6 @@ scripts/
   run_scent_chr_sweep.R       #   SCENT producer, per chromosome
   benchmark_scent_validation.R#   SCENT consumer, cross-method comparison
   summarize_scent_validation_min_distance.R   # proximal-removal controls
-  dev/                        #   exploratory scripts, not part of the workflow
 docs/                         # method report, results report, I/O reference, positioning
 data/                         # input data (not versioned)
 resources/jaspar/             # local JASPAR2022 SQLite (not versioned)
@@ -453,7 +452,7 @@ Plan, prerequisites and go/no-go criteria:
 | [`docs/method_report.md`](docs/method_report.md) | Formal method description with formulas and line references |
 | [`docs/results_report.md`](docs/results_report.md) | Full results, what can and cannot be claimed |
 | [`docs/input_output_reference.md`](docs/input_output_reference.md) | Every input, config field, output column, and interface hazard |
-| [`docs/competitor_positioning.md`](docs/competitor_positioning.md) | Honest positioning against 11 existing methods |
+| [`docs/similar_tools.md`](docs/similar_tools.md) | Honest positioning against 11 existing methods |
 | [`docs/future_standalone_v0.md`](docs/future_standalone_v0.md) | Next-phase plan |
 | [`docs/release_checklist.md`](docs/release_checklist.md) | Release readiness |
 | [`docs/benchmark_summary.md`](docs/benchmark_summary.md) | Chronological development record, including superseded verdicts |

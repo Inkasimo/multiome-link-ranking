@@ -459,7 +459,7 @@ Three things must be true for that to be worth building, and only the first is c
 
 Deep learning or graph neural network scoring; Hi-C or other chromatin-contact integration; TF
 footprinting; multi-tissue or multi-dataset benchmark expansion; causal inference; TF→site→gene
-circuit inference (that is CREMA's question — see `docs/competitor_positioning.md`).
+circuit inference (that is CREMA's question — see `docs/similar_tools.md`).
 
 One longer-term item does belong on the record, though not in v0: the deeper constraint is that
 every validator available here is correlational and derived from the same two matrices. An
