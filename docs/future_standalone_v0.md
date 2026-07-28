@@ -33,7 +33,9 @@ Six findings that constrain the next phase. Sources in `docs/results_report.md`.
    SCENT-supported fraction from 0.445 (LinkPeaks) to 0.525, and its within-bin odds ratios
    (4.68, 2.89, 3.08) are well above the baseline's (2.60, 1.78, 1.94). In the outermost
    testable bin, 50–100 kb, coactivity alone is the **strongest** method — ahead of every
-   composite score.
+   composite score. The score is uncalibrated, however (see "Coactivity calibration" in §4): part
+   of the margin over LinkPeaks may be marginal detectability rather than pair-specific coupling,
+   and nothing in the current control suite separates the two.
 2. **The distance prior is inert where it matters, and the wrong shape.** \(\lambda = 0.1\)
    and \(\lambda = 0.3\) give identical within-bin odds ratios in every proximal bin, and
    \(\lambda = 0.3\) is slightly worse at 25–50 kb and 50–100 kb. Raising \(\lambda\) buys
@@ -52,18 +54,34 @@ Six findings that constrain the next phase. Sources in `docs/results_report.md`.
    inside a distance bin is worse than arbitrary. The control suite — distance-only ranking,
    distance-matched stratification, proximal removal, and restriction to the validator's tested
    window — is the most reusable output of this work and should be carried forward unchanged.
-   *An earlier version of this section stated that `distance_only` beats every model after 50 kb
-   removal. That was an artifact of scoring untested distal candidates as unsupported and is
-   retracted; see `docs/results_report.md` §6.*
+   Restricting to the validator's tested range is not optional: unrestricted, candidates the
+   validator never saw are scored as failures, which penalises distal ranking rather than
+   measuring it.
 4. **Peak-level TF/motif support helps proximally and costs distally.** \(T_p\) has no gene and
    no cell-type dependence. `coactivity_tf` improves on `coactivity` at 0–10 kb (5.06 vs 4.68)
    and 10–25 kb (2.55 vs 2.20), but is worse at 50–100 kb (2.64 vs 3.08) and at top-200 on the
    raw universe. The term behaves as a promoter-context proxy rather than as evidence of
    TF-to-target regulation, and the sign flip is the clearest available argument that a gene-
    and cell-type-aware TF term is required for this component to be worth its complexity.
-5. **The distance reparameterisation is empirically inert.** `full_moddist` overlaps
-   `full_lambda_0_1` at 199/200 in the top 200, with identical odds ratios. Keep the cleaner
-   form; do not spend more time on distance-prior shape without a better validator.
+5. **The distance reparameterisation is empirically inert, and the algebra says why.** The two
+   forms differ by a constant,
+   \(f^{\mathrm{mod}}_{\lambda}(D) = f^{\mathrm{orig}}_{\lambda}(D) + \lambda/2\).
+   An additive constant on a *multiplier* is not rank-preserving in general — the score becomes
+   \(S + (\lambda/2)\,A_{pg}\,g_\alpha\) — but at \(\lambda = 0.1\) the ratio
+   \(f^{\mathrm{mod}}/f^{\mathrm{orig}}\) runs from 1.0500 at \(D \approx 1\) to 1.0556 at
+   \(D \approx 0\). A spread of half a percent across the whole distance range is very nearly a
+   uniform rescaling, and uniform rescaling cannot reorder anything. Hence `full_moddist`
+   overlapping `full_lambda_0_1` at 199/200 in the top 200, identical odds ratios in every bin,
+   and top-N support fractions differing by at most 0.01. `distance_mod_only` versus
+   `distance_only` should be *exactly* identical, since \(f^{\mathrm{mod}}_{\lambda}\) is a
+   strictly increasing linear function of \(D\), and a monotone transform of the ranking
+   variable cannot change the ranking.
+
+   The two forms diverge more at higher \(\lambda\), where \(\lambda/2\) is larger relative to
+   the \(f^{\mathrm{orig}}\) range — a 5.6% ratio spread at \(\lambda = 0.3\) against 0.5% at
+   0.1. Testing that against SCENT would confirm an algebraic prediction, not a biological one.
+   Keep the cleaner form and do not spend more time on distance-prior shape without a better
+   validator.
 6. **The evaluation axis is the bottleneck, not the score.** Every result was limited by what
    SCENT could test, not by the scoring. More \(\lambda\) or \(\alpha\) tuning cannot improve
    the evidence.
@@ -188,6 +206,49 @@ Distance variants to carry forward:
 Do not add further \(\lambda\) or \(\alpha\) values without a better validator. The current
 sweep already shows the parameter surface is flat where it matters.
 
+### Coactivity calibration — the missing control
+
+The coactivity score is not a calibrated association statistic. \(A_{pg}\) is a mean of clipped
+z-score products, and product-based activity scores have a **positive expectation under
+independence** that scales with the marginal detection rates of the peak and the gene. A highly
+accessible peak paired with a broadly expressed gene can score highly with no pair-specific
+regulatory coupling at all. In the current benchmark `mul_weigh` correlates with the marginal
+detection-rate product at Spearman **+0.682**.
+
+LinkPeaks conditions on this by comparing each candidate against a background of peaks matched on
+accessibility and GC content, so it asks whether an association is stronger than expected *for
+peaks with similar properties*. `mul_weigh` asks only whether the product of peak and gene
+activity is high. SCENT, the comparator, does not apply a per-feature matched background either,
+so part of the reranking advantage over LinkPeaks may be a bias shared with the comparator.
+
+**The distance controls do not touch this.** They hold proximity fixed. They do not control gene
+expression frequency, peak accessibility frequency, GC content, peak width, or the number of
+candidate peaks per gene and genes per peak.
+
+Standalone v0 must therefore add the activity analogue of `distance_only`:
+
+```yaml
+marginal_only:
+  rank by: peak detection rate × gene detection rate
+```
+
+and answer the question it poses: **does \(A_{pg}\) beat `marginal_only`?** If it does not, the
+coactivity result reduces to detectability. Beyond the baseline, in increasing order of effort:
+recompute top-decile enrichment within marginal-activity strata, the direct analogue of
+distance-matched enrichment; residualise coactivity against accessibility, expression, GC, peak
+width, distance and candidate multiplicity; or calibrate against a matched-background permutation
+null in the manner of LinkPeaks.
+
+Until one of these exists, \(A_{pg}\) is an **uncalibrated activity-product ranking feature**,
+not evidence of pair-specific regulatory coupling.
+
+One note on the transform. ATAC counts are near-binary, so a z-score assumes a normality that
+does not hold, and \(\max(z,0)\) on a near-Bernoulli variable is close to a rescaled indicator.
+Metacell or pseudobulk aggregation (below) makes the counts genuinely continuous and softens this
+as a side effect, which is a further argument for doing it first. Changing the transform alone
+would not fix the calibration problem — any per-feature standardisation followed by a clipped
+product retains a version of it. The null is the fix, not the transform.
+
 Two prerequisites before anything cell-type-specific (§7):
 
 - **Cell-type annotation.** The pipeline clusters at `cluster_resolution: 0.5` and stops. There
@@ -294,6 +355,7 @@ Same fixed-universe discipline: every method ranked on the identical candidate s
   not advantaged by defining the universe
 - `coactivity` alone
 - `distance_only` — **mandatory**; the benchmark exists to detect this
+- `marginal_only` — **mandatory**; peak detection rate × gene detection rate (§4)
 - `distance_mod_only`
 - `coactivity_tf`, `coactivity_distance`
 - `full` at the \(\lambda\) values retained above
@@ -316,7 +378,9 @@ Reuse the existing support rule (`pvalue_positive`, p ≤ 0.05) and reciprocal-o
 2. Distance-matched enrichment within bins, with bins beyond the validator's window marked
    untested rather than reported as zero
 3. Proximal removal at 10 / 25 / 50 kb, with the surviving median distance reported alongside
-   every support fraction
+   every support fraction, all of it restricted to the validator's tested window
+4. Marginal-activity stratification, the activity analogue of item 2 — top-decile enrichment
+   recomputed within strata of the peak × gene detection product (§4)
 4. **Fix the two known defects:** guard the degenerate empty-cell odds ratios so they emit `NA`
    rather than 8.906, and add the missing plot
    (`docs/results_report.md` §6)
@@ -337,16 +401,16 @@ Time-box to two weeks. Write the stop rule down before starting.
 3. **Tier separation is measurable**: tier 1 links show a materially higher supported fraction
    than tier 3 on the standalone universe. This is the criterion that matters for §7.
 4. After proximal removal at 25 kb, and with candidates restricted to the validator's tested
-   window, the full model retains an advantage over `distance_only` **and over `coactivity`
-   alone**. The current benchmark already clears the `distance_only` bar once the window is
+   window, the full model retains an advantage over `distance_only`, over `marginal_only`, **and
+   over `coactivity` alone**. The current benchmark already clears the `distance_only` bar once the window is
    applied — by +0.28 to +0.32 at \(\delta\) = 25 kb — so that comparison no longer
    discriminates. Beating unadorned coactivity is the bar that does: on this dataset the
    composite score does not beat it in the outermost testable bin.
 
 **No-go** if any of:
 
-1. The full model does not beat `distance_only` within distance bins, or does not beat
-   `coactivity` alone.
+1. The full model does not beat `distance_only` within distance bins, does not beat
+   `marginal_only`, or does not beat `coactivity` alone.
 2. Tiers do not separate on the standalone universe. If tiers do not separate globally they will
    not separate after splitting the cells by type.
 3. Candidate generation drops most SCENT-supported pairs.

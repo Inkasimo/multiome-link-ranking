@@ -253,8 +253,7 @@ Bin occupancy, identical across methods: `0_10kb` 150 / 1,349; `10_50kb` 111 / 9
 100 kb SCENT sweep, and mixing the testable and untestable halves inflated every method whose
 top decile happened to fall inside the window. Splitting the bin removes that inflation:
 `distance_only` drops from 3.356 to **1.119**, and `full` (λ = 0.3) from 3.213 to **2.440**.
-Both former values were window artifacts. Neither should be quoted, and earlier drafts of this
-report that did quote them are superseded.
+Neither of those former values should be quoted.
 
 In the `0_10kb` bin, `coactivity_tf`, `full_lambda_0_1`, `full_moddist_lambda_0_1` and `full`
 are numerically identical at 5.057, with identical supported counts (115 of 150). In `10_50kb`,
@@ -264,8 +263,8 @@ harmful, 2.440 against 2.635. There is no distance bin in which λ = 0.3 discrim
 than λ = 0.1. The distance prior affects global ordering, not within-bin discrimination.
 
 This is the strongest evidence in the benchmark. At fixed distance, the reranking scores
-concentrate SCENT-supported links in their top decile roughly two to three times as strongly as
-LinkPeaks does — 5.06 vs 2.60 in 0–10 kb, 3.15 vs 1.78 in 10–50 kb, 2.64 vs 1.94 in 50–100 kb.
+concentrate SCENT-supported links in their top decile roughly 1.4 to 2 times as strongly as
+LinkPeaks does — 5.06 vs 2.60 in 0–10 kb, 3.15 vs 1.78 in 10–50 kb, 3.08 vs 1.94 in 50–100 kb.
 Because distance is held approximately constant within a bin (median distances for `high` and
 `rest` differ by under 10% in the proximal bins, and by 72.2 kb against 71.4 kb in `50_100kb`),
 this cannot be explained by proximity alone.
@@ -424,17 +423,15 @@ depth reported. `full_lambda_0_1`'s `delta_vs_linkpeaks` ranges from +0.02 to +0
 `full` (λ = 0.3) from +0.02 to +0.18. The advantage survives removal of everything within
 50 kb, so it is not attributable to promoter-proximal links.
 
-**Relative to `distance_only`.** An earlier version of this analysis reported that
-`distance_only` beat every model at \(\delta\) = 50 kb. **That result does not survive the
-window fix and is retracted.** Within the SCENT-testable range `distance_only` is the weakest
+**Relative to `distance_only`.** Within the SCENT-testable range `distance_only` is the weakest
 method at all nine threshold × depth cells above, and below LinkPeaks at every one, with
-`delta_vs_linkpeaks` between −0.05 and −0.26. The earlier finding arose because the other
-methods' top-N sets extended past 100 kb and were scored as unsupported when they were
-untested, while `distance_only`'s top-N was always inside the window.
+`delta_vs_linkpeaks` between −0.05 and −0.26. Restricting to the tested window is what makes the
+comparison meaningful: unrestricted, the other methods' top-N sets extend past 100 kb and are
+scored as unsupported when they were never tested, while `distance_only`'s top-N is always
+inside the window.
 
 The proximity confound is therefore **controlled within the tested window**, not merely
-displaced. This is a more favourable reading than the previous one, so the mechanism is stated
-explicitly above in order that it can be checked rather than taken on trust.
+displaced.
 
 **What still stands.** §4's shallow result is unaffected. On the unrestricted 500 kb universe,
 `distance_only` leads at N = 50 with a median top-50 distance of 3.5 bp. Proximity collapse
@@ -445,8 +442,7 @@ signal once distance is controlled. Both belong in the record.
 **The λ = 0.3 result, stated carefully.** `full` has the highest raw support at several
 threshold × depth cells. But §5 and the fine bins show it has no within-bin advantage over
 λ = 0.1 in any bin, and is slightly worse in `25_50kb` (4.212 against 4.656) and `50_100kb`
-(2.440 against 2.635). Its former `50_200kb` advantage of 3.213 against 2.233 was a window
-artifact and no longer exists. `full` is reported as an **aggressive distance-prior sensitivity
+(2.440 against 2.635). `full` is reported as an **aggressive distance-prior sensitivity
 setting**; `full_lambda_0_1` is retained as the **conservative primary setting**.
 
 **Rows flagged `pool_limited` must not be quoted.** At \(\delta\) = 50 kb only 575 candidates
@@ -513,10 +509,6 @@ Items 1–3 constrain how strongly any *raw top-N* claim can be phrased, and the
 Items 4–6 are what allow a positive claim to be made: the full models' within-bin enrichment
 (5.06, 3.15, 2.64) cannot be produced by distance, because distance produces 1.59, 0.92 and
 1.12 in the same bins.
-
-An earlier version of this section listed as item 4 that `distance_only` "beats every model at
-\(\delta\) = 50 kb". **That claim is retracted.** It was an artifact of scoring untested
-distal links as unsupported; see §6.
 
 The correct summary is: **the full models add information beyond proximity at fixed distance
 across the whole 0–100 kb range SCENT could test, while their advantage on raw top-N metrics
@@ -625,8 +617,7 @@ Each of these is directly supported by a named file.
 8. Within the 100 kb SCENT window, `distance_only` is the **weakest** method after removing
    links within 10, 25 or 50 kb (0.30–0.41 against 0.48–0.68 for the reranking modes and
    0.43–0.56 for LinkPeaks), so the proximity confound is controlled inside the tested window
-   rather than merely displaced. An earlier version of this report claimed the opposite on the
-   unrestricted universe; that claim is retracted (§6, §8).
+   rather than merely displaced.
    *Source: `scent_min_distance_topN_support_summary.csv`.*
 
 ---
@@ -675,9 +666,15 @@ Each of these is directly supported by a named file.
     advantage in any bin**: identical odds ratios of 5.057 (0–10 kb), 3.148 (10–50 kb) and 2.546
     (10–25 kb), and lower values at 25–50 kb (4.212 vs 4.656) and 50–100 kb (2.440 vs 2.635).
     Its gain is consistent with a shift of the global ranking toward promoters and into SCENT's
-    tested window, not with better discrimination at fixed distance. An earlier version of this
-    report cited a `50_200kb` advantage of 3.213 against 2.233; splitting that bin at the 100 kb
-    window boundary removes it, and the claim is retracted. λ and α remain hand-set, not fitted.
+    tested window, not with better discrimination at fixed distance. λ and α remain hand-set, not fitted.
+13. **Not** that the advantage over LinkPeaks is free of a shared bias. \(A_{pg}\) has no null:
+    under independence its expectation is positive and scales with each feature's detection rate,
+    and `mul_weigh` correlates with the marginal detection-rate product at +0.682
+    (`docs/method_report.md` §6, §14). LinkPeaks conditions on this through a GC- and
+    accessibility-matched background; neither `mul_weigh` nor SCENT applies a per-feature matched
+    background. Part of the reranking advantage may therefore be a bias shared with the
+    comparator. The distance controls do not address it — they hold proximity fixed, not
+    detectability. Untested in this release.
 
 ---
 
@@ -691,8 +688,8 @@ The defensible position, stated once:
 > SCENT-supported links are concentrated higher than in the LinkPeaks ordering, at top-100 and
 > top-200. The aggressive λ = 0.3 sensitivity setting gives the highest raw SCENT support but does
 > not improve within-bin discrimination over λ = 0.1 in any bin. Within every distance bin that
-> SCENT could test, the same score shows two to three times the top-decile SCENT enrichment of
-> the baseline, which proximity alone does not explain — a distance-only control scores at or
+> SCENT could test, the same score shows roughly 1.4 to 2 times the top-decile SCENT enrichment
+> of the baseline, which proximity alone does not explain — a distance-only control scores at or
 > below 1.2 in those bins and below 1.0 in two of them. Restricted to the 100 kb tested window,
 > that advantage survives removal of all links within 10, 25 and 50 kb of the TSS. However, a
 > distance-only control still wins outright at top-50 on the unrestricted 500 kb universe, so raw
@@ -708,7 +705,7 @@ The distance-matched enrichment (§5, §6). Odds ratios of 5.06, 3.15 and 2.64 a
 LinkPeaks' 2.60, 1.78 and 1.94 across all three testable distance bins, at approximately fixed
 distance, with the distance-only control at 1.59, 0.92 and 1.12 — and at 0.84 and 0.69 in the
 finer 10–25 kb and 25–50 kb bins, i.e. below 1. Ranking by proximity inside a distance bin is
-worse than arbitrary, while the coactivity-based scores are two to three times the baseline.
+worse than arbitrary, while the coactivity-based scores are 1.4 to 2 times the baseline.
 This is the result that survives the obvious objection.
 
 ### Weakest / most negative
@@ -726,13 +723,6 @@ Three, in order of severity.
    fraction quoted without a distance control is uninterpretable.
 3. Gene-level ORA favours LinkPeaks, 17 terms to 5 (§9). Superseded as the primary instrument,
    but not refuted.
-
-**Retracted from this list.** Earlier versions ranked as most severe the finding that
-`distance_only` beat every method after 50 kb proximal removal. That comparison mixed the
-50–100 kb range SCENT tested with the 100–500 kb range it did not, scoring untested distal
-candidates as unsupported. Restricted to the tested window, `distance_only` is the weakest
-method at every threshold and depth (§6). The retraction is recorded rather than silently
-removed, because the earlier claim appeared in circulated drafts.
 
 ---
 

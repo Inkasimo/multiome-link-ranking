@@ -362,7 +362,7 @@ anywhere, so it is reported as a distance-prior sensitivity result and not as a 
 Three things, in order.
 
 **1. The distance-matched result is the real finding.** At approximately fixed distance, the
-reranking scores concentrate SCENT-supported links in their top decile two to three times as
+reranking scores concentrate SCENT-supported links in their top decile roughly 1.4 to 2 times as
 strongly as LinkPeaks does, in every bin SCENT could test, while the distance-only control sits
 at 1.59, 0.92 and 1.12 — and at 0.84 and 0.69 in the finer 10–25 kb and 25–50 kb bins, i.e.
 below 1. Ranking by proximity *within* a distance bin is worse than arbitrary. Proximity alone
@@ -392,6 +392,10 @@ Full analysis, including the gene-level ORA result that points the other way:
   is also the candidate generator.
 - SCENT is a correlational comparator built from the same two matrices, not ground truth. It is
   promoter-biased and window-limited to 100 kb.
+- Coactivity is not conditioned on marginal activity: `mul_weigh` correlates with the marginal
+  detection-rate product at +0.68. LinkPeaks conditions on this through a matched background;
+  neither this score nor SCENT does, so part of the advantage over LinkPeaks may be a bias shared
+  with the comparator. The distance controls hold proximity fixed, not detectability. Untested.
 - Raw top-N metrics over the unrestricted 500 kb universe reward promoter/TSS collapse:
   `distance_only` wins at top-50 with a median distance of 3.5 bp. Inside SCENT's 100 kb tested
   window the confound is controlled — `distance_only` is the weakest method at every

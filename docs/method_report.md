@@ -598,9 +598,9 @@ Filtering is method-independent — \(\mathcal{C}_\delta\) is the same set for a
 so `scent_min_distance_method_counts.csv` shows identical surviving counts across methods at
 each threshold: 1,685 at 10 kb, 1,079 at 25 kb, 575 at 50 kb.
 
-The number of supported links surviving each threshold is 616, 384 and 196, unchanged from the
-unrestricted version of this analysis, because every SCENT-supported link lies within 100 kb by
-construction. Only the denominators changed. The support rate is therefore roughly flat across
+The number of supported links surviving each threshold is 616, 384 and 196. Because every
+SCENT-supported link lies within 100 kb by construction, the restriction changes only the
+denominator and not the numerator. The support rate is therefore roughly flat across
 thresholds — 0.366, 0.356, 0.341 — rather than falling steeply, and the earlier apparent
 collapse to 0.083 at \(\delta\) = 50 kb was dilution by untested candidates.
 
@@ -624,7 +624,11 @@ Ordered by how much they constrain the conclusions.
    reranker and is itself correlational, promoter-biased, and window-limited. Concordance
    between two correlational methods on shared input is weaker evidence than it appears.
 3. **The validation window is narrower than the candidate window** — 100 kb vs 500 kb. The
-   distal regime, which is the field's actual open problem, is unmeasured here.
+   distal regime, which is the field's actual open problem, is unmeasured here. This is a compute
+   limit rather than a property of SCENT: the sweep was run with `link_distance: 100000` because
+   a 500 kb sweep was not feasible on the available hardware. The 100–500 kb band is therefore
+   untested rather than negative, and the gap is closable with more compute and no methodological
+   change.
 4. **`distance_only` wins at top-50 on the unrestricted universe**, with a median top-50
    distance of 3.5 bp, so raw top-N metrics over the full 500 kb candidate set are
    proximity-driven. Within SCENT's 100 kb tested window the control is cleanly beaten — it is
@@ -639,10 +643,18 @@ Ordered by how much they constrain the conclusions.
    population are systematically diluted.
 6. **\(T_p\) is peak-level only.** It cannot represent TF-to-target specificity, which is
    what "TF support for this link" would require.
-7. **Coactivity is not conditioned on marginal activity.** `mul_weigh` correlates with the
-   marginal detection-rate product at +0.682. Whether its contribution survives conditioning on
-   marginal activity **is not tested in this release**. The natural check — activity-matched
-   enrichment mirroring §12 — is deferred to v0.2.
+7. **Coactivity is not conditioned on marginal activity.** \(A_{pg}\) has no null: under
+   independence its expectation is positive and scales with each feature's detection rate, and
+   `mul_weigh` correlates with the marginal detection-rate product at +0.682. LinkPeaks
+   conditions on this through a GC- and accessibility-matched background; `mul_weigh` does not,
+   and SCENT does not apply a per-feature matched background either, so part of the reranking
+   advantage over LinkPeaks may be a bias shared with the comparator rather than signal. The
+   distance controls do not address this — they hold proximity fixed, not detectability. Whether
+   the contribution survives conditioning on marginal activity **is not tested in this release**.
+   The natural checks are a `marginal_only` baseline ranking on peak detection rate × gene
+   detection rate, and activity-matched enrichment mirroring §12; both are deferred to v0.2.
+   \(A_{pg}\) should therefore be read as an uncalibrated activity-product ranking feature, not
+   as evidence of pair-specific regulatory coupling.
 8. **Min–max rescaling of \(T_p\), \(w_k\), and the motif matrix** makes scores
    dataset-dependent and outlier-sensitive. No score in this repository is portable across
    datasets.
