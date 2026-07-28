@@ -453,10 +453,6 @@ Plan, prerequisites and go/no-go criteria:
 | [`docs/input_output_reference.md`](docs/input_output_reference.md) | Every input, config field, output column, and interface hazard |
 | [`docs/similar_tools.md`](docs/similar_tools.md) | Honest positioning against 11 existing methods |
 | [`docs/future_standalone_v0.md`](docs/future_standalone_v0.md) | Next-phase plan |
-| [`docs/benchmark_summary.md`](docs/benchmark_summary.md) | Chronological development record, including superseded verdicts |
-
-`docs/benchmark_summary.md` is a historical record and contains conclusions that were later
-revised. `docs/results_report.md` is the current statement.
 
 ---
 

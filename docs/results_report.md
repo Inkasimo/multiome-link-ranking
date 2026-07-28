@@ -562,7 +562,7 @@ More aggressive distance weighting partially recovers term counts (`full_lambda_
 `full` return to ~3,700 bytes) but does so by becoming more promoter-proximal.
 
 This is the earlier evidence layer, and it points the opposite way from the SCENT result. The
-resolution offered in `docs/benchmark_summary.md` is that ORA is gene-level and therefore blind
+resolution is that ORA is gene-level and therefore blind
 to peak–gene pairing — a ranking could be scrambled at the peak level with an unchanged ORA
 result — so a link-level comparator is the more appropriate instrument. That reasoning is
 sound, and SCENT is the better tool for the question. It does not make the ORA result
