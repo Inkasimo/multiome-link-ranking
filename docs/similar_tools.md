@@ -1,4 +1,4 @@
-# Competitor positioning
+# Positioning against similar tools
 
 Honest positioning of this repository, and of the future standalone direction, against existing
 peak–gene and cis-regulatory inference methods.
