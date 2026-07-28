@@ -63,8 +63,8 @@ from the `cellranger-arc` comment block at the head of `data/atac_fragments.tsv.
 ```
 
 This is 10x Genomics' publicly available `pbmc_unsorted_10k` dataset (published 2021-05-03,
-CC BY 4.0). It should be recorded in `config/default.yaml` so it does not have to be recovered
-again — see `TODO.md` §8.
+CC BY 4.0). Provenance, download URLs, file sizes and SHA256 checksums are recorded in
+`config/default.yaml`.
 
 Note this is **not** the `pbmc_granulocyte_sorted_10k` dataset used in the Signac multiome
 vignette, despite the identical local filenames. The fragment-file sizes differ

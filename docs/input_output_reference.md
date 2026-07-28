@@ -134,8 +134,7 @@ defaults at `workflow/Snakefile` lines 122–123:
 | `scent_p_threshold` | `0.05` | Threshold for the above |
 | `scent_min_score` | `0.0` | Used only by the `positive_score` rule |
 
-`config/scent_validation_with_producer.yaml` does define all three, with comments. That file
-should replace the current one — see `TODO.md` §3.
+`config/scent_validation_with_producer.yaml` defines all three, with comments.
 
 ---
 
@@ -321,7 +320,6 @@ baseline does not depend on the score mode:
 ```
 
 md5-verified identical across all 11 directories, totalling ~20.6 MB of redundancy.
-See `TODO.md` §4.1.
 
 ### Plots
 
@@ -388,8 +386,8 @@ peak, controlled by `reciprocal_overlap: 0.5`.
 
 `results/<dataset>/scent_validation_min_distance/`. Produced by
 `summarize_scent_validation_min_distance.R`, consuming
-`scent_validation_all_ranked_methods_combined.csv`. **Not currently wired into the
-Snakefile** — see `TODO.md` §0.3.
+`scent_validation_all_ranked_methods_combined.csv`, via `rule scent_validation_min_distance`
+in `workflow/Snakefile` and `run_analysis.py run_scent_validation_min_distance`.
 
 | File | Size | Contents |
 |---|---|---|
@@ -469,8 +467,8 @@ the two halves of the pipeline are **not** in the same format on disk. Joining
 `pbmc_baseline_links_full.csv` to `scent_candidates_chr*.csv` on the raw `peak` string
 returns **zero** matches. After normalisation the true overlap is 5,768 pairs.
 
-This is recorded as "Peak mismatch (critical)" in `docs/lab_notebook.md` and is still live.
-Always split on `[:-]` before comparing peak identifiers across subsystems.
+This hazard is still live. Always split on `[:-]` before comparing peak identifiers across
+subsystems.
 
 ### 9.2 The evaluated universe is 4,976, not 5,000
 

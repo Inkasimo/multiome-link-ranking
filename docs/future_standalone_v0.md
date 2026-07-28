@@ -111,8 +111,7 @@ Its output is committed as 22 files, `results/pbmc/scent_chr_sweep_100kb_frac020
 | Overlap with the 15,806 LinkPeaks candidates | 5,768 pairs = **36.5%** (42.2% on shared genes) |
 
 So this is not a subset of the LinkPeaks universe. It is 7.5× larger, covers 2.3× more genes,
-and disagrees with LinkPeaks about most of the candidate space. **Do not delete these files**
-(`TODO.md` §4.3).
+and disagrees with LinkPeaks about most of the candidate space. **Do not delete these files.**
 
 Two notes. First, a distance-filtered join over expressed genes × accessible peaks is not a weak
 candidate step — it is what LinkPeaks, ArchR, Cicero and SCENT all do. Candidate generation is
@@ -360,7 +359,7 @@ Same fixed-universe discipline: every method ranked on the identical candidate s
 - `coactivity_tf`, `coactivity_distance`
 - `full` at the \(\lambda\) values retained above
 - Optional external: ArchR Peak2GeneLinks, Cicero. ArchR was attempted during this project and
-  did not produce stable benchmarkable output (`docs/lab_notebook.md`); treat as optional.
+  did not produce benchmarkable output in this environment; treat as optional.
 
 ### SCENT comparison
 

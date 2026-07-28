@@ -1,6 +1,6 @@
 # Multiome Peak–Gene Reranking Benchmark
 
-<!-- Badges: fill in after the release steps in docs/release_checklist.md.
+<!-- Badges: fill in after the release.
 [![DOI](https://zenodo.org/badge/DOI/<DOI>.svg)](https://doi.org/<DOI>)
 [![Snakemake](https://img.shields.io/badge/snakemake-7.32.4-brightgreen.svg)](https://snakemake.github.io)
 [![Docker](https://img.shields.io/badge/docker-ghcr.io-blue.svg)](<PACKAGE_URL>)
@@ -247,7 +247,6 @@ options:
 
 > **Note:** `--image` currently defaults to `multiome-reranking-benchmark:v0.1.0`, inherited from an
 > earlier name. Pass `--image` explicitly, or reconcile the default with the image you build.
-> See [`TODO.md`](TODO.md) §9.
 
 ### Direct Snakemake
 
@@ -454,13 +453,10 @@ Plan, prerequisites and go/no-go criteria:
 | [`docs/input_output_reference.md`](docs/input_output_reference.md) | Every input, config field, output column, and interface hazard |
 | [`docs/similar_tools.md`](docs/similar_tools.md) | Honest positioning against 11 existing methods |
 | [`docs/future_standalone_v0.md`](docs/future_standalone_v0.md) | Next-phase plan |
-| [`docs/release_checklist.md`](docs/release_checklist.md) | Release readiness |
 | [`docs/benchmark_summary.md`](docs/benchmark_summary.md) | Chronological development record, including superseded verdicts |
-| [`docs/lab_notebook.md`](docs/lab_notebook.md) | Unedited working notes, kept for transparency |
-| [`TODO.md`](TODO.md) | Cleanup plan and open questions |
 
-`docs/benchmark_summary.md` and `docs/lab_notebook.md` are historical records and contain
-conclusions that were later revised. `docs/results_report.md` is the current statement.
+`docs/benchmark_summary.md` is a historical record and contains conclusions that were later
+revised. `docs/results_report.md` is the current statement.
 
 ---
 
@@ -471,7 +467,7 @@ checksums are recorded in `config/default.yaml`.
 
 Large outputs — the eleven `*_ranked_links.csv` files, per-chromosome SCENT output, and the
 combined validation table — are excluded from version control and intended for external
-archival. See [`docs/release_checklist.md`](docs/release_checklist.md).
+archival in the Zenodo deposit.
 
 ## Citation
 
@@ -491,5 +487,4 @@ the file.
 ## License
 
 Code: MIT (see `LICENSE`). A license for documentation and results has not yet been chosen;
-CC-BY-4.0 is the recommended pairing. See
-[`docs/release_checklist.md`](docs/release_checklist.md).
+CC-BY-4.0 is the recommended pairing.

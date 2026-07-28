@@ -30,7 +30,6 @@ Two conventions used throughout:
 
 Of the 62 MB under `rankings/`, roughly 20.6 MB is byte-identical duplication of the LinkPeaks
 baseline across the 11 mode directories, and ~29 MB is the eleven `*_ranked_links.csv` files.
-See `TODO.md` §4.
 
 ---
 

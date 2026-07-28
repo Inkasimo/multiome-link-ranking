@@ -14,7 +14,7 @@ unavailable and which narrower framings survive scrutiny. Two things should be s
   distance prior, and TF motif evidence are, at the level of ingredients, what most of the
   methods below already combine. There is no formulation here that a reviewer would call new.
 
-Bibliographic references are deliberately not invented; see `TODO.md` §9.
+Bibliographic references are deliberately not invented.
 
 ---
 
@@ -70,10 +70,9 @@ aggregates of cells within a cis window, on ArchR's own Arrow-file infrastructur
 Its aggregate-based approach directly addresses the sparsity problem that limits per-cell
 coactivity here.
 
-**How close.** Very close — same task, same data type. It was attempted as a benchmark comparator
-during this project and did not produce stable benchmarkable output in this environment; the
-IterativeLSI defaults were unstable and a MACS2 follow-up did not resolve it
-(`docs/lab_notebook.md`). It is absent from the results.
+**How close.** Very close — same task, same data type. ArchR was attempted as a benchmark
+comparator during this project but did not produce benchmarkable output in this environment. It
+is absent from the results.
 
 **Claim to avoid.** Do not claim any comparison against ArchR. Do not imply its absence reflects
 on ArchR — it reflects an integration failure in this environment. And do not claim the
@@ -321,8 +320,7 @@ Three statements are defensible on the current evidence.
 
 3. **Reproducible infrastructure.** A containerised, `renv`-pinned, config-driven ablation
    harness with a chromosome-sharded SCENT sweep that completed genome-wide where a monolithic
-   run was intractable (`docs/lab_notebook.md`). The harness is reusable independently of the
-   scientific result.
+   run was intractable. The harness is reusable independently of the scientific result.
 
 ## What positioning does not survive
 
