@@ -248,11 +248,10 @@ Odds ratio, top decile vs remainder, within distance bin.
 Bin occupancy, identical across methods: `0_10kb` 150 / 1,349; `10_50kb` 111 / 999;
 `50_100kb` 58 / 517.
 
-**The former `50_200kb` bin has been split.** Only its 50–100 kb portion is testable by the
-100 kb SCENT sweep, and mixing the testable and untestable halves inflated every method whose
-top decile happened to fall inside the window. Splitting the bin removes that inflation:
-`distance_only` drops from 3.356 to **1.119**, and `full` (λ = 0.3) from 3.213 to **2.440**.
-Neither of those former values should be quoted.
+**Bins align with the 100 kb SCENT window.** A bin spanning 50–200 kb would mix the testable
+50–100 kb portion with the untestable remainder, inflating the odds ratio of any method whose
+top decile fell inside the window. Splitting at 100 kb avoids that: within `50_100kb`,
+`distance_only` scores **1.119** and `full` (λ = 0.3) **2.440**.
 
 In the `0_10kb` bin, `coactivity_tf`, `full_lambda_0_1`, `full_moddist_lambda_0_1` and `full`
 are numerically identical at 5.057, with identical supported counts (115 of 150). In `10_50kb`,
