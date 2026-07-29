@@ -85,7 +85,7 @@ topn_summary <- rbindlist(lapply(min_distances, function(md) {
   y <- x[distance_bp > md & distance_bp <= SCENT_WINDOW_BP]
 
   rbindlist(lapply(sort(unique(y$method)), function(m) {
-    ym <- y[method == m][order(-score)]
+    ym <- y[method == m][order(-score, peak, gene)]
 
     rbindlist(lapply(top_ns, function(n) {
       top <- head(ym, n)
