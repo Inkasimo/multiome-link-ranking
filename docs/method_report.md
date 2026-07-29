@@ -233,7 +233,7 @@ The distance score is a squared-Lorentzian decay (`:319–322`):
 $$
 D_{pg} =
 \begin{cases}
-\frac{1}{1 + (d_{pg}/d_0)^2}, & d_{pg}\ \mathrm{finite} \\[2ex]
+\frac{1}{1 + (d_{pg}/d_0)^2}, & d_{pg}\ \mathrm{finite} \\
 0, & \mathrm{otherwise}
 \end{cases}
 $$
