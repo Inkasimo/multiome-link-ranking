@@ -36,15 +36,15 @@ Six findings that constrain the next phase. Sources in `docs/results_report.md`.
    composite score. The score is uncalibrated, however (see "Coactivity calibration" in §4): part
    of the margin over LinkPeaks may be marginal detectability rather than pair-specific coupling,
    and nothing in the current control suite separates the two.
-2. **The distance prior is inert where it matters, and the wrong shape.** $\lambda = 0.1$
-   and $\lambda = 0.3$ give identical within-bin odds ratios in every proximal bin, and
-   $\lambda = 0.3$ is slightly worse at 25–50 kb and 50–100 kb. Raising $\lambda$ buys
+2. **The distance prior is inert where it matters, and the wrong shape.** `lambda = 0.1`
+   and `lambda = 0.3` give identical within-bin odds ratios in every proximal bin, and
+   `lambda = 0.3` is slightly worse at 25–50 kb and 50–100 kb. Raising `lambda` buys
    raw support only by becoming more promoter-proximal. Separately, top-decile enrichment is
    **not monotone in distance** — 25–50 kb (4.21–4.66) exceeds 10–25 kb (2.20–2.55) — while the
-   prior decreases monotonically. For v0 the defensible primary is $\lambda = 0$, with
-   distance retained purely as a stratifier and control, and $\lambda = 0.1$ kept only for
+   prior decreases monotonically. For v0 the defensible primary is `lambda = 0`, with
+   distance retained purely as a stratifier and control, and `lambda = 0.1` kept only for
    continuity with these results. If a distance term returns it should be the hump-shaped
-   variant in §4, with $d_0$ fitted against the fine bins rather than hand-set.
+   variant in §4, with `d0` fitted against the fine bins rather than hand-set.
 3. **Proximity dominates raw top-N selection but carries no within-bin signal.**
    `distance_only` wins at top-50 on the unrestricted 500 kb universe with a median distance of
    3.5 bp, so any support fraction quoted without a distance control is uninterpretable.
@@ -57,7 +57,7 @@ Six findings that constrain the next phase. Sources in `docs/results_report.md`.
    Restricting to the validator's tested range is not optional: unrestricted, candidates the
    validator never saw are scored as failures, which penalises distal ranking rather than
    measuring it.
-4. **Peak-level TF/motif support helps proximally and costs distally.** $T_p$ has no gene and
+4. **Peak-level TF/motif support helps proximally and costs distally.** `T_p` has no gene and
    no cell-type dependence. `coactivity_tf` improves on `coactivity` at 0–10 kb (5.06 vs 4.68)
    and 10–25 kb (2.55 vs 2.20), but is worse at 50–100 kb (2.64 vs 3.08) and at top-200 on the
    raw universe. The term behaves as a promoter-context proxy rather than as evidence of
@@ -65,25 +65,25 @@ Six findings that constrain the next phase. Sources in `docs/results_report.md`.
    and cell-type-aware TF term is required for this component to be worth its complexity.
 5. **The distance reparameterisation is empirically inert, and the algebra says why.** The two
    forms differ by a constant,
-   $f^{\mathrm{mod}}_{\lambda}(D) = f^{\mathrm{orig}}_{\lambda}(D) + \lambda/2$.
+   `f^{mod}_{\lambda}(D) = f^{orig}_{\lambda}(D) + \lambda/2`.
    An additive constant on a *multiplier* is not rank-preserving in general — the score becomes
-   $S + (\lambda/2)\,A_{pg}\,g_\alpha$ — but at $\lambda = 0.1$ the ratio
-   $f^{\mathrm{mod}}/f^{\mathrm{orig}}$ runs from 1.0500 at $D \approx 1$ to 1.0556 at
-   $D \approx 0$. A spread of half a percent across the whole distance range is very nearly a
+   `S + (\lambda/2)\,A_{pg}\,g_\alpha` — but at `lambda = 0.1` the ratio
+   `f^{mod}/f^{orig}` runs from 1.0500 at `D approx 1` to 1.0556 at
+   `D approx 0`. A spread of half a percent across the whole distance range is very nearly a
    uniform rescaling, and uniform rescaling cannot reorder anything. Hence `full_moddist`
    overlapping `full_lambda_0_1` at 199/200 in the top 200, identical odds ratios in every bin,
    and top-N support fractions differing by at most 0.01. `distance_mod_only` versus
-   `distance_only` should be *exactly* identical, since $f^{\mathrm{mod}}_{\lambda}$ is a
-   strictly increasing linear function of $D$, and a monotone transform of the ranking
+   `distance_only` should be *exactly* identical, since `f^{mod}_{\lambda}` is a
+   strictly increasing linear function of `D`, and a monotone transform of the ranking
    variable cannot change the ranking.
 
-   The two forms diverge more at higher $\lambda$, where $\lambda/2$ is larger relative to
-   the $f^{\mathrm{orig}}$ range — a 5.6% ratio spread at $\lambda = 0.3$ against 0.5% at
+   The two forms diverge more at higher `lambda`, where `lambda/2` is larger relative to
+   the `f^{orig}` range — a 5.6% ratio spread at `lambda = 0.3` against 0.5% at
    0.1. Testing that against SCENT would confirm an algebraic prediction, not a biological one.
    Keep the cleaner form and do not spend more time on distance-prior shape without a better
    validator.
 6. **The evaluation axis is the bottleneck, not the score.** Every result was limited by what
-   SCENT could test, not by the scoring. More $\lambda$ or $\alpha$ tuning cannot improve
+   SCENT could test, not by the scoring. More `lambda` or `alpha` tuning cannot improve
    the evidence.
 
 ---
@@ -96,10 +96,10 @@ repository's own `data.table` code, with no LinkPeaks or SCENT involvement:
 
 | Requirement | Implementation |
 |---|---|
-| **Expressed genes** | `expr_frac_gene <- Matrix::rowMeans(rna_counts > 0)`, retain $\geq$ `min_pair_frac` (`:325, :328`) |
-| **Accessible peaks** | `expr_frac_peak <- Matrix::rowMeans(atac_counts > 0)`, retain $\geq$ `min_pair_frac` (`:326, :329`) |
+| **Expressed genes** | `expr_frac_gene <- Matrix::rowMeans(rna_counts > 0)`, retain `>= min_pair_frac` (`:325, :328`) |
+| **Accessible peaks** | `expr_frac_peak <- Matrix::rowMeans(atac_counts > 0)`, retain `>= min_pair_frac` (`:326, :329`) |
 | **Same chromosome** | `data.table` merge on chromosome (`:353–358`) |
-| **TSS ±100 kb window** | `distance_bp := abs(peak_mid - tss)`, retain $\leq$ `link_distance` (`:364–365`) |
+| **TSS ±100 kb window** | `distance_bp := abs(peak_mid - tss)`, retain `<= link_distance` (`:364–365`) |
 
 Its output is committed as 22 files, `results/pbmc/scent_chr_sweep_100kb_frac020_1000cells/chr*/scent_candidates_chr*.csv`:
 
@@ -145,12 +145,12 @@ therefore has three roles:
 3. optionally supply a weak prior, only if it does not recreate promoter collapse.
 
 The primary standalone score should be tested with no distance multiplier, or with distance
-used only for reporting and stratification. A weak $\lambda = 0.1$ prior can be retained for
+used only for reporting and stratification. A weak `lambda = 0.1` prior can be retained for
 continuity with the current benchmark, but it should not be the headline setting unless it
 improves performance within distance bins.
 
 The only new distance prior worth testing in v0 is a promoter-dampened or hump-shaped form that
-does not peak at $d = 0$. The current squared-Lorentzian prior decreases monotonically with
+does not peak at `d = 0`. The current squared-Lorentzian prior decreases monotonically with
 distance, while the strongest distance-matched enrichment in the current benchmark is not
 monotone. A future prior should therefore be fitted against distance-stratified validation
 rather than hand-set.
@@ -190,24 +190,24 @@ $$
 S_{pg} = A_{pg} \cdot f_{\lambda}(D_{pg}) \cdot (1 + \alpha T_p)
 $$
 
-with $A_{pg}$, $D_{pg}$ and $T_p$ exactly as in `docs/method_report.md` §6–8.
+with `A_{pg}`, `D_{pg}` and `T_p` exactly as in `docs/method_report.md` §6–8.
 
 Distance variants to carry forward:
 
-- $f^{\mathrm{mod}}_{\lambda}(D) = 1 + \lambda(D - 0.5)$ at $\lambda \in \{0.1, 0.2\}$ — the
-  cleaner form, symmetric about $d_0$
-- $f^{\mathrm{orig}}_{\lambda}(D) = (1-\lambda) + \lambda D$ at $\lambda = 0.1$ — for
+- `f^{mod}_{\lambda}(D) = 1 + \lambda(D - 0.5)` at `lambda \in \{0.1, 0.2\}` — the
+  cleaner form, symmetric about `d0`
+- `f^{orig}_{\lambda}(D) = (1-\lambda) + \lambda D` at `lambda = 0.1` — for
   continuity with the current results
 - A **promoter-dampened or hump-shaped prior** — the one genuinely new variant worth testing,
   since the current family is monotone in proximity and therefore cannot avoid rewarding
-  promoter collapse. Something that peaks at intermediate distance rather than at $d = 0$.
+  promoter collapse. Something that peaks at intermediate distance rather than at `d = 0`.
 
-Do not add further $\lambda$ or $\alpha$ values without a better validator. The current
+Do not add further `lambda` or `alpha` values without a better validator. The current
 sweep already shows the parameter surface is flat where it matters.
 
 ### Coactivity calibration — the missing control
 
-The coactivity score is not a calibrated association statistic. $A_{pg}$ is a mean of clipped
+The coactivity score is not a calibrated association statistic. `A_{pg}` is a mean of clipped
 z-score products, and product-based activity scores have a **positive expectation under
 independence** that scales with the marginal detection rates of the peak and the gene. A highly
 accessible peak paired with a broadly expressed gene can score highly with no pair-specific
@@ -231,18 +231,18 @@ marginal_only:
   rank by: peak detection rate × gene detection rate
 ```
 
-and answer the question it poses: **does $A_{pg}$ beat `marginal_only`?** If it does not, the
+and answer the question it poses: **does `A_{pg}` beat `marginal_only`?** If it does not, the
 coactivity result reduces to detectability. Beyond the baseline, in increasing order of effort:
 recompute top-decile enrichment within marginal-activity strata, the direct analogue of
 distance-matched enrichment; residualise coactivity against accessibility, expression, GC, peak
 width, distance and candidate multiplicity; or calibrate against a matched-background permutation
 null in the manner of LinkPeaks.
 
-Until one of these exists, $A_{pg}$ is an **uncalibrated activity-product ranking feature**,
+Until one of these exists, `A_{pg}` is an **uncalibrated activity-product ranking feature**,
 not evidence of pair-specific regulatory coupling.
 
 One note on the transform. ATAC counts are near-binary, so a z-score assumes a normality that
-does not hold, and $\max(z,0)$ on a near-Bernoulli variable is close to a rescaled indicator.
+does not hold, and `\max(z,0)` on a near-Bernoulli variable is close to a rescaled indicator.
 Metacell or pseudobulk aggregation (below) makes the counts genuinely continuous and softens this
 as a side effect, which is a further argument for doing it first. Changing the transform alone
 would not fix the calibration problem — any per-feature standardisation followed by a clipped
@@ -253,7 +253,7 @@ Two prerequisites before anything cell-type-specific (§7):
 - **Cell-type annotation.** The pipeline clusters at `cluster_resolution: 0.5` and stops. There
   is no marker-based or reference-based annotation step. "Cell-type-specific" currently means
   "unlabelled-cluster-specific", which is not usable output.
-- **Metacell or pseudobulk aggregation.** $A_{pg}$ is a mean over cells of clipped z-score
+- **Metacell or pseudobulk aggregation.** `A_{pg}` is a mean over cells of clipped z-score
   products. Splitting the population into cell types reduces the cells per estimate against
   already near-binary ATAC, so cell-type coactivity will be noisier than the global version —
   and the global version is what currently fails to beat `distance_only`. Aggregation is likely
@@ -271,8 +271,8 @@ benchmark it is a peak-level regulatory-potential score:
 That construction gives every gene paired to the same peak the same TF/motif score. It cannot
 say whether a motif-bearing peak plausibly regulates a particular target gene, and it cannot
 distinguish TF programs active in different cell states. In standalone work, the term should be
-redesigned from a peak-level score, $T_p$, to a peak-gene-cell-state score, $T_{pgc}$, where
-$p$ is the peak, $g$ is the candidate target gene and $c$ is a cell type, metacell state or
+redesigned from a peak-level score, `T_p`, to a peak-gene-cell-state score, `T_pgc`, where
+`p` is the peak, `g` is the candidate target gene and `c` is a cell type, metacell state or
 latent cell state.
 
 The intended question should change from:
@@ -286,18 +286,18 @@ to:
 A useful standalone TF/motif score should combine evidence across candidate TFs:
 
 $$
-T_{pgc} = \sum_{t \in \mathcal{T}} M_{ptc} \cdot A_{tc} \cdot G_{tgc}
+T_{pgc} = \sum_{t \in T} M_{ptc} \cdot A_{tc} \cdot G_{tgc}
 $$
 
-where $M_{ptc}$ is motif or motif-module support for TF $t$ at peak $p$ in cell state $c$,
-$A_{tc}$ is TF activity in that cell state and $G_{tgc}$ is evidence that gene $g$ is a
-plausible target of TF $t$ in that same cell state.
+where `M_{ptc}` is motif or motif-module support for TF `t` at peak `p` in cell state `c`,
+`A_{tc}` is TF activity in that cell state and `G_{tgc}` is evidence that gene `g` is a
+plausible target of TF `t` in that same cell state.
 
 | Component | Meaning |
 |---|---|
-| $M_{ptc}$ | Motif, motif-module or motif-grammar support for TF $t$ at peak $p$ in cell state $c$. |
-| $A_{tc}$ | Activity of TF $t$ in cell state $c$, preferably from motif activity or regulon activity rather than raw RNA alone. |
-| $G_{tgc}$ | Evidence that gene $g$ is a plausible target of TF $t$ in cell state $c$. |
+| `M_{ptc}` | Motif, motif-module or motif-grammar support for TF `t` at peak `p` in cell state `c`. |
+| `A_{tc}` | Activity of TF `t` in cell state `c`, preferably from motif activity or regulon activity rather than raw RNA alone. |
+| `G_{tgc}` | Evidence that gene `g` is a plausible target of TF `t` in cell state `c`. |
 
 Raw TF RNA expression should not be the main activity proxy. Better activity estimates include
 chromVAR motif deviation scores, motif accessibility activity, SCENIC/pySCENIC-style regulon
@@ -315,7 +315,7 @@ This design deliberately separates two things that are collapsed in the current 
 
 For PBMC-like data, single motifs are likely too noisy. The standalone score should consider
 motif families or modules, motif density, motif strength, co-occurring motifs and immune-cell
-TF programs such as AP-1, ETS, IRF, NF-$\kappa$B, CEBP, RUNX, GATA and TCF/LEF. Ubiquitous
+TF programs such as AP-1, ETS, IRF, NF-`kappa`B, CEBP, RUNX, GATA and TCF/LEF. Ubiquitous
 motifs should be downweighted, for example by IDF-like weighting across peaks, collapsing
 redundant TF-family motifs, or removing low-information motifs.
 
@@ -357,7 +357,7 @@ Same fixed-universe discipline: every method ranked on the identical candidate s
 - `marginal_only` — **mandatory**; peak detection rate × gene detection rate (§4)
 - `distance_mod_only`
 - `coactivity_tf`, `coactivity_distance`
-- `full` at the $\lambda$ values retained above
+- `full` at the `lambda` values retained above
 - Optional external: ArchR Peak2GeneLinks, Cicero. ArchR was attempted during this project and
   did not produce benchmarkable output in this environment; treat as optional.
 
@@ -402,7 +402,7 @@ Time-box to two weeks. Write the stop rule down before starting.
 4. After proximal removal at 25 kb, and with candidates restricted to the validator's tested
    window, the full model retains an advantage over `distance_only`, over `marginal_only`, **and
    over `coactivity` alone**. The current benchmark already clears the `distance_only` bar once the window is
-   applied — by +0.28 to +0.32 at $\delta$ = 25 kb — so that comparison no longer
+   applied — by +0.28 to +0.32 at `delta` = 25 kb — so that comparison no longer
    discriminates. Beating unadorned coactivity is the bar that does: on this dataset the
    composite score does not beat it in the outermost testable bin.
 

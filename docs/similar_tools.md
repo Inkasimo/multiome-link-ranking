@@ -177,7 +177,7 @@ CREMA:      Is TF X, acting through site Y near gene Z, associated with expressi
 this work:  Among candidate cis peak-gene pairs, which should be prioritized?
 ```
 
-**Claim to avoid.** Do not present the TF/motif term as CREMA-like circuit inference. \(T_p\)
+**Claim to avoid.** Do not present the TF/motif term as CREMA-like circuit inference. `T_p`
 here is a **peak-level scalar with no gene dependence and no cell-type dependence**
 (`docs/method_report.md` §8) — all pairs sharing a peak get the same value. It cannot express
 TF-to-target specificity, which is precisely CREMA's object. Measured contribution is small and
@@ -248,7 +248,7 @@ direction would produce if it stayed on a ranking-accuracy axis.
 
 **Claim to avoid.** Do not claim novelty for the combination of coactivity, motif evidence and a
 cis window — Pando already fits that combination with learned weights. Do not claim an advantage
-from hand-set parameters without evidence; \(\lambda\) and \(\alpha\) were not fitted or
+from hand-set parameters without evidence; `lambda` and `alpha` were not fitted or
 held-out-selected.
 
 **Defensible positioning.** Interpretable-by-construction with no fitted weights, benchmarked
