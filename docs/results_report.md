@@ -56,7 +56,7 @@ From `results/pbmc/scent_validation/scent_validation_method_counts.csv`:
 
 Eleven modes have committed results. Seven were carried into the SCENT comparison.
 
-| Mode | `lambda` | `alpha` | In SCENT validation |
+| Mode | $\lambda$ | $\alpha$ | In SCENT validation |
 |---|---|---|---|
 | `linkpeaks` | — | — | yes |
 | `coactivity` | — | — | yes |
@@ -70,7 +70,7 @@ Eleven modes have committed results. Seven were carried into the SCENT compariso
 | `full_moddist_lambda_0_2` | 0.20 | 0.50 | no |
 | `distance_mod_only_lambda_0_1` | 0.10 | 0.00 | no |
 
-Four of the eleven modes — `coactivity_distance`, both `lambda = 0.2` variants
+Four of the eleven modes — `coactivity_distance`, both $\lambda = 0.2$ variants
 (`full_lambda_0_2`, `full_moddist_lambda_0_2`) and `distance_mod_only_lambda_0_1` — have **no
 external comparison at all**. Any statement about them rests on internal diagnostics only.
 
@@ -338,7 +338,7 @@ and the fine-bin enrichment alike.
 Surviving candidates after restricting to ≤ 100 kb and removing links below the threshold —
 identical for all methods:
 
-| `delta` | surviving links | supported | overall support rate |
+| $\delta$ | surviving links | supported | overall support rate |
 |---|---|---|---|
 | 10 kb | 1,685 | 616 | 0.366 |
 | 25 kb | 1,079 | 384 | 0.356 |
@@ -354,7 +354,7 @@ directly.
 Values below are `frac_scent_supported`. Depths are N = 50, 100 and 200; see the note on
 `pool_limited` at the end of this section for why N = 500 is not reported.
 
-### `delta` = 10 kb — the 10–100 kb range
+### $\delta$ = 10 kb — the 10–100 kb range
 
 | top-N | `full` (λ=0.3) | `full_lambda_0_1` | `coactivity` | `coactivity_tf` | `linkpeaks` | `distance_only` |
 |---|---|---|---|---|---|---|
@@ -362,7 +362,7 @@ Values below are `frac_scent_supported`. Depths are N = 50, 100 and 200; see the
 | 100 | **0.630** | 0.620 | 0.550 | 0.580 | 0.500 | 0.320 |
 | 200 | **0.645** | 0.625 | 0.620 | 0.605 | 0.490 | 0.410 |
 
-### `delta` = 25 kb — the 25–100 kb range
+### $\delta$ = 25 kb — the 25–100 kb range
 
 | top-N | `full` (λ=0.3) | `full_lambda_0_1` | `coactivity` | `coactivity_tf` | `linkpeaks` | `distance_only` |
 |---|---|---|---|---|---|---|
@@ -370,7 +370,7 @@ Values below are `frac_scent_supported`. Depths are N = 50, 100 and 200; see the
 | 100 | **0.670** | 0.630 | 0.600 | 0.630 | 0.490 | 0.350 |
 | 200 | **0.615** | 0.605 | **0.615** | 0.610 | 0.480 | 0.320 |
 
-### `delta` = 50 kb — the 50–100 kb range
+### $\delta$ = 50 kb — the 50–100 kb range
 
 | top-N | `full` (λ=0.3) | `full_lambda_0_1` | `coactivity` | `coactivity_tf` | `linkpeaks` | `distance_only` |
 |---|---|---|---|---|---|---|
@@ -410,7 +410,7 @@ mode. And `distance_only` is **below 1 in both**: 0.840 and 0.687. Ranking by pr
 distance bin is not merely uninformative, it is worse than arbitrary.
 
 The TF term's contribution reverses with distance. `coactivity` → `coactivity_tf` is +0.35 at
-10–25 kb and +0.38 at 0–10 kb (§5), but −0.45 at 50–100 kb. `T_p` is a peak-level quantity
+10–25 kb and +0.38 at 0–10 kb (§5), but −0.45 at 50–100 kb. $T_p$ is a peak-level quantity
 with no gene or cell-type dependence, and motif density is promoter-biased, so the term behaves
 as a proxy for promoter context that stops paying beyond about 50 kb.
 
@@ -443,7 +443,7 @@ threshold × depth cells. But §5 and the fine bins show it has no within-bin ad
 (2.440 against 2.635). `full` is reported as an **aggressive distance-prior sensitivity
 setting**; `full_lambda_0_1` is retained as the **conservative primary setting**.
 
-**Rows flagged `pool_limited` must not be quoted.** At `delta` = 50 kb only 575 candidates
+**Rows flagged `pool_limited` must not be quoted.** At $\delta$ = 50 kb only 575 candidates
 survive, so a top-500 selection covers 87% of the available pool and every method converges to
 approximately 0.384 by construction. Those rows carry `pool_limited = TRUE` and
 `pool_fraction = 0.870` in `scent_min_distance_topN_support_summary.csv`, and are excluded from
@@ -467,12 +467,12 @@ Top-N support fractions differ by at most one link (0.440 / 0.440, 0.580 / 0.570
 every interpretable bin. Median supported ranks differ by 12 places out of 4,976.
 
 The two formulations are empirically indistinguishable on this dataset. This is the expected
-consequence of the algebra in `docs/method_report.md` §9.3: at `lambda = 0.1` the modifiers
+consequence of the algebra in `docs/method_report.md` §9.3: at $\lambda = 0.1$ the modifiers
 have ranges [0.90, 1.00] and [0.95, 1.05] respectively, differing by a constant offset of
-`lambda/2`.
+$\lambda/2$.
 
 `full_moddist` should be retained on conceptual grounds — it is symmetric about
-`d = d_0`, it can boost as well as penalise, and its neutral point is an interpretable
+$d = d_0$, it can boost as well as penalise, and its neutral point is an interpretable
 quantity rather than a parameterisation artifact. It should **not** be presented as an
 empirical improvement. There is no evidence here that it is one.
 
@@ -635,7 +635,7 @@ Each of these is directly supported by a named file.
    for the other.
 4. **Not** that the improvement is validated against ground truth. SCENT is correlational,
    built from the same two matrices, promoter-biased, and window-limited.
-5. **Not** that the TF/motif term captures TF-to-target regulation. `T_p` is peak-level with
+5. **Not** that the TF/motif term captures TF-to-target regulation. $T_p$ is peak-level with
    no gene or cell-type dependence (`docs/method_report.md` §8). Its contribution reverses with
    distance: `coactivity_tf` improves on `coactivity` at 0–10 kb (5.057 vs 4.676) and 10–25 kb
    (2.546 vs 2.196), but is *worse* at 50–100 kb (2.635 vs 3.081) and at top-200 on the raw
@@ -644,7 +644,7 @@ Each of these is directly supported by a named file.
 6. **Not** that the modified distance prior is an improvement. §7.
 7. **Not** that any result is cell-type-specific. No score or validation step is stratified by
    cell type; SCENT ran with a synthetic `all_cells` label.
-8. **Not** that `lambda` and `alpha` are optimal or fitted. Hand-set, no held-out
+8. **Not** that $\lambda$ and $\alpha$ are optimal or fitted. Hand-set, no held-out
    selection. Seven of the eleven committed modes are compared against SCENT; four —
     `coactivity_distance`, `full_lambda_0_2`, `full_moddist_lambda_0_2` and
     `distance_mod_only_lambda_0_1` — have none.
@@ -665,7 +665,7 @@ Each of these is directly supported by a named file.
     (10–25 kb), and lower values at 25–50 kb (4.212 vs 4.656) and 50–100 kb (2.440 vs 2.635).
     Its gain is consistent with a shift of the global ranking toward promoters and into SCENT's
     tested window, not with better discrimination at fixed distance. λ and α remain hand-set, not fitted.
-13. **Not** that the advantage over LinkPeaks is free of a shared bias. `A_{pg}` has no null:
+13. **Not** that the advantage over LinkPeaks is free of a shared bias. $A_{pg}$ has no null:
     under independence its expectation is positive and scales with each feature's detection rate,
     and `mul_weigh` correlates with the marginal detection-rate product at +0.682
     (`docs/method_report.md` §6, §14). LinkPeaks conditions on this through a GC- and
@@ -682,7 +682,7 @@ The defensible position, stated once:
 
 > Over a fixed universe of 4,976 LinkPeaks-derived candidate peak–gene pairs in PBMC multiome
 > data, an interpretable score combining RNA–ATAC coactivity, a mild distance prior
-> (`lambda = 0.1`) and peak-level TF/motif support reorders the candidates such that
+> ($\lambda = 0.1$) and peak-level TF/motif support reorders the candidates such that
 > SCENT-supported links are concentrated higher than in the LinkPeaks ordering, at top-100 and
 > top-200. The aggressive λ = 0.3 sensitivity setting gives the highest raw SCENT support but does
 > not improve within-bin discrimination over λ = 0.1 in any bin. Within every distance bin that
@@ -730,7 +730,7 @@ Four things this benchmark establishes for the next phase. Detail in
 `docs/future_standalone_v0.md`.
 
 1. **The evaluation axis is the bottleneck, not the scoring.** Every result above is limited by
-   what SCENT can test, not by the score. More `lambda` or `alpha` tuning cannot improve
+   what SCENT can test, not by the score. More $\lambda$ or $\alpha$ tuning cannot improve
    the evidence; a validator that is not collinear with distance and not window-limited would.
 2. **A de novo candidate universe already exists in this repository.** The 22
    `scent_candidates_chr*.csv` files hold **117,811 pairs over 9,891 genes and 46,936 peaks**,
