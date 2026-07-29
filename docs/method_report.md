@@ -79,7 +79,7 @@ step anywhere in the script. All barcodes present in `filtered_feature_bc_matrix
 12,012 for this dataset — enter the analysis. Comparable Signac multiome workflows filter on
 `nCount_ATAC`, `nCount_RNA`, `nucleosome_signal` and `TSS.enrichment` before proceeding, which
 typically removes several percent of barcodes. Low-quality nuclei therefore contribute to every
-per-cell z-score and to \(A_{pg}\).
+per-cell z-score and to $A_{pg}$.
 
 1. RNA: normalisation, variable-feature selection, scaling, PCA to `pca_dims: 30`.
 2. ATAC: TF-IDF, SVD, LSI components `lsi_dims_start: 2` through `lsi_dims_end: 30`. Dropping
@@ -154,8 +154,8 @@ diagnostics.
 
 ## 6. Coactivity score
 
-For candidate pair \((p, g)\) over cells \(c \in C\), let \(z^{\mathrm{RNA}}_{gc}\) and
-\(z^{\mathrm{ATAC}}_{pc}\) be the z-scored RNA expression of \(g\) and accessibility of \(p\).
+For candidate pair $(p, g)$ over cells $c \in C$, let $z^{\mathrm{RNA}}_{gc}$ and
+$z^{\mathrm{ATAC}}_{pc}$ be the z-scored RNA expression of $g$ and accessibility of $p$.
 
 The coactivity score used throughout is `mul_weigh` (`run_linkpeaks_reranker.R:554`):
 
@@ -182,17 +182,17 @@ $$
 \mathrm{adj}_{pg} = \frac{\mathrm{mul\_strict}_{pg}}{\bar{r}_g \bar{a}_p + 10^{-6}}
 $$
 
-where \(\bar{r}_g = \frac{1}{|C|}\sum_c \mathbb{1}[z^{\mathrm{RNA}}_{gc} > 1]\) and
-\(\bar{a}_p\) is its ATAC analogue.
+where $\bar{r}_g = \frac{1}{|C|}\sum_c \mathbb{1}[z^{\mathrm{RNA}}_{gc} > 1]$ and
+$\bar{a}_p$ is its ATAC analogue.
 
-Two properties of \(A_{pg}\) constrain interpretation. It is computed over **all cells
+Two properties of $A_{pg}$ constrain interpretation. It is computed over **all cells
 pooled**, so a link active in one small population is diluted. And because both inputs are
-z-scored per feature, \(A_{pg}\) is scale-free but its absolute magnitude is not comparable
+z-scored per feature, $A_{pg}$ is scale-free but its absolute magnitude is not comparable
 across datasets.
 
 ---
 
-**\(A_{pg}\) is associated with marginal detection rates.** Recovering the marginal activity
+**$A_{pg}$ is associated with marginal detection rates.** Recovering the marginal activity
 product as `mul_strict / adj` gives Spearman(`mul_weigh`, marginals) = **+0.682**. `mul_weigh` has
 no natural null: under independence its expectation is positive and depends on each feature's
 detection rate. LinkPeaks controls for this via a background matched on accessibility and GC;
@@ -215,7 +215,7 @@ $$
 d_{pg} \;=\; \min_{t \in \mathcal{T}(g)} \left| m_p - \mathrm{tss}_t \right|
 $$
 
-where \(m_p\) is the peak midpoint and \(\mathcal{T}(g)\) the transcripts of \(g\). The
+where $m_p$ is the peak midpoint and $\mathcal{T}(g)$ the transcripts of $g$. The
 transcript backing the selection is recorded in `tx_id` / `tx_biotype`.
 
 The distance score is a squared-Lorentzian decay (`:319–322`):
@@ -228,9 +228,9 @@ D_{pg} =
 \end{cases}
 $$
 
-where \(d_0 = 50{,}000\), from config field `distance_d0`.
+where $d_0 = 50{,}000$, from config field `distance_d0`.
 
-so \(D \to 1\) at the TSS, \(D = 0.5\) at \(d = d_0\), and \(D \approx 0.01\) at 500 kb. The
+so $D \to 1$ at the TSS, $D = 0.5$ at $d = d_0$, and $D \approx 0.01$ at 500 kb. The
 tail is heavy — distal links are downweighted, never excluded.
 
 **A TSS-convention inconsistency exists between subsystems.** The reranker takes the
@@ -244,41 +244,24 @@ affect distance-stratified comparisons against SCENT.
 
 This distance score is deliberately simple. It is a proximity prior for a reranking benchmark
 and for proximity-bias diagnostics, not a mechanistic model of enhancer–gene regulation. Both
-of its constants are hand-set rather than fitted: the 50 kb half-strength point \(d_0\), and
-\(\lambda\), which scales how much the prior is allowed to move a ranking. Note that
+of its constants are hand-set rather than fitted: the 50 kb half-strength point $d_0$, and
+$\lambda$, which scales how much the prior is allowed to move a ranking. Note that
 `distance_d0` and the `distal_threshold` used for proximal/distal reporting are both 50,000;
 they serve different purposes — one shapes the score, the other labels bins — but they are the
 same hand-set number.
 
 Simplicity here is a scoping decision, not a claim of adequacy, and it is what makes the
-proximity diagnostics checkable. At \(\lambda = 0.1\) the modifier is confined to
-[0.90, 1.00], and below 10 kb \(D \approx 1\) for every candidate, so the term is effectively
+proximity diagnostics checkable. At $\lambda = 0.1$ the modifier is confined to
+[0.90, 1.00], and below 10 kb $D \approx 1$ for every candidate, so the term is effectively
 constant within that bin and cannot reorder it. This is visible in the results:
-`coactivity_tf`, both \(\lambda = 0.1\) modes and `full` (\(\lambda = 0.3\)) all give an
+`coactivity_tf`, both $\lambda = 0.1$ modes and `full` ($\lambda = 0.3$) all give an
 identical odds ratio of 5.057 in `0_10kb`. The 0–10 kb enrichment is a coactivity and
 TF/motif result; the distance prior contributes nothing to it.
 
 The distance-matched results also show the form is the wrong shape. Top-decile enrichment is
 **not monotone in distance** — the 25–50 kb bin (4.21–4.66) is stronger than 10–25 kb
-(2.20–2.55) for every reranking mode — while \(D\) decreases monotonically throughout. A
+(2.20–2.55) for every reranking mode — while $D$ decreases monotonically throughout. A
 prior peaking at intermediate distance would fit the observed pattern better than this one.
-
-A future standalone model would need a richer distance or contact prior. See
-`docs/future_standalone_v0.md`.
-
-This distance score is deliberately simple. It is a proximity prior for a reranking
-benchmark and for proximity-bias diagnostics, not a mechanistic model of enhancer–gene
-regulation. Both of its constants are hand-set rather than fitted: the 50 kb
-half-strength point \(d_0\), and \(\lambda\), which scales how much the prior is
-allowed to move a ranking.
-
-Simplicity here is a scoping decision, not a claim of adequacy, and it is what makes the
-proximity diagnostics checkable: at \(\lambda = 0.1\) the modifier is confined to
-[0.90, 1.00], and below 10 kb \(D \approx 1\) for every candidate, so the term is
-effectively constant within that bin and cannot reorder it. This is visible in the
-results — `coactivity_tf`, both \(\lambda = 0.1\) modes and `full` (\(\lambda = 0.3\))
-all give an identical odds ratio of 5.057 in `0_10kb`. The 0–10 kb enrichment is a
-coactivity and TF/motif result; the distance prior contributes nothing to it.
 
 A future standalone model would need a richer distance or contact prior. See
 `docs/future_standalone_v0.md`.
@@ -294,8 +277,8 @@ Computed per **peak**, then attached to every pair containing that peak
 2. Retain motifs whose associated TF is expressed in at least
    `tf_expressed_frac: 0.10` of cells.
 3. Run `motifmatchr` against hg38 to obtain a continuous peak × motif score matrix
-   \(M \in \mathbb{R}^{P \times K}\), column-wise min–max rescaled (`:647`).
-4. For each motif \(k\), form a TF-expression weight from the **global mean expression** of
+   $M \in \mathbb{R}^{P \times K}$, column-wise min–max rescaled (`:647`).
+4. For each motif $k$, form a TF-expression weight from the **global mean expression** of
    its associated TF genes, taking the maximum over TFs mapped to that motif, then min–max
    rescale across motifs (`:657–664`):
 
@@ -310,16 +293,16 @@ $$
 T_p \;=\; \mathrm{rescale}_{01}\!\left( \sum_{k=1}^{K} M_{pk} \, w_k \right) \;\in\; [0, 1]
 $$
 
-with \(\mathrm{rescale}_{01}(x) = (x - \min x)/(\max x - \min x)\), returning all zeros for a
+with $\mathrm{rescale}_{01}(x) = (x - \min x)/(\max x - \min x)$, returning all zeros for a
 degenerate range (`:145–155`).
 
 Three consequences follow directly and bound what this term can do:
 
-- **\(T_p\) has no gene dependence.** All pairs sharing a peak receive the same \(T_p\). The
+- **$T_p$ has no gene dependence.** All pairs sharing a peak receive the same $T_p$. The
   term cannot express "this TF regulates *this* gene"; it expresses "this peak looks like a
   regulatory element".
-- **\(T_p\) has no cell-type dependence.** \(w_k\) uses global mean expression.
-- **\(T_p\) is min–max scaled within the dataset**, so it is not portable across datasets and
+- **$T_p$ has no cell-type dependence.** $w_k$ uses global mean expression.
+- **$T_p$ is min–max scaled within the dataset**, so it is not portable across datasets and
   is sensitive to outliers at either end.
 
 `motif_score` (= `peak_motif_score`) is the same construction without the TF-expression
@@ -340,7 +323,7 @@ alpha = alpha_tf
 
 Multiplicative rather than additive composition is intentional: weak evidence in any one
 component should reduce confidence rather than be offset by strength elsewhere. Because
-\(g_\alpha \geq 1\) and \(f_\lambda > 0\), neither modifier can zero out a link — they
+$g_\alpha \geq 1$ and $f_\lambda > 0$, neither modifier can zero out a link — they
 reweight rather than veto.
 
 ### 9.1 Original distance prior
@@ -352,7 +335,7 @@ $$
 f^{\mathrm{orig}}_{\lambda}(D) \;=\; (1 - \lambda) + \lambda D
 $$
 
-Range \([1-\lambda,\ 1]\). At \(\lambda = 0.1\): \([0.90,\ 1.00]\). The modifier is
+Range $[1-\lambda,\ 1]$. At $\lambda = 0.1$: $[0.90,\ 1.00]$. The modifier is
 **always ≤ 1**, so this form is a pure penalty on distance — no link is boosted relative to
 an unmodified coactivity ranking, and the most TSS-proximal link is merely left untouched.
 
@@ -364,8 +347,8 @@ $$
 f^{\mathrm{mod}}_{\lambda}(D) \;=\; 1 + \lambda\left(D - \tfrac{1}{2}\right)
 $$
 
-Range \([1 - \lambda/2,\ 1 + \lambda/2]\). At \(\lambda = 0.1\): \([0.95,\ 1.05]\). This is
-symmetric about \(D = 0.5\), i.e. about \(d_{pg} = d_0 = 50\) kb: links closer than 50 kb are
+Range $[1 - \lambda/2,\ 1 + \lambda/2]$. At $\lambda = 0.1$: $[0.95,\ 1.05]$. This is
+symmetric about $D = 0.5$, i.e. about $d_{pg} = d_0 = 50$ kb: links closer than 50 kb are
 mildly boosted, links further are mildly penalised, and a link at exactly 50 kb is unchanged.
 
 Conceptually this is the cleaner object — it separates "distance is informative" from
@@ -378,9 +361,9 @@ $$
 f^{\mathrm{mod}}_{\lambda}(D) \;=\; f^{\mathrm{orig}}_{\lambda}(D) + \tfrac{\lambda}{2}
 $$
 
-The offset \(\lambda/2\) is **constant across pairs**. Multiplying \(A_{pg} g_\alpha(T_p)\)
+The offset $\lambda/2$ is **constant across pairs**. Multiplying $A_{pg} g_\alpha(T_p)$
 by a constant-shifted modifier does not preserve rank order in general — the shift interacts
-with the magnitude of \(A_{pg} g_\alpha(T_p)\) — but the induced reordering is small, which is
+with the magnitude of $A_{pg} g_\alpha(T_p)$ — but the induced reordering is small, which is
 consistent with the observed near-identity of the two families (§ `docs/results_report.md` 7).
 
 ---
@@ -392,19 +375,19 @@ Twelve `score_mode` branches are implemented in `evaluate_rankings.R`; eleven ar
 `full_linkpeaks_anchored` (`evaluate_rankings.R:527`), has no configuration entry and was never
 run.
 
-| Mode | `score_mode` | \(\lambda\) | \(\alpha\) | \(S_{pg}\) | Role |
+| Mode | `score_mode` | $\lambda$ | $\alpha$ | $S_{pg}$ | Role |
 |---|---|---|---|---|---|
 | `linkpeaks` | `linkpeaks` | — | — | `link_score` | Baseline |
-| `coactivity` | `coactivity` | — | — | \(A_{pg}\) | Isolate RNA–ATAC evidence |
-| `distance_only` | `distance_only` | — | — | \(D_{pg}\) | **Negative control** |
-| `distance_mod_only_lambda_0_1` | `distance_mod_only` | 0.10 | 0.00 | \(f^{\mathrm{mod}}_{0.1}(D_{pg})\) | Control on the modified form |
-| `coactivity_distance` | `coactivity_distance` | 0.30 | 0.00 | \(A \cdot f^{\mathrm{orig}}_{0.3}\) | Add distance |
-| `coactivity_tf` | `coactivity_tf` | 0.00 | 0.50 | \(A \cdot (1 + 0.5\,T)\) | Add TF/motif |
-| `full` | `full` | 0.30 | 0.50 | \(A \cdot f^{\mathrm{orig}}_{0.3} \cdot (1 + 0.5\,T)\) | Full, strong distance |
-| `full_lambda_0_1` | `full` | 0.10 | 0.50 | \(A \cdot f^{\mathrm{orig}}_{0.1} \cdot (1 + 0.5\,T)\) | Full, mild distance |
-| `full_lambda_0_2` | `full` | 0.20 | 0.50 | \(A \cdot f^{\mathrm{orig}}_{0.2} \cdot (1 + 0.5\,T)\) | Full, intermediate |
-| `full_moddist_lambda_0_1` | `full_moddist` | 0.10 | 0.50 | \(A \cdot f^{\mathrm{mod}}_{0.1} \cdot (1 + 0.5\,T)\) | Modified distance, mild |
-| `full_moddist_lambda_0_2` | `full_moddist` | 0.20 | 0.50 | \(A \cdot f^{\mathrm{mod}}_{0.2} \cdot (1 + 0.5\,T)\) | Modified distance, intermediate |
+| `coactivity` | `coactivity` | — | — | $A_{pg}$ | Isolate RNA–ATAC evidence |
+| `distance_only` | `distance_only` | — | — | $D_{pg}$ | **Negative control** |
+| `distance_mod_only_lambda_0_1` | `distance_mod_only` | 0.10 | 0.00 | $f^{\mathrm{mod}}_{0.1}(D_{pg})$ | Control on the modified form |
+| `coactivity_distance` | `coactivity_distance` | 0.30 | 0.00 | $A \cdot f^{\mathrm{orig}}_{0.3}$ | Add distance |
+| `coactivity_tf` | `coactivity_tf` | 0.00 | 0.50 | $A \cdot (1 + 0.5\,T)$ | Add TF/motif |
+| `full` | `full` | 0.30 | 0.50 | $A \cdot f^{\mathrm{orig}}_{0.3} \cdot (1 + 0.5\,T)$ | Full, strong distance |
+| `full_lambda_0_1` | `full` | 0.10 | 0.50 | $A \cdot f^{\mathrm{orig}}_{0.1} \cdot (1 + 0.5\,T)$ | Full, mild distance |
+| `full_lambda_0_2` | `full` | 0.20 | 0.50 | $A \cdot f^{\mathrm{orig}}_{0.2} \cdot (1 + 0.5\,T)$ | Full, intermediate |
+| `full_moddist_lambda_0_1` | `full_moddist` | 0.10 | 0.50 | $A \cdot f^{\mathrm{mod}}_{0.1} \cdot (1 + 0.5\,T)$ | Modified distance, mild |
+| `full_moddist_lambda_0_2` | `full_moddist` | 0.20 | 0.50 | $A \cdot f^{\mathrm{mod}}_{0.2} \cdot (1 + 0.5\,T)$ | Modified distance, intermediate |
 
 Note that the mode **name** and the `score_mode` field differ: `full_lambda_0_1` records
 `score_mode = full` in its output. Read the `lambda_distance` and `alpha_tf` columns to
@@ -420,7 +403,7 @@ Its behaviour is the primary interpretive constraint on the whole benchmark.
 - `coactivity_distance` vs `coactivity` — does the distance prior add or merely reshuffle?
 - `coactivity_tf` vs `coactivity` — does peak-level TF/motif support add?
 - `full` vs its parts — do the components combine constructively?
-- `full_lambda_0_1`, `full_lambda_0_2`, `full` (λ = 0.3) — sensitivity to \(\lambda\).
+- `full_lambda_0_1`, `full_lambda_0_2`, `full` (λ = 0.3) — sensitivity to $\lambda$.
 - `full_moddist_*` vs `full_*` — does the reparameterisation change anything empirically?
 - `distance_only`, `distance_mod_only_*` — controls.
 
@@ -461,9 +444,9 @@ repository, not part of SCENT:
 
 1. `expr_frac_gene <- Matrix::rowMeans(rna_counts > 0)`,
    `expr_frac_peak <- Matrix::rowMeans(atac_counts > 0)` (`:325–326`)
-2. Retain genes and peaks with fraction \(\geq\) `min_pair_frac: 0.02` (`:328–329`)
+2. Retain genes and peaks with fraction $\geq$ `min_pair_frac: 0.02` (`:328–329`)
 3. Same-chromosome cartesian join of gene TSS × peaks (`:353–358`)
-4. Retain pairs with \(\lvert m_p - \mathrm{tss}_g \rvert \leq\) `link_distance: 100000` (`:364–365`)
+4. Retain pairs with $\lvert m_p - \mathrm{tss}_g \rvert \leq$ `link_distance: 100000` (`:364–365`)
 
 Across all 22 autosomes this produced **117,811 candidate pairs over 9,891 genes and 46,936
 peaks** — a cis-window universe independent of LinkPeaks. Overlap with the 15,806 LinkPeaks
@@ -497,7 +480,7 @@ Applied to the 52,482 tested rows, this retains **4,758 support rows**.
 ### 11.4 Matching ranked links to SCENT rows
 
 Peak intervals differ between subsystems, so matching is by reciprocal overlap. A ranked pair
-\((p, g)\) matches a SCENT pair \((p', g)\) when the gene is identical and
+$(p, g)$ matches a SCENT pair $(p', g)$ when the gene is identical and
 
 $$
 \frac{\lvert p \cap p' \rvert}{\lvert p \rvert} \geq 0.5
@@ -530,7 +513,7 @@ The core confound: SCENT support is itself strongly enriched near promoters, and
 score is a monotone function of proximity. A method can therefore improve its support
 fraction purely by ranking proximal links higher, with no additional biological insight.
 
-The mitigation is stratification. Candidates are binned by \(d_{pg}\) into
+The mitigation is stratification. Candidates are binned by $d_{pg}$ into
 `0_10kb`, `10_50kb`, `50_200kb`, `200_500kb`, `gt500kb`. Within each bin, the method's top
 decile is compared against the remainder:
 
@@ -579,7 +562,7 @@ C_delta = {(p, g): d_pg > delta}
 delta in {10 kb, 25 kb, 50 kb}
 ```
 
-Top-N support fractions are recomputed within \(\mathcal{C}_\delta\) at
+Top-N support fractions are recomputed within $\mathcal{C}_\delta$ at
 N ∈ {50, 100, 200, 500}, and `delta_vs_linkpeaks` records each method's advantage over the
 baseline at that threshold.
 
@@ -594,7 +577,7 @@ ranking instead of measuring it. The upper bound must match `link_distance` in t
 configuration; it is currently a constant in the summarisation script, and a change to one
 without the other would silently misreport.
 
-Filtering is method-independent — \(\mathcal{C}_\delta\) is the same set for all methods —
+Filtering is method-independent — $\mathcal{C}_\delta$ is the same set for all methods —
 so `scent_min_distance_method_counts.csv` shows identical surviving counts across methods at
 each threshold: 1,685 at 10 kb, 1,079 at 25 kb, 575 at 50 kb.
 
@@ -602,9 +585,9 @@ The number of supported links surviving each threshold is 616, 384 and 196. Beca
 SCENT-supported link lies within 100 kb by construction, the restriction changes only the
 denominator and not the numerator. The support rate is therefore roughly flat across
 thresholds — 0.366, 0.356, 0.341 — rather than falling steeply, and the earlier apparent
-collapse to 0.083 at \(\delta\) = 50 kb was dilution by untested candidates.
+collapse to 0.083 at $\delta$ = 50 kb was dilution by untested candidates.
 
-**Pool exhaustion must be checked before quoting a depth.** At \(\delta\) = 50 kb only 575
+**Pool exhaustion must be checked before quoting a depth.** At $\delta$ = 50 kb only 575
 candidates survive, so a top-500 selection covers 87% of the available pool and all methods
 converge by construction. The summary carries `n_available`, `pool_fraction` and a
 `pool_limited` flag for exactly this reason; rows flagged `pool_limited` are excluded from the
@@ -638,12 +621,12 @@ Ordered by how much they constrain the conclusions.
 
 ### Methodological
 
-5. **No cell-type stratification anywhere.** \(A_{pg}\) pools all cells; \(w_k\) uses global
+5. **No cell-type stratification anywhere.** $A_{pg}$ pools all cells; $w_k$ uses global
    mean expression; SCENT ran with a synthetic `all_cells` label. Links active in a single
    population are systematically diluted.
-6. **\(T_p\) is peak-level only.** It cannot represent TF-to-target specificity, which is
+6. **$T_p$ is peak-level only.** It cannot represent TF-to-target specificity, which is
    what "TF support for this link" would require.
-7. **Coactivity is not conditioned on marginal activity.** \(A_{pg}\) has no null: under
+7. **Coactivity is not conditioned on marginal activity.** $A_{pg}$ has no null: under
    independence its expectation is positive and scales with each feature's detection rate, and
    `mul_weigh` correlates with the marginal detection-rate product at +0.682. LinkPeaks
    conditions on this through a GC- and accessibility-matched background; `mul_weigh` does not,
@@ -653,17 +636,17 @@ Ordered by how much they constrain the conclusions.
    the contribution survives conditioning on marginal activity **is not tested in this release**.
    The natural checks are a `marginal_only` baseline ranking on peak detection rate × gene
    detection rate, and activity-matched enrichment mirroring §12; both are deferred to v0.2.
-   \(A_{pg}\) should therefore be read as an uncalibrated activity-product ranking feature, not
+   $A_{pg}$ should therefore be read as an uncalibrated activity-product ranking feature, not
    as evidence of pair-specific regulatory coupling.
-8. **Min–max rescaling of \(T_p\), \(w_k\), and the motif matrix** makes scores
+8. **Min–max rescaling of $T_p$, $w_k$, and the motif matrix** makes scores
    dataset-dependent and outlier-sensitive. No score in this repository is portable across
    datasets.
 9. **TSS conventions differ between subsystems** (§7): closest transcript TSS in the
    reranker, one representative TSS in the SCENT sweep.
-10. **\(\lambda\) and \(\alpha\) are set by hand, not fitted.** Deliberate, for
+10. **$\lambda$ and $\alpha$ are set by hand, not fitted.** Deliberate, for
    interpretability, but it means the ablation grid is a sensitivity sweep and not an
    optimisation. No held-out selection was performed.
-11. **\(f^{\mathrm{orig}}_\lambda \leq 1\) always** (§9.1), so the original distance prior can
+11. **$f^{\mathrm{orig}}_\lambda \leq 1$ always** (§9.1), so the original distance prior can
     only demote. This asymmetry was unintended and motivated the modified form.
 
 ### Scale and generality
