@@ -302,6 +302,28 @@ control. Note that FigR's aggregation logic is relevant prior art for the metace
 
 ---
 
+---
+
+## Benchmark precedent — BENGI
+
+**What it is.** A curated benchmark of enhancer–gene interactions, built by integrating the
+Registry of cCREs with experimentally derived genomic interactions, used to evaluate published
+target-gene prediction methods against a baseline distance method.
+
+**What it found.** Correlation-based unsupervised methods significantly underperformed the
+distance baseline. The best supervised method, TargetFinder, beat it only modestly when trained
+and tested within the same cell type, and often failed to beat it across cell types.
+
+**Relation to this work.** The distance-baseline result here is consistent with BENGI, in a
+different setting — single-cell multiome reranking against a correlational comparator, rather
+than bulk methods against experimental contacts. **This benchmark does not establish that
+distance is a strong baseline; BENGI did, on stronger ground truth.** What is added here is the
+setting, and the within-bin controls.
+
+Moore JE, Pratt HE, Purcaro MJ, Weng Z. *A curated benchmark of enhancer-gene interactions for
+evaluating enhancer-target gene prediction methods.* Genome Biology 2020;21:17.
+doi:10.1186/s13059-019-1924-8
+
 ## What positioning survives
 
 Three statements are defensible on the current evidence.
