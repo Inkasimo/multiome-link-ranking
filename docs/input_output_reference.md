@@ -64,7 +64,7 @@ Genome build is **hg38**, set explicitly at `run_linkpeaks_reranker.R` line 377
 | `default_score_mode` | `full` | Mode used by `run_default_score` |
 | `candidate_top_k` | `5000` | Number of LinkPeaks candidates retained for the feature table |
 | `link_distance` | `500000` | Maximum peak-to-TSS distance passed to `LinkPeaks()` |
-| `distance_d0` | `50000` | Decay scale \(d_0\) in the distance score |
+| `distance_d0` | `50000` | Decay scale $d_0$ in the distance score |
 | `cluster_resolution` | `0.5` | Louvain resolution on the WNN graph |
 | `pca_dims` | `30` | RNA PCA dimensions |
 | `lsi_dims_start` | `2` | First LSI component used (component 1 dropped — depth-correlated) |
@@ -75,8 +75,8 @@ Genome build is **hg38**, set explicitly at `run_linkpeaks_reranker.R` line 377
 | `top_k_motif_names` | `3` | Number of motif names recorded per peak in `peak_top_motifs` |
 | `seed` | `42` | RNG seed, passed to all four scripts |
 | `save_checkpoints` | `false` | Controls the `--save-checkpoints` flag |
-| `lambda_distance` | `0.30` | Default \(\lambda\); **overridden per mode** by `config/ablations.yaml` |
-| `alpha_tf` | `0.50` | Default \(\alpha\); overridden per mode |
+| `lambda_distance` | `0.30` | Default $\lambda$; **overridden per mode** by `config/ablations.yaml` |
+| `alpha_tf` | `0.50` | Default $\alpha$; overridden per mode |
 | `ora_top_n` | `100` | Top-N links whose genes form the ORA foreground |
 | `ora_show_category` | `15` | Categories drawn in the ORA dotplot |
 | `tier_high_quantile` | `0.90` | Score quantile above which a link is tier `High` |
@@ -258,10 +258,10 @@ All 31 feature columns, plus 8:
 
 | Column | Meaning |
 |---|---|
-| `model_score` | Final score \(S_{pg}\) for this mode |
+| `model_score` | Final score $S_{pg}$ for this mode |
 | `score_mode` | The `score_mode` value from `config/ablations.yaml` (note: `full_lambda_0_1` records `score_mode = full`, since the mode name and the score family differ) |
-| `lambda_distance` | \(\lambda\) used |
-| `alpha_tf` | \(\alpha\) used |
+| `lambda_distance` | $\lambda$ used |
+| `alpha_tf` | $\alpha$ used |
 | `rank_model` | Rank by `model_score`, 1 = highest |
 | `rank_link` | Rank by the LinkPeaks `link_score` on the same universe |
 | `rank_diff_vs_linkpeaks` | `rank_link - rank_model`; positive = promoted by the model |
@@ -276,16 +276,16 @@ All 31 feature columns, plus 8:
 | `link_score` | LinkPeaks score — the baseline ranking signal |
 | `link_zscore`, `link_pvalue` | LinkPeaks statistics |
 | `add`, `mul`, `mul_strict`, `adj` | Alternative coactivity formulations, retained for diagnostics; not used by any committed score mode |
-| `mul_weigh` | **The coactivity score \(A_{pg}\) used by all score modes.** Mean over cells of the product of positively-clipped RNA and ATAC z-scores |
+| `mul_weigh` | **The coactivity score $A_{pg}$ used by all score modes.** Mean over cells of the product of positively-clipped RNA and ATAC z-scores |
 | `peak_mid` | Peak midpoint, used for distance |
 | `tss` | Representative TSS for the gene. One TSS per gene — see §9 |
 | `tx_id`, `tx_biotype` | Transcript backing the chosen TSS |
-| `distance_bp` | \(\lvert\) `peak_mid` − `tss` \(\rvert\) |
-| `distance_score` | \(D_{pg} = 1/(1 + (d/d_0)^2)\), with \(d_0\) = `distance_d0` |
+| `distance_bp` | $\lvert$ `peak_mid` − `tss` $\rvert$ |
+| `distance_score` | $D_{pg} = 1/(1 + (d/d_0)^2)$, with $d_0$ = `distance_d0` |
 | `peak_motif_score` | Aggregate raw motif score for the peak |
 | `peak_tf_score` | Aggregate motif × TF-expression score for the peak |
 | `motif_score` | Scaled `peak_motif_score` |
-| `tf_score` | **The TF/motif support score \(T_p\) used by the score modes.** Scaled `peak_tf_score` |
+| `tf_score` | **The TF/motif support score $T_p$ used by the score modes.** Scaled `peak_tf_score` |
 | `peak_top_motifs`, `motif_names` | Up to `top_k_motif_names` motif identifiers and names |
 
 `tf_score` is a **peak-level** quantity. It carries no gene-specific or cell-type-specific
