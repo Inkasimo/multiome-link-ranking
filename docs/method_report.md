@@ -154,8 +154,13 @@ diagnostics.
 
 ## 6. Coactivity score
 
-For candidate pair $(p, g)$ over cells $c \in C$, let $z^{\mathrm{RNA}}_{gc}$ and
-$z^{\mathrm{ATAC}}_{pc}$ be the z-scored RNA expression of $g$ and accessibility of $p$.
+For candidate pair $(p, g)$ over cells $c \in C$, let
+
+$$
+z^{\mathrm{RNA}}_{gc}, \qquad z^{\mathrm{ATAC}}_{pc}
+$$
+
+be the z-scored RNA expression of $g$ and accessibility of $p$.
 
 The coactivity score used throughout is `mul_weigh` (`run_linkpeaks_reranker.R:554`):
 

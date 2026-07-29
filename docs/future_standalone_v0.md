@@ -65,7 +65,11 @@ Six findings that constrain the next phase. Sources in `docs/results_report.md`.
    and cell-type-aware TF term is required for this component to be worth its complexity.
 5. **The distance reparameterisation is empirically inert, and the algebra says why.** The two
    forms differ by a constant,
-   $f^{\mathrm{mod}}_{\lambda}(D) = f^{\mathrm{orig}}_{\lambda}(D) + \lambda/2$.
+
+   $$
+   f^{\mathrm{mod}}_{\lambda}(D) = f^{\mathrm{orig}}_{\lambda}(D) + \lambda/2.
+   $$
+   
    An additive constant on a *multiplier* is not rank-preserving in general — the score becomes
    $S + (\lambda/2)\,A_{pg}\,g_\alpha$ — but at $\lambda = 0.1$ the ratio
    $f^{\mathrm{mod}}/f^{\mathrm{orig}}$ runs from 1.0500 at $D \approx 1$ to 1.0556 at
