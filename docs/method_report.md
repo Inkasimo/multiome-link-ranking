@@ -157,7 +157,7 @@ diagnostics.
 For candidate pair $(p, g)$ over cells $c \in C$, let
 
 $$
-z^{\mathrm{RNA}}_{gc}, \qquad z^{\mathrm{ATAC}}_{pc}
+z^{\mathrm{RNA}}_{gc}, \quad z^{\mathrm{ATAC}}_{pc}
 $$
 
 be the z-scored RNA expression of $g$ and accessibility of $p$.
@@ -165,7 +165,7 @@ be the z-scored RNA expression of $g$ and accessibility of $p$.
 The coactivity score used throughout is `mul_weigh` (`run_linkpeaks_reranker.R:554`):
 
 $$
-A_{pg} = \frac{1}{|C|} \sum_{c \in C} \max\left(z^{\mathrm{RNA}}_{gc},\, 0\right) \cdot \max\left(z^{\mathrm{ATAC}}_{pc},\, 0\right)
+A_{pg} = \frac{1}{|C|} \sum_{c \in C} \max\left(z^{\mathrm{RNA}}_{gc}, 0\right) \cdot \max\left(z^{\mathrm{ATAC}}_{pc}, 0\right)
 $$
 
 Only cells above the mean in **both** modalities contribute. The positive clipping makes this
@@ -300,7 +300,7 @@ $$
 5. Combine and rescale (`:666–667`):
 
 $$
-T_p = \mathrm{rescale}_{01}\left( \sum_{k=1}^{K} M_{pk} \, w_k \right)  \in  [0, 1]
+T_p = \mathrm{rescale}_{01}\left( \sum_{k=1}^{K} M_{pk} w_k \right)  \in  [0, 1]
 $$
 
 with $\mathrm{rescale}_{01}(x) = (x - \min x)/(\max x - \min x)$, returning all zeros for a
@@ -392,12 +392,12 @@ run.
 | `distance_only` | `distance_only` | — | — | $D_{pg}$ | **Negative control** |
 | `distance_mod_only_lambda_0_1` | `distance_mod_only` | 0.10 | 0.00 | $f^{\mathrm{mod}}_{0.1}(D_{pg})$ | Control on the modified form |
 | `coactivity_distance` | `coactivity_distance` | 0.30 | 0.00 | $A \cdot f^{\mathrm{orig}}_{0.3}$ | Add distance |
-| `coactivity_tf` | `coactivity_tf` | 0.00 | 0.50 | $A \cdot (1 + 0.5\,T)$ | Add TF/motif |
-| `full` | `full` | 0.30 | 0.50 | $A \cdot f^{\mathrm{orig}}_{0.3} \cdot (1 + 0.5\,T)$ | Full, strong distance |
-| `full_lambda_0_1` | `full` | 0.10 | 0.50 | $A \cdot f^{\mathrm{orig}}_{0.1} \cdot (1 + 0.5\,T)$ | Full, mild distance |
-| `full_lambda_0_2` | `full` | 0.20 | 0.50 | $A \cdot f^{\mathrm{orig}}_{0.2} \cdot (1 + 0.5\,T)$ | Full, intermediate |
-| `full_moddist_lambda_0_1` | `full_moddist` | 0.10 | 0.50 | $A \cdot f^{\mathrm{mod}}_{0.1} \cdot (1 + 0.5\,T)$ | Modified distance, mild |
-| `full_moddist_lambda_0_2` | `full_moddist` | 0.20 | 0.50 | $A \cdot f^{\mathrm{mod}}_{0.2} \cdot (1 + 0.5\,T)$ | Modified distance, intermediate |
+| `coactivity_tf` | `coactivity_tf` | 0.00 | 0.50 | $A \cdot (1 + 0.5 T)$ | Add TF/motif |
+| `full` | `full` | 0.30 | 0.50 | $A \cdot f^{\mathrm{orig}}_{0.3} \cdot (1 + 0.5 T)$ | Full, strong distance |
+| `full_lambda_0_1` | `full` | 0.10 | 0.50 | $A \cdot f^{\mathrm{orig}}_{0.1} \cdot (1 + 0.5 T)$ | Full, mild distance |
+| `full_lambda_0_2` | `full` | 0.20 | 0.50 | $A \cdot f^{\mathrm{orig}}_{0.2} \cdot (1 + 0.5 T)$ | Full, intermediate |
+| `full_moddist_lambda_0_1` | `full_moddist` | 0.10 | 0.50 | $A \cdot f^{\mathrm{mod}}_{0.1} \cdot (1 + 0.5 T)$ | Modified distance, mild |
+| `full_moddist_lambda_0_2` | `full_moddist` | 0.20 | 0.50 | $A \cdot f^{\mathrm{mod}}_{0.2} \cdot (1 + 0.5 T)$ | Modified distance, intermediate |
 
 Note that the mode **name** and the `score_mode` field differ: `full_lambda_0_1` records
 `score_mode = full` in its output. Read the `lambda_distance` and `alpha_tf` columns to
@@ -529,8 +529,8 @@ decile is compared against the remainder:
 
 $$
 \mathrm{OR}_{\text{bin}} =
-\frac{\mathrm{supported\_high} \,/\, (n_{\mathrm{high}} - \mathrm{supported\_high})}
-     {\mathrm{supported\_rest} \,/\, (n_{\mathrm{rest}} - \mathrm{supported\_rest})}
+\frac{\mathrm{supported\_high} / (n_{\mathrm{high}} - \mathrm{supported\_high})}
+     {\mathrm{supported\_rest} / (n_{\mathrm{rest}} - \mathrm{supported\_rest})}
 $$
 
 An odds ratio above 1 within a bin indicates the score orders links usefully *at fixed

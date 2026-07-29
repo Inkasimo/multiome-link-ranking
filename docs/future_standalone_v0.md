@@ -71,7 +71,7 @@ Six findings that constrain the next phase. Sources in `docs/results_report.md`.
    $$
    
    An additive constant on a *multiplier* is not rank-preserving in general — the score becomes
-   $S + (\lambda/2)\,A_{pg}\,g_\alpha$ — but at $\lambda = 0.1$ the ratio
+   $S + (\lambda/2) A_{pg} g_\alpha$ — but at $\lambda = 0.1$ the ratio
    $f^{\mathrm{mod}}/f^{\mathrm{orig}}$ runs from 1.0500 at $D \approx 1$ to 1.0556 at
    $D \approx 0$. A spread of half a percent across the whole distance range is very nearly a
    uniform rescaling, and uniform rescaling cannot reorder anything. Hence `full_moddist`
