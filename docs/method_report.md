@@ -160,7 +160,7 @@ $z^{\mathrm{ATAC}}_{pc}$ be the z-scored RNA expression of $g$ and accessibility
 The coactivity score used throughout is `mul_weigh` (`run_linkpeaks_reranker.R:554`):
 
 $$
-A_{pg} \;=\; \frac{1}{|C|} \sum_{c \in C} \max\!\left(z^{\mathrm{RNA}}_{gc},\, 0\right) \cdot \max\!\left(z^{\mathrm{ATAC}}_{pc},\, 0\right)
+A_{pg} = \frac{1}{|C|} \sum_{c \in C} \max\left(z^{\mathrm{RNA}}_{gc},\, 0\right) \cdot \max\left(z^{\mathrm{ATAC}}_{pc},\, 0\right)
 $$
 
 Only cells above the mean in **both** modalities contribute. The positive clipping makes this
@@ -177,13 +177,18 @@ $$
 $$
 
 $$
-\mathrm{mul\_strict}_{pg} = \frac{1}{|C|}\sum_c \mathbb{1}\!\left[z^{\mathrm{RNA}}_{gc} > 1\right]\mathbb{1}\!\left[z^{\mathrm{ATAC}}_{pc} > 1\right]
+\mathrm{mul\_strict}_{pg} = \frac{1}{|C|}\sum_c \mathbb{1}\left[z^{\mathrm{RNA}}_{gc} > 1\right]\mathbb{1}\left[z^{\mathrm{ATAC}}_{pc} > 1\right]
 \qquad
 \mathrm{adj}_{pg} = \frac{\mathrm{mul\_strict}_{pg}}{\bar{r}_g \bar{a}_p + 10^{-6}}
 $$
 
-where $\bar{r}_g = \frac{1}{|C|}\sum_c \mathbb{1}[z^{\mathrm{RNA}}_{gc} > 1]$ and
-$\bar{a}_p$ is its ATAC analogue.
+where
+
+$$
+\bar{r}_g = \frac{1}{|C|}\sum_c \mathbb{1}\left[z^{\mathrm{RNA}}_{gc} > 1\right]
+$$
+
+and $\bar{a}_p$ is its ATAC analogue.
 
 Two properties of $A_{pg}$ constrain interpretation. It is computed over **all cells
 pooled**, so a link active in one small population is diluted. And because both inputs are
@@ -212,7 +217,7 @@ The gene TSS is taken per candidate pair as the transcript TSS **minimising** th
 the peak midpoint (`run_linkpeaks_reranker.R:305–316`). So
 
 $$
-d_{pg} \;=\; \min_{t \in \mathcal{T}(g)} \left| m_p - \mathrm{tss}_t \right|
+d_{pg} = \min_{t \in \mathcal{T}(g)} \left| m_p - \mathrm{tss}_t \right|
 $$
 
 where $m_p$ is the peak midpoint and $\mathcal{T}(g)$ the transcripts of $g$. The
@@ -283,14 +288,14 @@ Computed per **peak**, then attached to every pair containing that peak
    rescale across motifs (`:657–664`):
 
 $$
-w_k \;=\; \mathrm{rescale}_{01}\!\left( \max_{j \in \mathcal{G}(k)} \; \overline{x}^{\mathrm{RNA}}_{j} \right),
+w_k = \mathrm{rescale}_{01}\left( \max_{j \in \mathcal{G}(k)} \overline{x}^{\mathrm{RNA}}_{j} \right),
 \qquad \overline{x}^{\mathrm{RNA}}_{j} = \frac{1}{|C|}\sum_{c} x^{\mathrm{RNA}}_{jc}
 $$
 
 5. Combine and rescale (`:666–667`):
 
 $$
-T_p \;=\; \mathrm{rescale}_{01}\!\left( \sum_{k=1}^{K} M_{pk} \, w_k \right) \;\in\; [0, 1]
+T_p = \mathrm{rescale}_{01}\left( \sum_{k=1}^{K} M_{pk} \, w_k \right)  \in  [0, 1]
 $$
 
 with $\mathrm{rescale}_{01}(x) = (x - \min x)/(\max x - \min x)$, returning all zeros for a
@@ -332,7 +337,7 @@ Implemented for `coactivity_distance`, `full`, and `full_linkpeaks_anchored`
 (`evaluate_rankings.R:502, 514`):
 
 $$
-f^{\mathrm{orig}}_{\lambda}(D) \;=\; (1 - \lambda) + \lambda D
+f^{\mathrm{orig}}_{\lambda}(D) = (1 - \lambda) + \lambda D
 $$
 
 Range $[1-\lambda,\ 1]$. At $\lambda = 0.1$: $[0.90,\ 1.00]$. The modifier is
@@ -344,7 +349,7 @@ an unmodified coactivity ranking, and the most TSS-proximal link is merely left 
 Implemented for `distance_mod_only` and `full_moddist` (`evaluate_rankings.R:79–84`):
 
 $$
-f^{\mathrm{mod}}_{\lambda}(D) \;=\; 1 + \lambda\left(D - \tfrac{1}{2}\right)
+f^{\mathrm{mod}}_{\lambda}(D) = 1 + \lambda\left(D - \tfrac{1}{2}\right)
 $$
 
 Range $[1 - \lambda/2,\ 1 + \lambda/2]$. At $\lambda = 0.1$: $[0.95,\ 1.05]$. This is
@@ -358,7 +363,7 @@ artifact of the parameterisation.
 The two forms are related by an affine map:
 
 $$
-f^{\mathrm{mod}}_{\lambda}(D) \;=\; f^{\mathrm{orig}}_{\lambda}(D) + \tfrac{\lambda}{2}
+f^{\mathrm{mod}}_{\lambda}(D) = f^{\mathrm{orig}}_{\lambda}(D) + \tfrac{\lambda}{2}
 $$
 
 The offset $\lambda/2$ is **constant across pairs**. Multiplying $A_{pg} g_\alpha(T_p)$
@@ -518,7 +523,7 @@ The mitigation is stratification. Candidates are binned by $d_{pg}$ into
 decile is compared against the remainder:
 
 $$
-\mathrm{OR}_{\text{bin}} \;=\;
+\mathrm{OR}_{\text{bin}} =
 \frac{\mathrm{supported\_high} \,/\, (n_{\mathrm{high}} - \mathrm{supported\_high})}
      {\mathrm{supported\_rest} \,/\, (n_{\mathrm{rest}} - \mathrm{supported\_rest})}
 $$
