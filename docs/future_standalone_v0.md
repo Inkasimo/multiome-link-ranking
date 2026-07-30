@@ -472,6 +472,14 @@ defensible. That likely means working in a cell type where such data exists, whi
 That is a strategic decision about the evaluation axis, and it should be made before more
 scoring code is written.
 
+One such truth set already exists in curated form. BENGI (Moore et al., Genome Biology 2020;
+`https://github.com/weng-lab/BENGI`) assembles cCRE–gene pairs from 3D chromatin interactions,
+eQTLs and CRISPR perturbations, with negatives and chromosome-grouped cross-validation folds
+already defined. Its crisprQTL set — K562, 4,937 tested enhancers overlapping cCREs-ELS — is
+experimental rather than correlational and independent of any RNA/ATAC matrix a score would be
+computed from. Reading that benchmark should precede committing to a target cell type, since it
+may be a cheaper route to a defensible evaluation axis than generating one.
+
 A future standalone model should be treated as an HPC-scale experiment rather than a local
 reranking benchmark. In particular, de novo candidate generation at 500 kb or larger cis
 windows, repeated SCENT-style validation, cell-type-stratified analyses and multi-dataset

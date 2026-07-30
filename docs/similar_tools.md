@@ -14,7 +14,8 @@ unavailable and which narrower framings survive scrutiny. Two things should be s
   distance prior, and TF motif evidence are, at the level of ingredients, what most of the
   methods below already combine. There is no formulation here that a reviewer would call new.
 
-Bibliographic references are deliberately not invented.
+Bibliographic references are deliberately not invented; the one citation below was read
+before citing.
 
 ---
 
@@ -302,23 +303,48 @@ control. Note that FigR's aggregation logic is relevant prior art for the metace
 
 ---
 
----
-
 ## Benchmark precedent — BENGI
 
-**What it is.** A curated benchmark of enhancer–gene interactions, built by integrating the
-Registry of cCREs with experimentally derived genomic interactions, used to evaluate published
-target-gene prediction methods against a baseline distance method.
+**What it is.** A Benchmark of candidate Enhancer-Gene Interactions, built by integrating the
+ENCODE Registry of cCREs with experimentally derived interactions: RNAPII and CTCF ChIA-PET,
+Hi-C, promoter-capture Hi-C, GEUVADIS and GTEx eQTLs, and crisprQTLs from a CRISPR screen —
+21 datasets across 13 biosamples, over 162,000 cCRE–gene pairs, with negatives generated per
+enhancer within a distance cutoff and cross-validation grouped by chromosome to prevent
+overfitting.
 
-**What it found.** Correlation-based unsupervised methods significantly underperformed the
-distance baseline. The best supervised method, TargetFinder, beat it only modestly when trained
-and tested within the same cell type, and often failed to beat it across cell types.
+**What it found.** A baseline distance method — rank pairs by inverse linear distance to the
+gene's nearest TSS — outperformed both correlation-based unsupervised methods on every dataset
+tested (average AUPR increase 127% over DNase-DNase, 77% over DNase-expression). The best
+supervised method, TargetFinder, beat it within cell type but only modestly, and frequently
+failed to beat it across cell types.
 
-**Relation to this work.** The distance-baseline result here is consistent with BENGI, in a
-different setting — single-cell multiome reranking against a correlational comparator, rather
-than bulk methods against experimental contacts. **This benchmark does not establish that
-distance is a strong baseline; BENGI did, on stronger ground truth.** What is added here is the
-setting, and the within-bin controls.
+**Relation to this work.** Two distinct points.
+
+*On the distance baseline.* The finding here that raw top-N support is proximity-driven is
+consistent with BENGI's central result, which establishes it on experimental ground truth rather
+than a correlational comparator. **This benchmark does not establish that distance is a strong
+baseline; BENGI did.**
+
+*On the setting.* BENGI's correlation methods correlate signals **across biosamples** — enhancer
+accessibility against promoter accessibility, or accessibility against expression, over 32 and
+112 cell types respectively. The paper attributes their failure to promoters being ubiquitously
+active across cell types while enhancers are cell-type-specific, which washes out the
+correlation. The coactivity score here is a **within-sample, across-cell** quantity, so that
+mechanism does not transfer, and BENGI did not evaluate within-sample single-cell coactivity.
+The within-bin distance-matched comparison in `docs/results_report.md` §5 is likewise not one
+BENGI ran for its correlation methods — it applied distance-matched sampling to the supervised
+model, where AUPR fell from 0.86 to 0.74 distance-matched and 0.61 promoter-distance-matched.
+
+**Claim to avoid.** Do not claim the distance-baseline observation as novel. Do not claim
+distance-matched stratification as a novel control — BENGI's Methods define five distance
+quantiles and sample equally from each, the same move on a different substrate. And do not claim
+this work contradicts BENGI; the correlation axis differs.
+
+**Relevance to the next phase.** BENGI is the kind of validator
+`docs/future_standalone_v0.md` §8 argues is required — experimental rather than correlational,
+and not derived from the same two matrices as the score. Its crisprQTL set (K562, 4,937 tested
+enhancers overlapping cCREs-ELS) is a distance-decoupled truth set that already exists in
+curated form. Datasets and scripts: https://github.com/weng-lab/BENGI
 
 Moore JE, Pratt HE, Purcaro MJ, Weng Z. *A curated benchmark of enhancer-gene interactions for
 evaluating enhancer-target gene prediction methods.* Genome Biology 2020;21:17.
@@ -330,15 +356,17 @@ Three statements are defensible on the current evidence.
 
 1. **A controlled reranking benchmark with an explicit proximity control.** Ten score modes over
    one byte-identical 5,000-pair candidate universe, with a distance-only ranking, within-bin
-   distance-matched enrichment, and proximal-removal thresholds. Most published comparisons in
-   this space do not include a pure-proximity control, and this one shows why that matters: the
-   control wins at top-50 and remains strongest after removing links within 50 kb.
+   distance-matched enrichment, and proximal-removal thresholds. The control earns its place: it
+   wins at top-50 on the unrestricted universe. Proximity controls are not novel — see the BENGI
+   section above — but they remain uncommon in single-cell multiome reranking comparisons.
 
 2. **A documented negative result about evaluation methodology.** Apparent improvements in
    peak–gene ranking can be produced by proximity collapse; SCENT-based validation is
    promoter-biased and window-limited; and a naive implementation of distance-matched enrichment
    emits meaningless odds ratios on empty bins. All three are demonstrated here with committed
-   numbers. This is the most transferable output of the work.
+   numbers. The distance-baseline component of this was established earlier and on stronger
+   ground truth by BENGI; what is added here is the single-cell multiome setting and the
+   window-alignment point.
 
 3. **Reproducible infrastructure.** A containerised, `renv`-pinned, config-driven ablation
    harness with a chromosome-sharded SCENT sweep that completed genome-wide where a monolithic

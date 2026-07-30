@@ -398,7 +398,8 @@ Full analysis, including the gene-level ORA result that points the other way:
   `distance_only` wins at top-50 with a median distance of 3.5 bp. Inside SCENT's 100 kb tested
   window the confound is controlled — `distance_only` is the weakest method at every
   proximal-removal threshold — but no support fraction should be quoted without a distance
-  control beside it.
+  control beside it. That distance is a strong baseline is an established result, not a finding
+  of this work (see `docs/similar_tools.md`).
 - Gene-level ORA favours the LinkPeaks baseline (17 enriched GO BP terms vs 5).
 - No cell-type stratification anywhere. Coactivity pools all cells, TF weights use global mean
   expression, and SCENT ran with a synthetic `all_cells` label.

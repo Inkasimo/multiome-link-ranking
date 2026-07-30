@@ -604,15 +604,20 @@ Each of these is directly supported by a named file.
    leaves every reranking mode ahead of LinkPeaks at N = 50, 100 and 200
    (`full_lambda_0_1` `delta_vs_linkpeaks` +0.02 to +0.135; `full` +0.02 to +0.18).
    *Source: `scent_min_distance_delta_vs_linkpeaks.csv`.*
-5. `distance_only` is an effective negative control and detects a real confound in raw top-N
+5. The distance-baseline result is consistent with BENGI (Moore et al., Genome Biology 2020,
+   `doi:10.1186/s13059-019-1924-8`), which established on experimental ground truth that a
+   distance baseline outperforms correlation-based enhancer–gene predictors. That work is the
+   precedent; this benchmark reproduces the pattern in a single-cell multiome setting. See
+   `docs/similar_tools.md`.
+6. `distance_only` is an effective negative control and detects a real confound in raw top-N
    metrics: on the unrestricted universe it wins at top-50 with a median distance of 3.5 bp.
    Its within-bin odds ratios (1.59, 0.92, 1.12, and 0.84 / 0.69 in the fine bins) confirm it
    carries no information at fixed distance.
-6. `full_moddist` and the original distance prior are empirically equivalent here — 199/200
+7. `full_moddist` and the original distance prior are empirically equivalent here — 199/200
    top-200 overlap, identical odds ratios. The modified form is preferable on conceptual
    grounds only.
-7. Gene-level ORA favours the LinkPeaks baseline (17 terms vs 5 for `full_lambda_0_1`).
-8. Within the 100 kb SCENT window, `distance_only` is the **weakest** method after removing
+8. Gene-level ORA favours the LinkPeaks baseline (17 terms vs 5 for `full_lambda_0_1`).
+9. Within the 100 kb SCENT window, `distance_only` is the **weakest** method after removing
    links within 10, 25 or 50 kb (0.30–0.41 against 0.48–0.68 for the reranking modes and
    0.43–0.56 for LinkPeaks), so the proximity confound is controlled inside the tested window
    rather than merely displaced.
