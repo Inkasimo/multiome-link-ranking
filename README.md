@@ -193,16 +193,30 @@ JASPAR2022 `CORE`, `tax_group=vertebrates`, `species=9606`.
 
 ## Quick start
 
-### 1. Build the image
+### 1. Get the image
 
 ```bash
-docker build -t multiome-reranking-benchmark:v0.1.0 -f containers/Dockerfile .
+docker pull ghcr.io/inkasimo/multiome-link-ranking:v0.1.0
 ```
 
-Smoke-test the R stack:
+Digest for the `v0.1.0` release image:
+
+```
+ghcr.io/inkasimo/multiome-link-ranking@sha256:43216d1e5e8f196672f4423ccf4e88c4bab1137ba25c479ef3b1cbb1c1c10d18
+```
+
+Pin by digest for exact reproducibility; the tag is mutable, the digest is not.
+
+Or build locally:
 
 ```bash
-docker run --rm multiome-reranking-benchmark:v0.1.0 \
+docker build -t ghcr.io/inkasimo/multiome-link-ranking:v0.1.0 -f containers/Dockerfile .
+```
+
+Smoke-test:
+
+```bash
+docker run --rm ghcr.io/inkasimo/multiome-link-ranking:v0.1.0 \
   Rscript -e 'library(Seurat); library(Signac); library(TFBSTools); library(JASPAR2022); library(motifmatchr); cat("R stack OK\n")'
 ```
 
@@ -328,7 +342,7 @@ SCENT-covered chromosomes). SCENT: 52,482 tested rows, 4,758 supporting under
 | `full` (λ = 0.3) | 0.680 | 2,774.75 bp |
 
 
-full_lambda_0_1` (λ = 0.1) is the conservative primary setting. `full` (λ = 0.3) is an
+`full_lambda_0_1` (λ = 0.1) is the conservative primary setting. `full` (λ = 0.3) is an
 aggressive distance-prior sensitivity setting; see the distance-matched table below before
 reading its raw support figure.
 
