@@ -2,7 +2,10 @@ FROM rocker/r-ver:4.4.3
 
 LABEL maintainer="Inkasimo" \
       org.opencontainers.image.title="multiome-link-ranking" \
-      org.opencontainers.image.description="Containerized R/Snakemake workflow for multiome peak-gene link ranking benchmarks"
+      org.opencontainers.image.description="Containerized R/Snakemake workflow for multiome peak-gene link ranking benchmarks" \
+      org.opencontainers.image.version="0.1.0" \
+      org.opencontainers.image.licenses="MIT" \
+      org.opencontainers.image.source="https://github.com/Inkasimo/multiome-link-ranking"
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV RENV_CONFIG_REPOS_OVERRIDE=https://cloud.r-project.org
