@@ -148,13 +148,27 @@ renv.lock                     # pinned R dependencies (268 packages)
 
 ### Expected inputs
 
-Place under `data/`:
+```bash
+bash scripts/download_inputs.sh
+```
+
+Downloads the three 10x files into `data/`, strips the `pbmc_unsorted_10k_`
+prefix so filenames match `config/default.yaml`, and verifies everything
+against `resources/input_manifest.tsv`. Use `--verify` to check without
+downloading.
 
 | File | Notes |
 |---|---|
-| `filtered_feature_bc_matrix.h5` | 10x multiome; must carry both Gene Expression and Peaks assays |
-| `atac_fragments.tsv.gz` | ATAC fragments |
-| `atac_fragments.tsv.gz.tbi` | Tabix index — **required**, declared as an explicit workflow input |
+| `data/filtered_feature_bc_matrix.h5` | 10x multiome; must carry both Gene Expression and Peaks assays |
+| `data/atac_fragments.tsv.gz` | ATAC fragments |
+| `data/atac_fragments.tsv.gz.tbi` | Tabix index — **required**, declared as an explicit workflow input |
+| `resources/jaspar/JASPAR2022.sqlite` | JASPAR2022 motif database — see below |
+
+`JASPAR2022.sqlite` is not downloadable from upstream: the URL in
+`scripts/run_linkpeaks_reranker.R` is a `BiocFileCache` key, not a live source,
+and JASPAR has moved to ELIXIR hosting. It ships with the Zenodo release
+archive. Place it at `resources/jaspar/JASPAR2022.sqlite` and re-run the script
+to verify.
 
 ### Required resource — JASPAR2022
 
