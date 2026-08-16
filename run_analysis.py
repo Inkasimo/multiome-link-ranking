@@ -252,6 +252,10 @@ def main() -> int:
     )
     scent_done = f"{scent_output_dir}/.done"
 
+    scent_min_distance_done = (
+        f"{output_root}/{dataset}/scent_validation_min_distance/.done"
+    )
+
     if args.section == "list_score_modes":
         print(f"Default score mode: {default_score_mode}")
         print("Available score modes:")
@@ -369,7 +373,7 @@ def main() -> int:
         targets = [scent_done]
 
     elif args.section == "run_scent_validation_min_distance":
-        targets = [f"{output_root}/{dataset}/scent_validation_min_distance/.done"]
+        targets = [scent_min_distance_done]
 
     elif args.section == "run_scent_pipeline":
         missing = [m for m in scent_methods if m not in modes]
@@ -383,7 +387,7 @@ def main() -> int:
         if missing:
             print("ERROR: SCENT validation methods missing from score modes: " + ", ".join(missing), file=sys.stderr)
             return 2
-        targets = ["all", scent_done]
+        targets = ["all", scent_done, scent_min_distance_done]
 
     else:
         print(f"ERROR: unhandled section: {args.section}", file=sys.stderr)
