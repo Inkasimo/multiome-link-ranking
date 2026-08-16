@@ -384,9 +384,9 @@ Reuse the existing support rule (`pvalue_positive`, p ≤ 0.05) and reciprocal-o
    every support fraction, all of it restricted to the validator's tested window
 4. Marginal-activity stratification, the activity analogue of item 2 — top-decile enrichment
    recomputed within strata of the peak × gene detection product (§4)
-5. **Fix the two known defects:** guard the degenerate empty-cell odds ratios so they emit `NA`
-   rather than 8.906, and add the missing plot
-   (`docs/results_report.md` §6)
+5. Preserve the proximal-removal controls: guard degenerate empty-cell odds ratios so they emit
+   `NA` rather than 8.906, keep the proximal-removal plot, and retain the `n_available`,
+   `pool_fraction` and `pool_limited` audit columns.
 
 ---
 
