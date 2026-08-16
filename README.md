@@ -140,7 +140,8 @@ renv.lock                     # pinned R dependencies (268 packages)
 
 ## Requirements
 
-- **Docker.** The full R/Bioconductor stack is inside the image.
+- **Docker.** The full R/Bioconductor stack is inside the image:
+  `ghcr.io/inkasimo/multiome-link-ranking:v0.1.0`
 - **Python ≥ 3.9** with `pyyaml`, only if using `run_analysis.py`
   (`pip install -r wrapper-requirements.txt`).
 - Memory: the Seurat/Signac feature-generation step is the peak consumer. The SCENT sweep is the
@@ -164,27 +165,22 @@ downloading.
 | `data/atac_fragments.tsv.gz.tbi` | Tabix index — **required**, declared as an explicit workflow input |
 | `resources/jaspar/JASPAR2022.sqlite` | JASPAR2022 motif database — see below |
 
-`JASPAR2022.sqlite` is not downloadable from upstream: the URL in
-`scripts/run_linkpeaks_reranker.R` is a `BiocFileCache` key, not a live source,
-and JASPAR has moved to ELIXIR hosting. It ships with the Zenodo release
-archive. Place it at `resources/jaspar/JASPAR2022.sqlite` and re-run the script
-to verify.
+#### JASPAR2022
 
-### Required resource — JASPAR2022
+`JASPAR2022.sqlite` is not tracked in Git and is **not downloadable from upstream**: the URL in
+`scripts/run_linkpeaks_reranker.R` is a `BiocFileCache` key, not a live source, and JASPAR has
+since moved to ELIXIR hosting. It ships with the Zenodo release archive alongside
+`JASPAR2022.sqlite.sha256`, under JASPAR's CC BY 4.0 terms.
 
-`JASPAR2022.sqlite` is not tracked in Git. It should be included in the Zenodo release archive
-together with `JASPAR2022.sqlite.sha256`, with JASPAR attribution under CC BY 4.0.
-
+This file is not optional. `scripts/run_linkpeaks_reranker.R` seeds `BiocFileCache` with it so
+that the `JASPAR2022` package does not attempt a network download at motif-loading time.
+Without it, feature generation fails in an offline container. It must be present in the
+**bind-mounted working directory**, not only inside the image:
 
 ```
 resources/jaspar/JASPAR2022.sqlite
 resources/jaspar/JASPAR2022.sqlite.sha256
 ```
-
-This is not optional. `scripts/run_linkpeaks_reranker.R` seeds `BiocFileCache` with this local
-file so that the `JASPAR2022` package does not attempt a network download at motif-loading
-time. Without it, feature generation fails in an offline container. The file must be present in
-the **bind-mounted working directory**, not only inside the image.
 
 Genome build is hg38, via `EnsDb.Hsapiens.v86` and `BSgenome.Hsapiens.UCSC.hg38`. Motifs are
 JASPAR2022 `CORE`, `tax_group=vertebrates`, `species=9606`.
@@ -275,7 +271,7 @@ sections:
 
 options:
   --mode MODE                 score mode for run_score_mode
-  --image IMAGE               default: multiome-reranking-benchmark:v0.1.0
+  --image IMAGE               default: ghcr.io/inkasimo/multiome-link-ranking:v0.1.0
   --snakefile PATH            default: workflow/Snakefile
   --configfile PATH           default: config/default.yaml
   --cores N / --cpus N        default: 4
@@ -285,19 +281,16 @@ options:
   --extra ...                 passed through to Snakemake; use last
 ```
 
-> **Note:** `--image` currently defaults to `multiome-reranking-benchmark:v0.1.0`, inherited from an
-> earlier name. Pass `--image` explicitly, or reconcile the default with the image you build.
-
 ### Direct Snakemake
 
 ```bash
 docker run --rm -it -v "$PWD":/work -w /work \
-  multiome-reranking-benchmark:v0.1.0 \
+  ghcr.io/inkasimo/multiome-link-ranking:v0.1.0 \
   snakemake --snakefile workflow/Snakefile --configfile config/default.yaml --cores 4 all
 
 # including the SCENT sweep and validation
 docker run --rm -it -v "$PWD":/work -w /work \
-  multiome-reranking-benchmark:v0.1.0 \
+  ghcr.io/inkasimo/multiome-link-ranking:v0.1.0 \
   snakemake --snakefile workflow/Snakefile --configfile config/default.yaml --cores 4 all_with_scent
 ```
 
