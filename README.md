@@ -220,14 +220,26 @@ docker run --rm ghcr.io/inkasimo/multiome-link-ranking:v0.1.0 \
   Rscript -e 'library(Seurat); library(Signac); library(TFBSTools); library(JASPAR2022); library(motifmatchr); cat("R stack OK\n")'
 ```
 
-### 2. Inspect the plan without running anything
+### 2. Get the inputs
+
+```bash
+bash scripts/download_inputs.sh
+```
+
+Downloads the three 10x files into `data/` and verifies everything against
+`resources/input_manifest.tsv`. `resources/jaspar/JASPAR2022.sqlite` ships with
+the Zenodo release archive — place it at that path and re-run. Use `--verify`
+to check without downloading. See [Expected inputs](#expected-inputs) for
+details.
+
+### 3. Inspect the plan without running anything
 
 ```bash
 python3 run_analysis.py list_score_modes
 python3 run_analysis.py run_all_score_modes --dry-run
 ```
 
-### 3. Run
+### 4. Run
 
 ```bash
 # heavy step once: builds the fixed feature table
