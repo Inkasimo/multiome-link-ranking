@@ -130,9 +130,9 @@ SCENT_WRITE_STANDARDIZED_LINKS = bool(SCENT_CONFIG.get("write_standardized_links
 # ============================================================
 # Canonical paths
 # ============================================================
-feature_csv = assert_clean_path("feature_csv", clean_path(FEATURE_DIR, f"{DATASET}_link_features.csv"))
-baseline_csv = assert_clean_path("baseline_csv", clean_path(FEATURE_DIR, f"{DATASET}_baseline_links_full.csv"))
-baseline_dist_csv = assert_clean_path("baseline_dist_csv", clean_path(FEATURE_DIR, f"{DATASET}_baseline_links_with_distance.csv"))
+feature_csv = assert_clean_path("feature_csv", clean_path(FEATURE_DIR, DATASET + "_link_features.csv"))
+baseline_csv = assert_clean_path("baseline_csv", clean_path(FEATURE_DIR, DATASET + "_baseline_links_full.csv"))
+baseline_dist_csv = assert_clean_path("baseline_dist_csv", clean_path(FEATURE_DIR, DATASET + "_baseline_links_with_distance.csv"))
 features_done = assert_clean_path("features_done", clean_path(FEATURE_DIR, ".done"))
 
 ranking_done = assert_clean_path("ranking_done", clean_path(RANKING_DIR, "{rank_mode}", ".done"))
@@ -210,7 +210,7 @@ rule evaluate_ranking:
         done=ranking_done
     params:
         outdir=lambda wc: clean_path(RANKING_DIR, wc.rank_mode),
-        run_name=lambda wc: f"{DATASET}_{wc.rank_mode}",
+        run_name=lambda wc: DATASET + "_" + wc.rank_mode,
         score_mode=lambda wc: SCORE_MODES[wc.rank_mode].get("score_mode", wc.rank_mode),
         lambda_distance=lambda wc: SCORE_MODES[wc.rank_mode].get("lambda_distance", config["lambda_distance"]),
         alpha_tf=lambda wc: SCORE_MODES[wc.rank_mode].get("alpha_tf", config["alpha_tf"])
