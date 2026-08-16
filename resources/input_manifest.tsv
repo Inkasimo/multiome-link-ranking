@@ -1,0 +1,7 @@
+#	Input manifest for the PBMC LinkPeaks-candidate reranking benchmark.
+#	Verified 2026-08-16. Used by scripts/download_inputs.sh.
+#	local_path	sha256	bytes	source
+data/filtered_feature_bc_matrix.h5	939fff97c2c2d8793ba8dc39a9f1e999937028f52a0740d2fe388c67fdaf9eed	151663850	https://cf.10xgenomics.com/samples/cell-arc/2.0.0/pbmc_unsorted_10k/pbmc_unsorted_10k_filtered_feature_bc_matrix.h5
+data/atac_fragments.tsv.gz	9ee84ae1bc01c6faef4b38e1dbd968cc367345a0f5edbb5d5f93fe25a0a961a3	2917757251	https://cf.10xgenomics.com/samples/cell-arc/2.0.0/pbmc_unsorted_10k/pbmc_unsorted_10k_atac_fragments.tsv.gz
+data/atac_fragments.tsv.gz.tbi	829da27fcf3c7d4cfe5611ec701c9980c66325df0b51836f5d8cb3db1b767470	1299776	https://cf.10xgenomics.com/samples/cell-arc/2.0.0/pbmc_unsorted_10k/pbmc_unsorted_10k_atac_fragments.tsv.gz.tbi
+resources/jaspar/JASPAR2022.sqlite	74f24a56c38b4e4f214b14a9fa7fac5e3dff2b87d31105a17253d9627dd27edc	NA	ZENODO_PENDING
