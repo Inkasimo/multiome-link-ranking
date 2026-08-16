@@ -206,6 +206,7 @@ rule evaluate_ranking:
         baseline_dist=baseline_dist_csv,
         features_done=features_done
     output:
+        ranked=ranking_csv,
         done=ranking_done
     params:
         outdir=lambda wc: clean_path(RANKING_DIR, wc.rank_mode),
