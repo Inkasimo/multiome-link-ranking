@@ -499,6 +499,14 @@ Large outputs — the eleven `*_ranked_links.csv` files, per-chromosome SCENT ou
 combined validation table — are excluded from version control and intended for external
 archival in the Zenodo deposit.
 
+**Note on tracked results.** `results/pbmc/scent_validation/` and
+`results/pbmc/scent_validation_min_distance/` are committed to Git so that the
+figures referenced in `docs/` render on GitHub. Snakemake `.done` sentinels are
+**not** committed, so a fresh clone contains results but no sentinels — the
+workflow will therefore recompute everything and overwrite the committed files.
+That is intentional and is how the reproduction check works: after a full run,
+`git diff` shows whether the recomputed results match the committed ones.
+
 ## Citation
 
 Please cite this repository using `CITATION.cff` and the archived Zenodo DOI for the version used.
