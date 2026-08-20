@@ -507,6 +507,17 @@ workflow will therefore recompute everything and overwrite the committed files.
 That is intentional and is how the reproduction check works: after a full run,
 `git diff` shows whether the recomputed results match the committed ones.
 
+**Reproduction check.** The full pipeline was re-run from a clean clone of this
+repository using the published container image
+(`ghcr.io/inkasimo/multiome-link-ranking:v0.1.0`). LinkPeaks output reproduced
+exactly — 16,824 links before filtering, 15,806 after, 5,000 candidates over
+1,390 genes — as did the SCENT tested set (52,482 rows across 22 autosomes) and
+every top-N supported fraction reported above. SCENT's bootstrap p-values are
+stochastic and its workers are forked, so the seed does not fully determine
+per-pair results: the re-run gave 4,742 support rows against 4,758 originally,
+a difference of 16 pairs (0.3%). Distance-matched odds ratios differ in the
+third decimal. No conclusion in this repository depends on that variation.
+
 ## Citation
 
 Please cite this repository using `CITATION.cff` and the archived Zenodo DOI for the version used.
