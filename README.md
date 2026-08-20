@@ -1,11 +1,9 @@
 # Multiome Peak–Gene Reranking Benchmark
 
-<!-- Badges: fill in after the release.
-[![DOI](https://zenodo.org/badge/DOI/<DOI>.svg)](https://doi.org/<DOI>)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22032460.svg)](https://doi.org/10.5281/zenodo.22032460)
 [![Snakemake](https://img.shields.io/badge/snakemake-7.32.4-brightgreen.svg)](https://snakemake.github.io)
-[![Docker](https://img.shields.io/badge/docker-ghcr.io-blue.svg)](<PACKAGE_URL>)
+[![Docker](https://img.shields.io/badge/docker-ghcr.io-blue.svg)](https://github.com/Inkasimo/multiome-link-ranking/pkgs/container/multiome-link-ranking)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
--->
 
 A reproducible, containerized benchmark that reranks a fixed set of `Signac::LinkPeaks()`
 candidate peak–gene pairs from 10x PBMC multiome data using interpretable RNA–ATAC coactivity,
