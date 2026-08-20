@@ -491,7 +491,7 @@ Applied to the 52,482 tested rows, this retains **4,758 support rows**.
 workers are forked via `mclapply`, so `seed: 42` does not fully determine per-pair output.
 Re-running the full pipeline from a clean clone retained **4,742** support rows from the same
 52,482 tested rows — a difference of 16 pairs, 0.3%. Pairs sitting at the
-\(p_{\mathrm{boot}} = 0.05\) boundary are the ones that move. Every top-N supported fraction
+$p_{\mathrm{boot}} = 0.05$ boundary are the ones that move. Every top-N supported fraction
 reproduced exactly and distance-matched odds ratios differ in the third decimal, so no result
 in `docs/results_report.md` depends on this variation.
 
@@ -708,6 +708,7 @@ Ordered by how much they constrain the conclusions.
     `top_n_values: 50,100,200,500`, `high_fraction: 0.10`), exposed as
     `python3 run_analysis.py run_scent_validation_min_distance`.
 21. **JASPAR2022 is an external reproducibility resource.** `resources/jaspar/JASPAR2022.sqlite`
-    is required for offline feature generation. It is not tracked in Git, but it should be included
-    in the Zenodo release archive with JASPAR attribution under CC BY 4.0, together with
+    is required for offline feature generation. It is not tracked in Git; it is archived in the
+    supplementary Zenodo deposit ([10.5281/zenodo.22032568](https://doi.org/10.5281/zenodo.22032568)) under JASPAR's CC BY 4.0 terms, and
+    `scripts/download_inputs.sh` fetches it from there and verifies it against the tracked
     `JASPAR2022.sqlite.sha256`.

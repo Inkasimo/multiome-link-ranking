@@ -77,7 +77,7 @@ proximity-bias diagnostic, not a validated standalone peak–gene linking method
    and distance score, peak-level motif and TF/motif-expression scores.
 5. Reranks the identical candidate set under 11 interpretable score modes — LinkPeaks baseline,
    coactivity-only, distance-only, a modified-distance control, coactivity+distance,
-   coactivity+TF, the full score at three \(\lambda\) values (0.1, 0.2, and 0.3 as the mode named
+   coactivity+TF, the full score at three λ values (0.1, 0.2, and 0.3 as the mode named
    `full`), and the modified distance prior at two.
 6. Runs SCENT independently across all 22 autosomes as an external comparator, using its own
    cis-window candidate set.
@@ -167,8 +167,9 @@ downloading.
 
 `JASPAR2022.sqlite` is not tracked in Git and is **not downloadable from upstream**: the URL in
 `scripts/run_linkpeaks_reranker.R` is a `BiocFileCache` key, not a live source, and JASPAR has
-since moved to ELIXIR hosting. It ships with the Zenodo release archive alongside
-`JASPAR2022.sqlite.sha256`, under JASPAR's CC BY 4.0 terms.
+since moved to ELIXIR hosting. It is archived in the supplementary Zenodo deposit
+([10.5281/zenodo.22032568](https://doi.org/10.5281/zenodo.22032568)) under JASPAR's CC BY 4.0 terms, and `scripts/download_inputs.sh` fetches it from there
+automatically, verifying it against the tracked `resources/jaspar/JASPAR2022.sqlite.sha256`.
 
 This file is not optional. `scripts/run_linkpeaks_reranker.R` seeds `BiocFileCache` with it so
 that the `JASPAR2022` package does not attempt a network download at motif-loading time.
@@ -220,11 +221,11 @@ docker run --rm ghcr.io/inkasimo/multiome-link-ranking:v0.1.0 \
 bash scripts/download_inputs.sh
 ```
 
-Downloads the three 10x files into `data/` and verifies everything against
-`resources/input_manifest.tsv`. `resources/jaspar/JASPAR2022.sqlite` ships with
-the Zenodo release archive — place it at that path and re-run. Use `--verify`
-to check without downloading. See [Expected inputs](#expected-inputs) for
-details.
+Downloads the three 10x files into `data/` and fetches
+`resources/jaspar/JASPAR2022.sqlite` from the supplementary Zenodo deposit
+([10.5281/zenodo.22032568](https://doi.org/10.5281/zenodo.22032568)), verifying everything against `resources/input_manifest.tsv`. Use
+`--verify` to check without downloading. See [Expected inputs](#expected-inputs)
+for details.
 
 ### 3. Inspect the plan without running anything
 
@@ -437,7 +438,7 @@ Full analysis, including the gene-level ORA result that points the other way:
 - The TF/motif score is peak-level with no gene or cell-type dependence, so it cannot represent
   TF-to-target specificity. Its contribution is small and inconsistent.
 - Scores use min–max rescaling and are therefore dataset-dependent and not portable.
-- \(\lambda\) and \(\alpha\) are hand-set, not fitted. Seven of the eleven committed modes are
+- λ and α are hand-set, not fitted. Seven of the eleven committed modes are
   compared against SCENT; four — `coactivity_distance`, `full_lambda_0_2`,
   `full_moddist_lambda_0_2` and `distance_mod_only_lambda_0_1` — have no external comparison at
   all, and any statement about them rests on internal diagnostics only.
