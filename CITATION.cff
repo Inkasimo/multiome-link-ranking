@@ -1,12 +1,22 @@
 cff-version: 1.2.0
 message: "If you use this benchmark, please cite it as below."
+type: software
 title: "Multiome Peak-Gene Reranking Benchmark"
+abstract: >
+  A reproducible, containerized benchmark that reranks a fixed set of Signac
+  LinkPeaks candidate peak-gene pairs from 10x PBMC multiome data using
+  interpretable RNA-ATAC coactivity, genomic distance and TF/motif support, and
+  evaluates the result against SCENT with explicit controls for
+  promoter-proximity confounding. This is a benchmark and diagnostic study, not
+  a peak-gene linking method.
 authors:
   - family-names: Inkala
     given-names: Simo
+    orcid: "https://orcid.org/0009-0002-2091-8436"
 repository-code: "https://github.com/Inkasimo/multiome-link-ranking"
+doi: "10.5281/zenodo.22032460"
 version: "0.1.0"
-date-released: "2026-07-26"
+date-released: "2026-08-20"
 license: "MIT"
 keywords:
   - single-cell multiome
