@@ -381,7 +381,7 @@ within SCENT's 100 kb window before each threshold is applied, so that untested 
 candidates are not scored as unsupported. Every reranking mode stays ahead of LinkPeaks at all
 three thresholds and at N = 50, 100 and 200 — `full_lambda_0_1` by +0.02 to +0.135, `full`
 (λ = 0.3) by +0.02 to +0.18. `distance_only` is the **weakest** method at every threshold and
-depth, and below LinkPeaks at every one (−0.05 to −0.26).
+depth, and below LinkPeaks at every one (−0.05 to −0.24).
 
 ![Proximal-removal stress test](results/pbmc/scent_validation_min_distance/scent_min_distance_topN_supported_fraction.png)
 
