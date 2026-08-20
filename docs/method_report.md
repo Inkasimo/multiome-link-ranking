@@ -487,6 +487,14 @@ $$
 
 Applied to the 52,482 tested rows, this retains **4,758 support rows**.
 
+**This step is not bit-reproducible.** SCENT's bootstrap p-values are stochastic and its
+workers are forked via `mclapply`, so `seed: 42` does not fully determine per-pair output.
+Re-running the full pipeline from a clean clone retained **4,742** support rows from the same
+52,482 tested rows — a difference of 16 pairs, 0.3%. Pairs sitting at the
+\(p_{\mathrm{boot}} = 0.05\) boundary are the ones that move. Every top-N supported fraction
+reproduced exactly and distance-matched odds ratios differ in the third decimal, so no result
+in `docs/results_report.md` depends on this variation.
+
 ### 11.4 Matching ranked links to SCENT rows
 
 Peak intervals differ between subsystems, so matching is by reciprocal overlap. A ranked pair

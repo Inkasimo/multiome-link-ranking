@@ -115,7 +115,7 @@ single-cell multiome and intended to be robust to sparsity.
 correlation-based methods do not. That is why it was chosen as the comparator here.
 
 **How close.** Not a competitor. A dependency, used as the external comparator throughout
-`docs/results_report.md` — 52,482 tested rows, 4,758 supporting.
+`docs/results_report.md`  — 52,482 tested rows, ~4,750 supporting.
 
 **Claim to avoid.** Several, and these are the most important in this document.
 

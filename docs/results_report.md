@@ -94,6 +94,13 @@ From `results/pbmc/scent_validation/scent_validation_scent_filter_summary.csv`:
 
 Support rate among tested rows: 4,758 / 52,482 = **9.1%**.
 
+**SCENT is not bit-reproducible.** Its bootstrap p-values are stochastic and its workers are
+forked, so `seed: 42` does not fully determine per-pair output. Re-running the full pipeline
+from a clean clone gave **4,742** support rows against the 4,758 reported here — 16 pairs,
+0.3%. The tested set (52,482 rows) and every top-N supported fraction reproduced exactly;
+distance-matched odds ratios differ in the third decimal. No conclusion below depends on that
+variation. See the reproduction check in `README.md`.
+
 From `scent_chr_sweep_summary.csv`, all 22 autosomes completed. Every row carries
 `status = skipped_existing`, meaning the committed summary was regenerated over pre-existing
 per-chromosome output, so `runtime_minutes` is blank throughout — total compute time is not
@@ -423,7 +430,7 @@ depth reported. `full_lambda_0_1`'s `delta_vs_linkpeaks` ranges from +0.02 to +0
 
 **Relative to `distance_only`.** Within the SCENT-testable range `distance_only` is the weakest
 method at all nine threshold × depth cells above, and below LinkPeaks at every one, with
-`delta_vs_linkpeaks` between −0.05 and −0.26. Restricting to the tested window is what makes the
+`delta_vs_linkpeaks` between −0.05 and −0.24. Restricting to the tested window is what makes the
 comparison meaningful: unrestricted, the other methods' top-N sets extend past 100 kb and are
 scored as unsupported when they were never tested, while `distance_only`'s top-N is always
 inside the window.
@@ -588,7 +595,7 @@ Each of these is directly supported by a named file.
 
 1. The pipeline runs end to end and produces a controlled comparison: eleven score modes over one
    byte-identical 5,000-pair candidate universe, with a genome-wide SCENT sweep across 22
-   autosomes (52,482 tested rows, 4,758 supporting).
+   autosomes (52,482 tested rows, 4,758 supporting; 4,742 on re-run — see §3).
 2. At top-100 and top-200, `full` (λ = 0.3) has the highest raw SCENT-supported fraction
    (0.630 and 0.680). The conservative λ = 0.1 full models also show higher support than the
    LinkPeaks ordering on the same universe (0.580 / 0.570 vs 0.430; 0.605 / 0.600 vs 0.445).
@@ -656,7 +663,7 @@ Each of these is directly supported by a named file.
 9. **Not** that results generalise. One dataset, one tissue, one sample, 5,000 pairs over
    1,390 genes drawn from the top of a LinkPeaks ranking — not a random sample of candidates.
 10. **Not** that SCENT-supported labels are individually reliable. The rule was applied to 52,482
-    tests with no multiplicity correction. Against a one-sided 2.5% null of ~1,300 rows, the 4,758
+    tests with no multiplicity correction. Against a one-sided 2.5% null of ~1,300 rows, the ~4,750
     supporting rows are ~3.6-fold enriched, but plausibly a quarter to a third of individual labels
     are false positives. Comparisons between methods remain valid (shared label noise, attenuating
     toward the null); absolute fractions do not. "60.5% supported" is not "60.5% real".

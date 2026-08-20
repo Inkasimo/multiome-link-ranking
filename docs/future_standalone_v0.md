@@ -367,7 +367,8 @@ Same fixed-universe discipline: every method ranked on the identical candidate s
 
 ### SCENT comparison
 
-SCENT output already exists for 22 autosomes: 52,482 tested rows, 4,758 supporting. If the
+SCENT output already exists for 22 autosomes: 52,482 tested rows, ~4,750 supporting (the
+exact count is run-dependent; see `docs/method_report.md` §11.3). If the
 standalone candidate set is the same ±100 kb set SCENT was run on, no new SCENT compute is
 needed — but see the window-symmetry trap in §3. If candidates move to 500 kb, SCENT coverage
 remains 100 kb and the gap must be reported as untested rather than negative.
