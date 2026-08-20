@@ -24,7 +24,7 @@ VERIFY_ONLY=0
 [ "${1:-}" = "--verify" ] && VERIFY_ONLY=1
 
 # Fill this in after the Zenodo deposit is published, then commit.
-JASPAR_SOURCE_URL=""
+JASPAR_SOURCE_URL="https://zenodo.org/records/22032568/files/JASPAR2022.sqlite?download=1"
 
 if [ ! -f "workflow/Snakefile" ] || [ ! -f "config/default.yaml" ]; then
   echo "ERROR: run this from the repository root." >&2

@@ -1,6 +1,6 @@
 # Multiome Peak–Gene Reranking Benchmark
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22032460.svg)](https://doi.org/10.5281/zenodo.22032460)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22032459.svg)](https://doi.org/10.5281/zenodo.22032459)
 [![Snakemake](https://img.shields.io/badge/snakemake-7.32.4-brightgreen.svg)](https://snakemake.github.io)
 [![Docker](https://img.shields.io/badge/docker-ghcr.io-blue.svg)](https://github.com/Inkasimo/multiome-link-ranking/pkgs/container/multiome-link-ranking)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -446,6 +446,10 @@ Full analysis, including the gene-level ORA result that points the other way:
   setting: it shows higher raw SCENT support but no within-bin advantage over λ = 0.1, so its
   gain is consistent with a shift of the ranking into SCENT's 100 kb tested window rather than
   better discrimination.
+- SCENT results are not bit-reproducible. Its bootstrap p-values are stochastic and its workers
+  are forked, so `seed: 42` does not fully determine per-pair output. Re-running changes roughly
+  0.3% of support calls and shifts distance-matched odds ratios in the third decimal. See the
+  reproduction check under Data availability.
 - One dataset, one tissue, one sample; 5,000 pairs over 1,390 genes, drawn from the top of a
   LinkPeaks ranking rather than sampled at random.
 - The reranker used all cells; SCENT used 1,000. TSS conventions and peak ID formats differ
@@ -494,8 +498,10 @@ Raw input data is not included. Dataset provenance, download URLs, file sizes an
 checksums are recorded in `config/default.yaml`.
 
 Large outputs — the eleven `*_ranked_links.csv` files, per-chromosome SCENT output, and the
-combined validation table — are excluded from version control and intended for external
-archival in the Zenodo deposit.
+combined validation table — are excluded from version control and archived separately at
+[10.5281/zenodo.22032568](https://doi.org/10.5281/zenodo.22032568) (CC BY 4.0), together with
+the JASPAR2022 motif database. `scripts/download_inputs.sh` fetches the JASPAR file from that
+deposit automatically and verifies it against `resources/jaspar/JASPAR2022.sqlite.sha256`.
 
 **Note on tracked results.** `results/pbmc/scent_validation/` and
 `results/pbmc/scent_validation_min_distance/` are committed to Git so that the
@@ -518,7 +524,11 @@ third decimal. No conclusion in this repository depends on that variation.
 
 ## Citation
 
-Please cite this repository using `CITATION.cff` and the archived Zenodo DOI for the version used.
+Please cite this repository using `CITATION.cff` and the archived Zenodo DOI:
+[10.5281/zenodo.22032459](https://doi.org/10.5281/zenodo.22032459) resolves to the latest
+version; [10.5281/zenodo.22032460](https://doi.org/10.5281/zenodo.22032460) pins v0.1.0.
+Supplementary data has its own DOI,
+[10.5281/zenodo.22032568](https://doi.org/10.5281/zenodo.22032568).
 
 This workflow also depends on external software and resources. Cite the relevant upstream
 projects when using or reusing the workflow: `Signac` / `LinkPeaks`, `Seurat`, `SCENT`
@@ -526,12 +536,12 @@ projects when using or reusing the workflow: `Signac` / `LinkPeaks`, `Seurat`, `
 `JASPAR2022`, `motifmatchr`, `TFBSTools`, `EnsDb.Hsapiens.v86`,
 `BSgenome.Hsapiens.UCSC.hg38`, `clusterProfiler` and `Snakemake`.
 
-The Zenodo archive includes `resources/jaspar/JASPAR2022.sqlite` for reproducibility.
+The supplementary Zenodo deposit includes `resources/jaspar/JASPAR2022.sqlite` for reproducibility.
 The JASPAR database is licensed under Creative Commons Attribution 4.0 International; cite
 the JASPAR 2022 Nucleic Acids Research database paper and retain attribution when reusing
 the file.
 
 ## License
 
-Code: MIT (see `LICENSE`). A license for documentation and results has not yet been chosen;
-CC-BY-4.0 is the recommended pairing.
+Code: MIT (see `LICENSE`). Documentation (`docs/`, `README.md`) and results
+(`results/`) are released under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).

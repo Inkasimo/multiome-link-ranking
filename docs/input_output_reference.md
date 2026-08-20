@@ -441,6 +441,12 @@ Roughly **12–15 MB**, comfortable for GitHub.
 
 ### Candidates for Zenodo or Git LFS
 
+These are now archived at
+[10.5281/zenodo.22032568](https://doi.org/10.5281/zenodo.22032568) (CC BY 4.0), together with
+`resources/jaspar/JASPAR2022.sqlite`. `scripts/download_inputs.sh` fetches the JASPAR file from
+that deposit and verifies it against the tracked `.sha256`.
+
+
 | Path | Size | Recommendation |
 |---|---|---|
 | All 11 `pbmc_*_ranked_links.csv` | ~29 MB | **Zenodo.** Fully regenerable |
