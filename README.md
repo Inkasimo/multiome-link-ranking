@@ -68,6 +68,9 @@ bash scripts/download_inputs.sh
 python3 run_analysis.py run_reranker_with_scent
 ```
 
+The image is ~5 GB (the restored R/Bioconductor library dominates), and a full run can take several
+days, almost all of it the SCENT sweep.
+
 ---
 
 ## Documentation
