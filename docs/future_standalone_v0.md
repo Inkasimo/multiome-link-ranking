@@ -63,7 +63,7 @@ Six findings that constrain the next phase. Sources in `docs/results_report.md`.
    raw universe. The term behaves as a promoter-context proxy rather than as evidence of
    TF-to-target regulation, and the sign flip is the clearest available argument that a gene-
    and cell-type-aware TF term is required for this component to be worth its complexity.
-5. **The distance reparameterisation is empirically inert, and the algebra says why.** The two forms differ by a constant, $f^{\mathrm{mod}}_{\lambda}(D) = f^{\mathrm{orig}}_{\lambda}(D) + \lambda/2$.5. **The distance reparameterisation is empirically inert, and the algebra says why.** The two forms differ by a constant, $$f^{\mathrm{mod}}_{\lambda}(D) = f^{\mathrm{orig}}_{\lambda}(D) + \lambda/2$$.
+5. **The distance reparameterisation is empirically inert, and the algebra says why.** The two forms differ by a constant, $f^{\mathrm{mod}}\_{\lambda}(D) = f^{\mathrm{orig}}\_{\lambda}(D) + \lambda/2$.
 
    An additive constant on a *multiplier* is not rank-preserving in general (the score becomes
    $S + (\lambda/2) A_{pg} g_\alpha$), but at $\lambda = 0.1$ the ratio
