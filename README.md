@@ -415,48 +415,77 @@ Full analysis, including the gene-level ORA result that points the other way:
 [`docs/results_report.md`](docs/results_report.md).
 
 ---
-
 ## Limitations
 
-- LinkPeaks defines the candidate universe, so recall is bounded by LinkPeaks and the baseline
-  is also the candidate generator.
-- SCENT is a correlational comparator built from the same two matrices, not ground truth. It is
-  promoter-biased and window-limited to 100 kb.
-- Coactivity is not conditioned on marginal activity: `mul_weigh` correlates with the marginal
-  detection-rate product at +0.68. LinkPeaks conditions on this through a matched background;
-  neither this score nor SCENT does, so part of the advantage over LinkPeaks may be a bias shared
-  with the comparator. The distance controls hold proximity fixed, not detectability. Untested.
-- Raw top-N metrics over the unrestricted 500 kb universe reward promoter/TSS collapse:
-  `distance_only` wins at top-50 with a median distance of 3.5 bp. Inside SCENT's 100 kb tested
-  window the confound is controlled — `distance_only` is the weakest method at every
-  proximal-removal threshold — but no support fraction should be quoted without a distance
-  control beside it. That distance is a strong baseline is an established result, not a finding
-  of this work (see `docs/similar_tools.md`).
-- Gene-level ORA favours the LinkPeaks baseline (17 enriched GO BP terms vs 5).
-- No cell-type stratification anywhere. Coactivity pools all cells, TF weights use global mean
-  expression, and SCENT ran with a synthetic `all_cells` label.
-- The TF/motif score is peak-level with no gene or cell-type dependence, so it cannot represent
-  TF-to-target specificity. Its contribution is small and inconsistent.
-- Scores use min–max rescaling and are therefore dataset-dependent and not portable.
-- λ and α are hand-set, not fitted. Seven of the eleven committed modes are
-  compared against SCENT; four — `coactivity_distance`, `full_lambda_0_2`,
-  `full_moddist_lambda_0_2` and `distance_mod_only_lambda_0_1` — have no external comparison at
-  all, and any statement about them rests on internal diagnostics only.
-- `full_lambda_0_1` (λ = 0.1) is the conservative primary setting, chosen a priori as a guard
-  against proximity domination. `full` (λ = 0.3) is an aggressive distance-prior sensitivity
-  setting: it shows higher raw SCENT support but no within-bin advantage over λ = 0.1, so its
-  gain is consistent with a shift of the ranking into SCENT's 100 kb tested window rather than
-  better discrimination.
-- SCENT results are not bit-reproducible. Its bootstrap p-values are stochastic and its workers
-  are forked, so `seed: 42` does not fully determine per-pair output. Re-running changes roughly
-  0.3% of support calls and shifts distance-matched odds ratios in the third decimal. See the
-  reproduction check under Data availability.
-- One dataset, one tissue, one sample; 5,000 pairs over 1,390 genes, drawn from the top of a
-  LinkPeaks ranking rather than sampled at random.
-- The reranker used all cells; SCENT used 1,000. TSS conventions and peak ID formats differ
-  between the two halves of the pipeline — see
-  [`docs/input_output_reference.md`](docs/input_output_reference.md) §9.
+- **LinkPeaks defines the candidate universe.** Recall is bounded by LinkPeaks, and the baseline
+  is also the candidate generator. Nothing here finds links LinkPeaks missed.
 
+- **SCENT is a comparator, not ground truth.** It is built from the same two matrices as the
+  scores it evaluates, is itself correlational, and only tested pairs within ±100 kb. Agreement
+  between two correlational methods on shared input is weaker evidence than it looks.
+
+- **Coactivity is co-occurrence, not regulation.** A high `mul_weigh` means a peak is accessible
+  in the same cells where a gene is expressed. It does not show the peak regulates the gene, and
+  cannot separate a real regulatory link from two features that happen to be active in the same
+  cell type.
+
+- **Coactivity is also sensitive to how often each feature is detected.** If a gene and a peak
+  are both frequently detected, they score high together whether or not they are related:
+  `mul_weigh` correlates with the product of the two marginal detection rates at +0.68. LinkPeaks
+  controls for this with a GC- and accessibility-matched background; neither this score nor SCENT
+  does, so part of the apparent advantage over LinkPeaks may be a bias shared with the
+  comparator. The distance controls hold proximity fixed, not detectability. Untested.
+  
+- **The coactivity statistic is shape-sensitive, and more so for ATAC than RNA.** Z-scoring
+  itself assumes nothing about the distribution, but the `max(z, 0)` clipping does. RNA counts
+  are zero-inflated yet retain graded values above zero. ATAC counts are near-binary — a peak is
+  usually seen in a cell with zero, one or two fragments — so after clipping the ATAC term is
+  close to a detection indicator carrying almost no magnitude. `mul_weigh` therefore behaves
+  closer to a weighted count of co-detected cells than to a correlation, which is the mechanism
+  behind the detection-rate association above.
+
+- **Raw top-N metrics reward promoter collapse.** Over the unrestricted 500 kb universe,
+  `distance_only` wins at top-50 with a median distance of 3.5 bp. Inside SCENT's 100 kb tested
+  window the confound is controlled and `distance_only` becomes the weakest method at every
+  proximal-removal threshold, but no support fraction should be quoted without a distance control
+  beside it. That distance is a strong baseline is an established result, not a finding of this
+  work (see `docs/similar_tools.md`).
+
+- **Gene-level ORA favours the baseline.** LinkPeaks yields 17 enriched GO BP terms against 5 for
+  `full_lambda_0_1`.
+
+- **Nothing is cell-type-specific.** Coactivity pools all cells, TF weights use global mean
+  expression, and SCENT ran with a synthetic `all_cells` label. A link active in one small
+  population is diluted.
+
+- **The TF/motif score is peak-level only.** It has no gene or cell-type dependence, so it cannot
+  express TF-to-target specificity. Its contribution is small and inconsistent.
+
+- **Scores are not portable across datasets.** The TF/motif score is rescaled to [0, 1] using the
+  minimum and maximum observed in this dataset, so 0.8 means "high relative to the other peaks
+  here", not a fixed quantity. A single outlier peak shifts every other score.
+
+- **λ and α are hand-set, not fitted.** No held-out selection was performed. Seven of the eleven
+  committed modes are compared against SCENT; `coactivity_distance`, `full_lambda_0_2`,
+  `full_moddist_lambda_0_2` and `distance_mod_only_lambda_0_1` have no external comparison at all,
+  and any statement about them rests on internal diagnostics only.
+
+- **λ = 0.3 is a sensitivity setting, not a better model.** `full_lambda_0_1` (λ = 0.1) is the
+  conservative primary setting, chosen a priori as a guard against proximity domination. `full`
+  (λ = 0.3) shows higher raw SCENT support but no within-bin advantage, so its gain is consistent
+  with shifting the ranking into SCENT's tested window rather than discriminating better.
+
+- **SCENT results are not bit-reproducible.** Its bootstrap p-values are stochastic and its
+  workers are forked, so `seed: 42` does not fully determine per-pair output. Re-running changes
+  roughly 0.3% of support calls and shifts distance-matched odds ratios in the third decimal. See
+  the reproduction check under Data availability.
+
+- **One dataset, one tissue, one sample.** 5,000 pairs over 1,390 genes, drawn from the top of a
+  LinkPeaks ranking rather than sampled at random.
+
+- **The two halves of the pipeline are not perfectly aligned.** The reranker used all cells; SCENT
+  used 1,000. TSS conventions and peak ID formats differ. See
+  [`docs/input_output_reference.md`](docs/input_output_reference.md) §9.
 ---
 
 ## Future standalone method
