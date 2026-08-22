@@ -64,14 +64,10 @@ Six findings that constrain the next phase. Sources in `docs/results_report.md`.
    TF-to-target regulation, and the sign flip is the clearest available argument that a gene-
    and cell-type-aware TF term is required for this component to be worth its complexity.
 5. **The distance reparameterisation is empirically inert, and the algebra says why.** The two
-   forms differ by a constant,
+   forms differ by a constant, $f^{\mathrm{mod}}_{\lambda}(D) = f^{\mathrm{orig}}_{\lambda}(D) + \lambda/2$.
 
-   $$
-   f^{\mathrm{mod}}_{\lambda}(D) = f^{\mathrm{orig}}_{\lambda}(D) + \lambda/2.
-   $$
-   
-   An additive constant on a *multiplier* is not rank-preserving in general — the score becomes
-   $S + (\lambda/2) A_{pg} g_\alpha$ — but at $\lambda = 0.1$ the ratio
+   An additive constant on a *multiplier* is not rank-preserving in general (the score becomes
+   $S + (\lambda/2) A_{pg} g_\alpha$), but at $\lambda = 0.1$ the ratio
    $f^{\mathrm{mod}}/f^{\mathrm{orig}}$ runs from 1.0500 at $D \approx 1$ to 1.0556 at
    $D \approx 0$. A spread of half a percent across the whole distance range is very nearly a
    uniform rescaling, and uniform rescaling cannot reorder anything. Hence `full_moddist`
@@ -82,10 +78,11 @@ Six findings that constrain the next phase. Sources in `docs/results_report.md`.
    variable cannot change the ranking.
 
    The two forms diverge more at higher $\lambda$, where $\lambda/2$ is larger relative to
-   the $f^{\mathrm{orig}}$ range — a 5.6% ratio spread at $\lambda = 0.3$ against 0.5% at
+   the $f^{\mathrm{orig}}$ range: a 5.6% ratio spread at $\lambda = 0.3$ against 0.5% at
    0.1. Testing that against SCENT would confirm an algebraic prediction, not a biological one.
    Keep the cleaner form and do not spend more time on distance-prior shape without a better
    validator.
+   
 6. **The evaluation axis is the bottleneck, not the score.** Every result was limited by what
    SCENT could test, not by the scoring. More $\lambda$ or $\alpha$ tuning cannot improve
    the evidence.
