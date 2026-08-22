@@ -438,8 +438,8 @@ Full analysis, including the gene-level ORA result that points the other way:
   
 - **The coactivity statistic is shape-sensitive, and more so for ATAC than RNA.** Z-scoring
   itself assumes nothing about the distribution, but the `max(z, 0)` clipping does. RNA counts
-  are zero-inflated yet retain graded values above zero. ATAC counts are near-binary — a peak is
-  usually seen in a cell with zero, one or two fragments — so after clipping the ATAC term is
+  are zero-inflated yet retain graded values above zero. ATAC counts are near-binary: a peak is
+  usually seen in a cell with zero, one or two fragments, so after clipping the ATAC term is
   close to a detection indicator carrying almost no magnitude. `mul_weigh` therefore behaves
   closer to a weighted count of co-detected cells than to a correlation, which is the mechanism
   behind the detection-rate association above.
