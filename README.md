@@ -5,25 +5,80 @@
 [![Docker](https://img.shields.io/badge/docker-ghcr.io-blue.svg)](https://github.com/Inkasimo/multiome-link-ranking/pkgs/container/multiome-link-ranking)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A reproducible, containerized benchmark that reranks a fixed set of `Signac::LinkPeaks()`
-candidate peak–gene pairs from 10x PBMC multiome data using interpretable RNA–ATAC coactivity,
-genomic distance, and TF/motif support, and evaluates the result against SCENT with explicit
-controls for promoter-proximity confounding.
+A reproducible benchmark for single-cell multiome peak–gene link scoring, showing that apparent
+ranking improvements can be driven by promoter proximity rather than regulatory signal.
 
-**This repository is a benchmark and a diagnostic study, not a peak–gene linking method.**
-It documents what an interpretable reranking score does to an existing candidate set, including
-where it fails. The broader goal is a future standalone single-cell multiome peak–gene
-prioritization method, but that is next-phase work and is not implemented here. See
-[`docs/future_standalone_v0.md`](docs/future_standalone_v0.md).
+`Docker` · `Snakemake` · `R / Seurat / Signac` · 12k-cell PBMC multiome · 11 ranking models ·
+genome-wide external comparison · Zenodo-archived · reproduced from a clean clone
 
-```text
-implemented here:
-  LinkPeaks candidates -> fixed feature table -> 11 interpretable score modes
-                       -> SCENT comparison -> proximity controls
+---
 
-next phase (not implemented):
-  own cis-window candidates -> cell-type-aware scoring -> calibrated tiers
+## Summary
+
+A containerized Snakemake pipeline takes candidate peak–gene pairs from `Signac::LinkPeaks()` on
+10x PBMC multiome data, reranks the same fixed candidate set under 11 interpretable score modes
+(RNA–ATAC coactivity, a genomic distance prior, TF/motif support), and evaluates every mode
+against SCENT run genome-wide across 22 autosomes.
+
+One of those modes is a control with no biology in it: **rank by distance to the TSS**.
+
+## Results
+
+The control won at the top of the list. Its top 50 links had a median peak-to-TSS distance of
+**3.5 bp** and a promoter fraction of 1.00, i.e. promoters sitting on their own genes rather than
+enhancers. Raw top-N support could not distinguish a real result from proximity collapse.
+
+Comparing within distance bins rather than across them, the coactivity scores hold up:
+
+| Method | 0–10 kb | 10–50 kb | 50–100 kb |
+|---|---|---|---|
+| `full_lambda_0_1` (coactivity + distance + TF) | **5.06** | **3.15** | 2.64 |
+| `coactivity` alone | 4.68 | 2.89 | **3.08** |
+| `linkpeaks` (baseline) | 2.60 | 1.78 | 1.94 |
+| `distance_only` (control) | 1.59 | **0.92** | 1.12 |
+
+*Odds ratio, SCENT-supported links in the top decile vs the rest, within each distance bin.*
+
+At approximately fixed distance the reranking scores concentrate supported links roughly twice as
+strongly as the baseline, while the distance-only control drops to 0.92 — below 1, meaning
+proximity ranking *within* a distance bin is worse than arbitrary. So there is real signal beyond
+distance. It is smaller and narrower than the raw top-N numbers suggest.
+
+![Proximal-removal stress test](results/pbmc/scent_validation_min_distance/scent_min_distance_topN_supported_fraction.png)
+
+## Scope
+
+SCENT only tested pairs within ±100 kb, so this benchmark says nothing about distal
+enhancer–gene links. Gene-level enrichment analysis favours the LinkPeaks baseline. Coactivity is
+co-occurrence, not regulation. One dataset, one tissue.
+
+**This is a benchmark and a diagnostic study, not a peak–gene linking method.** Full accounting in
+[Limitations](#limitations) and [`docs/results_report.md`](docs/results_report.md).
+
+## Reproducibility
+
+Re-run end to end from a clean clone using the published image
+(`ghcr.io/inkasimo/multiome-link-ranking:v0.1.0`). LinkPeaks output, the SCENT tested set and
+every top-N supported fraction reproduced exactly. Archived on Zenodo; inputs fetched and
+checksum-verified by a single script.
+
+```bash
+docker pull ghcr.io/inkasimo/multiome-link-ranking:v0.1.0
+bash scripts/download_inputs.sh
+python3 run_analysis.py run_reranker_with_scent
 ```
+
+---
+
+## Documentation
+
+| Document | Contents |
+|---|---|
+| [`docs/results_report.md`](docs/results_report.md) | Full results, what can and cannot be claimed |
+| [`docs/method_report.md`](docs/method_report.md) | Formal method description with formulas |
+| [`docs/input_output_reference.md`](docs/input_output_reference.md) | Every input, config field, output column, and interface hazard |
+| [`docs/similar_tools.md`](docs/similar_tools.md) | Positioning against 11 existing methods |
+| [`docs/future_standalone_v0.md`](docs/future_standalone_v0.md) | Next-phase plan |
 
 ---
 
@@ -36,7 +91,6 @@ next phase (not implemented):
 | Candidate universe | 5,000 LinkPeaks-derived pairs over 1,390 genes |
 | Score modes | 11 committed; 7 compared against SCENT |
 | External comparator | SCENT, 22 autosomes, 52,482 tested pairs |
-| Headline result | Full models rank above LinkPeaks at top-100/200 SCENT support; a distance-only control wins at top-50 |
 | Conclusion | Sufficient to justify a de novo candidate-generation test. Not sufficient to claim a method |
 
 ---
@@ -45,24 +99,14 @@ next phase (not implemented):
 
 Linking regulatory peaks to their target genes from paired single-cell RNA + ATAC data is
 unsolved, and the field has many methods that combine similar ingredients: accessibility–
-expression correlation, genomic proximity, and TF motif evidence. Most report improvements
-over a baseline. Few report what happens when a pure proximity ranking is included as a
-control.
+expression correlation, genomic proximity, and TF motif evidence. Most report improvements over a
+baseline. Few report what happens when a pure proximity ranking is included as a control.
 
 This benchmark was built to answer one narrow question honestly:
 
 > Given a fixed candidate set produced by LinkPeaks, does reordering it with interpretable
 > coactivity, distance and TF/motif terms produce a ranking with more external support than the
 > LinkPeaks ordering — and does any advantage survive controlling for promoter proximity?
-
-In short, this repository tests whether interpretable coactivity, distance and TF/motif terms can
-rerank an existing LinkPeaks candidate set better than the original LinkPeaks ordering. The answer
-is mixed but useful: the full scores enrich SCENT-supported links above LinkPeaks, especially after
-distance matching in the 0–50 kb range, but raw top-N gains are strongly affected by promoter/TSS
-proximity. The λ = 0.3 `full` setting gives the strongest raw SCENT support, while λ = 0.1
-(`full_lambda_0_1`) remains the conservative primary setting because λ = 0.3 does not improve
-within-bin discrimination. The repo is therefore a reproducible reranking benchmark and
-proximity-bias diagnostic, not a validated standalone peak–gene linking method.
 
 ---
 
@@ -77,8 +121,8 @@ proximity-bias diagnostic, not a validated standalone peak–gene linking method
    and distance score, peak-level motif and TF/motif-expression scores.
 5. Reranks the identical candidate set under 11 interpretable score modes — LinkPeaks baseline,
    coactivity-only, distance-only, a modified-distance control, coactivity+distance,
-   coactivity+TF, the full score at three λ values (0.1, 0.2, and 0.3 as the mode named
-   `full`), and the modified distance prior at two.
+   coactivity+TF, the full score at three λ values (0.1, 0.2, and 0.3 as the mode named `full`),
+   and the modified distance prior at two.
 6. Runs SCENT independently across all 22 autosomes as an external comparator, using its own
    cis-window candidate set.
 7. Compares every score mode against SCENT support: top-N supported fraction, rank of supported
@@ -88,55 +132,177 @@ proximity-bias diagnostic, not a validated standalone peak–gene linking method
 
 Steps 7 and 8 are the point. Steps 1–6 exist to make them possible.
 
-## What the pipeline does not do
-
-- It does **not** generate its own candidate peak–gene universe. LinkPeaks defines it, so recall
-  is bounded by LinkPeaks.
-- It does **not** perform causal enhancer–gene inference.
-- It does **not** produce a validated enhancer–gene atlas.
-- It does **not** map cis-regulatory circuitry or TF→site→gene relationships.
-- It does **not** replace SCENT, SCARlink, CREMA, SCENIC+, Pando, LINGER, FigR, ArchR
-  Peak2GeneLinks, Cicero or TRIPOD. See
-  [`docs/similar_tools.md`](docs/similar_tools.md).
-- It does **not** produce cell-type-specific output. No score or validation step is stratified
-  by cell type.
-- It does **not** validate against orthogonal data. No CRISPRi perturbation, eQTL or
-  chromatin-contact evidence is used.
+The pipeline does **not** generate its own candidate universe (LinkPeaks defines it, so recall is
+bounded by LinkPeaks), perform causal inference, produce cell-type-specific output, or validate
+against orthogonal data such as CRISPRi perturbation or eQTLs. It does not replace SCENT,
+SCARlink, CREMA, SCENIC+, Pando, LINGER, FigR, ArchR Peak2GeneLinks, Cicero or TRIPOD — see
+[`docs/similar_tools.md`](docs/similar_tools.md).
 
 ---
 
-## Repository layout
+## Benchmark summary
 
-```
-config/                       # user-editable configuration
-  default.yaml                #   dataset paths, feature and scoring parameters
-  ablations.yaml              #   score-mode definitions
-  scent_run.yaml              #   SCENT producer settings
-  scent_validation.yaml       #   SCENT consumer settings
-containers/Dockerfile         # reproducible R + Snakemake runtime
-workflow/Snakefile            # DAG: features -> rankings -> SCENT sweep -> validation
-scripts/
-  run_linkpeaks_reranker.R    #   heavy: object build, LinkPeaks, coactivity, distance, motifs
-  evaluate_rankings.R         #   light: one score mode -> ranking + diagnostics
-  run_scent_chr_sweep.R       #   SCENT producer, per chromosome
-  benchmark_scent_validation.R#   SCENT consumer, cross-method comparison
-  summarize_scent_validation_min_distance.R   # proximal-removal controls
-docs/                         # method report, results report, I/O reference, positioning
-data/                         # input data (not versioned)
-resources/jaspar/             # local JASPAR2022 SQLite (not versioned)
-results/<dataset>/            # outputs
-  features/                   #   the fixed candidate universe and feature table
-  rankings/<mode>/            #   one directory per score mode
-  scent_chr_sweep_<tag>/      #   per-chromosome SCENT output
-  scent_validation/           #   cross-method SCENT comparison
-  scent_validation_min_distance/  # proximal-removal controls
-run_analysis.py               # Docker + Snakemake wrapper
-renv.lock                     # pinned R dependencies (268 packages)
-```
+Evaluated universe: 4,976 pairs, 1,375 genes, 4,087 peaks (the 5,000-pair table restricted to
+SCENT-covered chromosomes). SCENT: 52,482 tested rows, 4,758 supporting under
+`beta > 0 & boot_p <= 0.05`.
+
+**SCENT-supported fraction, top 200** — `scent_validation_topN_support_summary.csv`:
+
+| Method | frac | median distance |
+|---|---|---|
+| `full` (λ = 0.3) | 0.680 | 2,775 bp |
+| `full_lambda_0_1` | 0.605 | 7,855 bp |
+| `full_moddist_lambda_0_1` | 0.600 | 7,855 bp |
+| `coactivity` | 0.525 | 10,035 bp |
+| `coactivity_tf` | 0.515 | 12,530 bp |
+| `distance_only` | 0.510 | **15 bp** |
+| `linkpeaks` | 0.445 | 13,473 bp |
+
+`full_lambda_0_1` (λ = 0.1) is the conservative primary setting. `full` (λ = 0.3) is an aggressive
+distance-prior sensitivity setting; see the distance-matched table before reading its raw support
+figure.
+
+**At top 50, the distance-only control wins** (0.580 vs 0.440), with a median distance of 3.5 bp
+and a promoter fraction of 1.00. This table covers the whole 500 kb candidate universe, in which
+links beyond 100 kb are counted as unsupported because SCENT never tested them; the
+proximal-removal analysis below restricts to the tested window and reverses the `distance_only`
+result.
+
+**Distance-matched enrichment, odds ratio, top decile vs rest** —
+`scent_validation_distance_matched_enrichment.csv`. Bins align with SCENT's 100 kb window;
+everything beyond it is untestable and reported as such:
+
+| Method | 0–10 kb | 10–50 kb | 50–100 kb |
+|---|---|---|---|
+| `full_lambda_0_1` | 5.06 | 3.15 | 2.64 |
+| `full` (λ = 0.3) | 5.06 | 3.15 | 2.44 |
+| `coactivity_tf` | 5.06 | 3.02 | 2.64 |
+| `coactivity` | 4.68 | 2.89 | **3.08** |
+| `linkpeaks` | 2.60 | 1.78 | 1.94 |
+| `distance_only` | 1.59 | **0.92** | 1.12 |
+
+λ = 0.3 is **identical** to λ = 0.1 in both proximal bins — same odds ratio, same supported counts
+— and slightly worse at 50–100 kb. There is no distance bin in which raising the distance prior
+improves discrimination. `coactivity` alone is strongest in the outermost testable bin; the TF
+term helps proximally and costs distally.
+
+**Proximal removal** — `scent_min_distance_topN_support_summary.csv` and
+`scent_min_distance_delta_vs_linkpeaks.csv`. This analysis is restricted to candidate links within
+SCENT's 100 kb window before each threshold is applied, so that untested distal candidates are not
+scored as unsupported. Every reranking mode stays ahead of LinkPeaks at all three thresholds and
+at N = 50, 100 and 200 — `full_lambda_0_1` by +0.02 to +0.135, `full` (λ = 0.3) by +0.02 to +0.18.
+`distance_only` is the **weakest** method at every threshold and depth, and below LinkPeaks at
+every one (−0.05 to −0.24).
+
+`full` (λ = 0.3) has the higher raw support at several cells but gains no within-bin advantage
+anywhere, so it is reported as a distance-prior sensitivity result and not as a better model.
+
+## How to interpret these results
+
+Three things, in order.
+
+**1. The distance-matched result is the real finding.** At approximately fixed distance, the
+reranking scores concentrate SCENT-supported links in their top decile roughly 1.4 to 2 times as
+strongly as LinkPeaks does, in every bin SCENT could test, while the distance-only control sits at
+1.59, 0.92 and 1.12 — and at 0.84 and 0.69 in the finer 10–25 kb and 25–50 kb bins, i.e. below 1.
+Ranking by proximity *within* a distance bin is worse than arbitrary. Proximity alone cannot
+produce the reranking pattern, so the coactivity term carries information beyond distance across
+the whole 0–100 kb tested range.
+
+**2. The raw top-N advantage is partly a proximity effect.** The full models' top-100 median
+distance is 7.3 kb against LinkPeaks' 16.2 kb, and their promoter fraction is higher. Some of the
+top-N gain is bought by ranking closer to promoters. Read
+`scent_validation_topK_supported_fraction.png` and `scent_validation_topK_median_distance.png`
+together; neither is interpretable alone.
+
+**3. Nothing here speaks to distal links.** The SCENT sweep used a 100 kb window while candidates
+extend to 500 kb, so the `100_200kb`, `200_500kb` and `gt500kb` bins contain zero supported links
+for every method, and the odds ratios reported for them (8.906, 8.906 and 0.333) are
+continuity-correction artifacts on empty cells. They must not be quoted. This is the benchmark's
+largest limitation and no control within it addresses it.
+
+Full analysis, including the gene-level ORA result that points the other way:
+[`docs/results_report.md`](docs/results_report.md).
 
 ---
 
-## Requirements
+## Limitations
+
+- **LinkPeaks defines the candidate universe.** Recall is bounded by LinkPeaks, and the baseline
+  is also the candidate generator. Nothing here finds links LinkPeaks missed.
+
+- **SCENT is a comparator, not ground truth.** It is built from the same two matrices as the
+  scores it evaluates, is itself correlational, and only tested pairs within ±100 kb. Agreement
+  between two correlational methods on shared input is weaker evidence than it looks.
+
+- **Coactivity is co-occurrence, not regulation.** A high `mul_weigh` means a peak is accessible
+  in the same cells where a gene is expressed. It does not show the peak regulates the gene, and
+  cannot separate a real regulatory link from two features that happen to be active in the same
+  cell type.
+
+- **Coactivity is also sensitive to how often each feature is detected.** If a gene and a peak are
+  both frequently detected, they score high together whether or not they are related:
+  `mul_weigh` correlates with the product of the two marginal detection rates at +0.68. LinkPeaks
+  controls for this with a GC- and accessibility-matched background; neither this score nor SCENT
+  does, so part of the apparent advantage over LinkPeaks may be a bias shared with the comparator.
+  The distance controls hold proximity fixed, not detectability. Untested.
+
+- **The coactivity statistic is shape-sensitive, and more so for ATAC than RNA.** Z-scoring itself
+  assumes nothing about the distribution, but the `max(z, 0)` clipping does. RNA counts are
+  zero-inflated yet retain graded values above zero. ATAC counts are near-binary: a peak is usually
+  seen in a cell with zero, one or two fragments, so after clipping the ATAC term is close to a
+  detection indicator carrying almost no magnitude. `mul_weigh` therefore behaves closer to a
+  weighted count of co-detected cells than to a correlation, which is the mechanism behind the
+  detection-rate association above.
+
+- **Raw top-N metrics reward promoter collapse.** Over the unrestricted 500 kb universe,
+  `distance_only` wins at top-50 with a median distance of 3.5 bp. Inside SCENT's 100 kb tested
+  window the confound is controlled and `distance_only` becomes the weakest method at every
+  proximal-removal threshold, but no support fraction should be quoted without a distance control
+  beside it. That distance is a strong baseline is an established result, not a finding of this
+  work (see `docs/similar_tools.md`).
+
+- **Gene-level ORA favours the baseline.** LinkPeaks yields 17 enriched GO BP terms against 5 for
+  `full_lambda_0_1`.
+
+- **Nothing is cell-type-specific.** Coactivity pools all cells, TF weights use global mean
+  expression, and SCENT ran with a synthetic `all_cells` label. A link active in one small
+  population is diluted.
+
+- **The TF/motif score is peak-level only.** It has no gene or cell-type dependence, so it cannot
+  express TF-to-target specificity. Its contribution is small and inconsistent.
+
+- **Scores are not portable across datasets.** The TF/motif score is rescaled to [0, 1] using the
+  minimum and maximum observed in this dataset, so 0.8 means "high relative to the other peaks
+  here", not a fixed quantity. A single outlier peak shifts every other score.
+
+- **λ and α are hand-set, not fitted.** No held-out selection was performed. Seven of the eleven
+  committed modes are compared against SCENT; `coactivity_distance`, `full_lambda_0_2`,
+  `full_moddist_lambda_0_2` and `distance_mod_only_lambda_0_1` have no external comparison at all,
+  and any statement about them rests on internal diagnostics only.
+
+- **λ = 0.3 is a sensitivity setting, not a better model.** `full_lambda_0_1` (λ = 0.1) is the
+  conservative primary setting, chosen a priori as a guard against proximity domination. `full`
+  (λ = 0.3) shows higher raw SCENT support but no within-bin advantage, so its gain is consistent
+  with shifting the ranking into SCENT's tested window rather than discriminating better.
+
+- **SCENT results are not bit-reproducible.** Its bootstrap p-values are stochastic and its
+  workers are forked, so `seed: 42` does not fully determine per-pair output. Re-running changes
+  roughly 0.3% of support calls and shifts distance-matched odds ratios in the third decimal. See
+  the reproduction check under Data availability.
+
+- **One dataset, one tissue, one sample.** 5,000 pairs over 1,390 genes, drawn from the top of a
+  LinkPeaks ranking rather than sampled at random.
+
+- **The two halves of the pipeline are not perfectly aligned.** The reranker used all cells; SCENT
+  used 1,000. TSS conventions and peak ID formats differ. See
+  [`docs/input_output_reference.md`](docs/input_output_reference.md) §9.
+
+---
+
+## Installation and usage
+
+### Requirements
 
 - **Docker.** The full R/Bioconductor stack is inside the image:
   `ghcr.io/inkasimo/multiome-link-ranking:v0.1.0`
@@ -144,49 +310,6 @@ renv.lock                     # pinned R dependencies (268 packages)
   (`pip install -r wrapper-requirements.txt`).
 - Memory: the Seurat/Signac feature-generation step is the peak consumer. The SCENT sweep is the
   slowest step and was run with `max_cells: 1000` and `scent_cores: 4`.
-
-### Expected inputs
-
-```bash
-bash scripts/download_inputs.sh
-```
-
-Downloads the three 10x files into `data/`, strips the `pbmc_unsorted_10k_`
-prefix so filenames match `config/default.yaml`, and verifies everything
-against `resources/input_manifest.tsv`. Use `--verify` to check without
-downloading.
-
-| File | Notes |
-|---|---|
-| `data/filtered_feature_bc_matrix.h5` | 10x multiome; must carry both Gene Expression and Peaks assays |
-| `data/atac_fragments.tsv.gz` | ATAC fragments |
-| `data/atac_fragments.tsv.gz.tbi` | Tabix index — **required**, declared as an explicit workflow input |
-| `resources/jaspar/JASPAR2022.sqlite` | JASPAR2022 motif database — see below |
-
-#### JASPAR2022
-
-`JASPAR2022.sqlite` is not tracked in Git and is **not downloadable from upstream**: the URL in
-`scripts/run_linkpeaks_reranker.R` is a `BiocFileCache` key, not a live source, and JASPAR has
-since moved to ELIXIR hosting. It is archived in the supplementary Zenodo deposit
-([10.5281/zenodo.22032568](https://doi.org/10.5281/zenodo.22032568)) under JASPAR's CC BY 4.0 terms, and `scripts/download_inputs.sh` fetches it from there
-automatically, verifying it against the tracked `resources/jaspar/JASPAR2022.sqlite.sha256`.
-
-This file is not optional. `scripts/run_linkpeaks_reranker.R` seeds `BiocFileCache` with it so
-that the `JASPAR2022` package does not attempt a network download at motif-loading time.
-Without it, feature generation fails in an offline container. It must be present in the
-**bind-mounted working directory**, not only inside the image:
-
-```
-resources/jaspar/JASPAR2022.sqlite
-resources/jaspar/JASPAR2022.sqlite.sha256
-```
-
-Genome build is hg38, via `EnsDb.Hsapiens.v86` and `BSgenome.Hsapiens.UCSC.hg38`. Motifs are
-JASPAR2022 `CORE`, `tax_group=vertebrates`, `species=9606`.
-
----
-
-## Quick start
 
 ### 1. Get the image
 
@@ -221,11 +344,27 @@ docker run --rm ghcr.io/inkasimo/multiome-link-ranking:v0.1.0 \
 bash scripts/download_inputs.sh
 ```
 
-Downloads the three 10x files into `data/` and fetches
-`resources/jaspar/JASPAR2022.sqlite` from the supplementary Zenodo deposit
-([10.5281/zenodo.22032568](https://doi.org/10.5281/zenodo.22032568)), verifying everything against `resources/input_manifest.tsv`. Use
-`--verify` to check without downloading. See [Expected inputs](#expected-inputs)
-for details.
+Downloads the three 10x files into `data/`, fetches `resources/jaspar/JASPAR2022.sqlite` from the
+supplementary Zenodo deposit
+([10.5281/zenodo.22032568](https://doi.org/10.5281/zenodo.22032568)), and verifies everything
+against `resources/input_manifest.tsv`. Use `--verify` to check without downloading.
+
+| File | Notes |
+|---|---|
+| `data/filtered_feature_bc_matrix.h5` | 10x multiome; must carry both Gene Expression and Peaks assays |
+| `data/atac_fragments.tsv.gz` | ATAC fragments |
+| `data/atac_fragments.tsv.gz.tbi` | Tabix index — **required**, declared as an explicit workflow input |
+| `resources/jaspar/JASPAR2022.sqlite` | JASPAR2022 motif database — see below |
+
+**JASPAR2022.** Not tracked in Git and **not downloadable from upstream**: the URL in
+`scripts/run_linkpeaks_reranker.R` is a `BiocFileCache` key, not a live source, and JASPAR has
+since moved to ELIXIR hosting. `scripts/run_linkpeaks_reranker.R` seeds `BiocFileCache` with the
+local file so the `JASPAR2022` package does not attempt a network download at motif-loading time;
+without it, feature generation fails in an offline container. It must be present in the
+**bind-mounted working directory**, not only inside the image.
+
+Genome build is hg38, via `EnsDb.Hsapiens.v86` and `BSgenome.Hsapiens.UCSC.hg38`. Motifs are
+JASPAR2022 `CORE`, `tax_group=vertebrates`, `species=9606`.
 
 ### 3. Inspect the plan without running anything
 
@@ -293,11 +432,11 @@ docker run --rm -it -v "$PWD":/work -w /work \
   snakemake --snakefile workflow/Snakefile --configfile config/default.yaml --cores 4 all_with_scent
 ```
 
-Targets: `all` (features + all rankings), `all_with_scent` (adds the SCENT sweep, the
-cross-method validation and the proximal-removal controls).
+Targets: `all` (features + all rankings), `all_with_scent` (adds the SCENT sweep, the cross-method
+validation and the proximal-removal controls).
 
-The proximal-removal controls are a rule of their own and can also be requested directly. They
-are light post-processing of the validation output and do **not** re-run SCENT:
+The proximal-removal controls are a rule of their own and can also be requested directly. They are
+light post-processing of the validation output and do **not** re-run SCENT:
 
 ```bash
 python3 run_analysis.py run_scent_validation_min_distance
@@ -309,6 +448,35 @@ Thresholds and rank depths are version-controlled in
 configuration agree.
 
 ---
+
+## Repository layout
+
+```
+config/                       # user-editable configuration
+  default.yaml                #   dataset paths, feature and scoring parameters
+  ablations.yaml              #   score-mode definitions
+  scent_run.yaml              #   SCENT producer settings
+  scent_validation.yaml       #   SCENT consumer settings
+containers/Dockerfile         # reproducible R + Snakemake runtime
+workflow/Snakefile            # DAG: features -> rankings -> SCENT sweep -> validation
+scripts/
+  run_linkpeaks_reranker.R    #   heavy: object build, LinkPeaks, coactivity, distance, motifs
+  evaluate_rankings.R         #   light: one score mode -> ranking + diagnostics
+  run_scent_chr_sweep.R       #   SCENT producer, per chromosome
+  benchmark_scent_validation.R#   SCENT consumer, cross-method comparison
+  summarize_scent_validation_min_distance.R   # proximal-removal controls
+docs/                         # method report, results report, I/O reference, positioning
+data/                         # input data (not versioned)
+resources/jaspar/             # local JASPAR2022 SQLite (not versioned)
+results/<dataset>/            # outputs
+  features/                   #   the fixed candidate universe and feature table
+  rankings/<mode>/            #   one directory per score mode
+  scent_chr_sweep_<tag>/      #   per-chromosome SCENT output
+  scent_validation/           #   cross-method SCENT comparison
+  scent_validation_min_distance/  # proximal-removal controls
+run_analysis.py               # Docker + Snakemake wrapper
+renv.lock                     # pinned R dependencies (268 packages)
+```
 
 ## Key outputs
 
@@ -327,181 +495,20 @@ Full column semantics: [`docs/input_output_reference.md`](docs/input_output_refe
 
 ---
 
-## Benchmark summary
-
-Evaluated universe: 4,976 pairs, 1,375 genes, 4,087 peaks (the 5,000-pair table restricted to
-SCENT-covered chromosomes). SCENT: 52,482 tested rows, 4,758 supporting under
-`beta > 0 & boot_p <= 0.05`.
-
-**SCENT-supported fraction, top 200** — `scent_validation_topN_support_summary.csv`:
-
-| Method | frac | median distance |
-|---|---|---|
-| `full_lambda_0_1` | 0.605 | 7,855 bp |
-| `full_moddist_lambda_0_1` | 0.600 | 7,855 bp |
-| `coactivity` | 0.525 | 10,035 bp |
-| `coactivity_tf` | 0.515 | 12,530 bp |
-| `distance_only` | 0.510 | **15 bp** |
-| `linkpeaks` | 0.445 | 13,473 bp |
-| `full` (λ = 0.3) | 0.680 | 2,774.75 bp |
-
-
-`full_lambda_0_1` (λ = 0.1) is the conservative primary setting. `full` (λ = 0.3) is an
-aggressive distance-prior sensitivity setting; see the distance-matched table below before
-reading its raw support figure.
-
-**At top 50, the distance-only control wins** (0.580 vs 0.440), with a median distance of
-3.5 bp and a promoter fraction of 1.00. This table covers the whole 500 kb candidate universe,
-in which links beyond 100 kb are counted as unsupported because SCENT never tested them; the
-proximal-removal analysis below restricts to the tested window and reverses the `distance_only`
-result.
-
-**Distance-matched enrichment, odds ratio, top decile vs rest** —
-`scent_validation_distance_matched_enrichment.csv`. Bins align with SCENT's 100 kb window;
-everything beyond it is untestable and reported as such:
-
-| Method | 0–10 kb | 10–50 kb | 50–100 kb |
-|---|---|---|---|
-| `full_lambda_0_1` | 5.06 | 3.15 | 2.64 |
-| `full` (λ = 0.3) | 5.06 | 3.15 | 2.44 |
-| `coactivity_tf` | 5.06 | 3.02 | 2.64 |
-| `coactivity` | 4.68 | 2.89 | **3.08** |
-| `linkpeaks` | 2.60 | 1.78 | 1.94 |
-| `distance_only` | 1.59 | **0.92** | 1.12 |
-
-λ = 0.3 is **identical** to λ = 0.1 in both proximal bins — same odds ratio, same supported
-counts — and slightly worse at 50–100 kb. There is no distance bin in which raising the
-distance prior improves discrimination. `coactivity` alone is strongest in the outermost
-testable bin; the TF term helps proximally and costs distally.
-
-**Proximal removal** — `scent_min_distance_topN_support_summary.csv` and
-`scent_min_distance_delta_vs_linkpeaks.csv`. This analysis is restricted to candidate links
-within SCENT's 100 kb window before each threshold is applied, so that untested distal
-candidates are not scored as unsupported. Every reranking mode stays ahead of LinkPeaks at all
-three thresholds and at N = 50, 100 and 200 — `full_lambda_0_1` by +0.02 to +0.135, `full`
-(λ = 0.3) by +0.02 to +0.18. `distance_only` is the **weakest** method at every threshold and
-depth, and below LinkPeaks at every one (−0.05 to −0.24).
-
-![Proximal-removal stress test](results/pbmc/scent_validation_min_distance/scent_min_distance_topN_supported_fraction.png)
-
-`full` (λ = 0.3) has the higher raw support at several cells but gains no within-bin advantage
-anywhere, so it is reported as a distance-prior sensitivity result and not as a better model.
-
-## How to interpret these results
-
-Three things, in order.
-
-**1. The distance-matched result is the real finding.** At approximately fixed distance, the
-reranking scores concentrate SCENT-supported links in their top decile roughly 1.4 to 2 times as
-strongly as LinkPeaks does, in every bin SCENT could test, while the distance-only control sits
-at 1.59, 0.92 and 1.12 — and at 0.84 and 0.69 in the finer 10–25 kb and 25–50 kb bins, i.e.
-below 1. Ranking by proximity *within* a distance bin is worse than arbitrary. Proximity alone
-cannot produce the reranking pattern, so the coactivity term carries information beyond
-distance across the whole 0–100 kb tested range.
-
-**2. The raw top-N advantage is partly a proximity effect.** The full models' top-100 median
-distance is 7.3 kb against LinkPeaks' 16.2 kb, and their promoter fraction is higher. Some of
-the top-N gain is bought by ranking closer to promoters. Read
-`scent_validation_topK_supported_fraction.png` and
-`scent_validation_topK_median_distance.png` together; neither is interpretable alone.
-
-**3. Nothing here speaks to distal links.** The SCENT sweep used a 100 kb window while
-candidates extend to 500 kb, so the `100_200kb`, `200_500kb` and `gt500kb` bins contain zero
-supported links for every method, and the odds ratios reported for them (8.906, 8.906 and
-0.333) are continuity-correction artifacts on empty cells. They must not be quoted. This is the
-benchmark's largest limitation and no control within it addresses it.
-
-Full analysis, including the gene-level ORA result that points the other way:
-[`docs/results_report.md`](docs/results_report.md).
-
----
-## Limitations
-
-- **LinkPeaks defines the candidate universe.** Recall is bounded by LinkPeaks, and the baseline
-  is also the candidate generator. Nothing here finds links LinkPeaks missed.
-
-- **SCENT is a comparator, not ground truth.** It is built from the same two matrices as the
-  scores it evaluates, is itself correlational, and only tested pairs within ±100 kb. Agreement
-  between two correlational methods on shared input is weaker evidence than it looks.
-
-- **Coactivity is co-occurrence, not regulation.** A high `mul_weigh` means a peak is accessible
-  in the same cells where a gene is expressed. It does not show the peak regulates the gene, and
-  cannot separate a real regulatory link from two features that happen to be active in the same
-  cell type.
-
-- **Coactivity is also sensitive to how often each feature is detected.** If a gene and a peak
-  are both frequently detected, they score high together whether or not they are related:
-  `mul_weigh` correlates with the product of the two marginal detection rates at +0.68. LinkPeaks
-  controls for this with a GC- and accessibility-matched background; neither this score nor SCENT
-  does, so part of the apparent advantage over LinkPeaks may be a bias shared with the
-  comparator. The distance controls hold proximity fixed, not detectability. Untested.
-  
-- **The coactivity statistic is shape-sensitive, and more so for ATAC than RNA.** Z-scoring
-  itself assumes nothing about the distribution, but the `max(z, 0)` clipping does. RNA counts
-  are zero-inflated yet retain graded values above zero. ATAC counts are near-binary: a peak is
-  usually seen in a cell with zero, one or two fragments, so after clipping the ATAC term is
-  close to a detection indicator carrying almost no magnitude. `mul_weigh` therefore behaves
-  closer to a weighted count of co-detected cells than to a correlation, which is the mechanism
-  behind the detection-rate association above.
-
-- **Raw top-N metrics reward promoter collapse.** Over the unrestricted 500 kb universe,
-  `distance_only` wins at top-50 with a median distance of 3.5 bp. Inside SCENT's 100 kb tested
-  window the confound is controlled and `distance_only` becomes the weakest method at every
-  proximal-removal threshold, but no support fraction should be quoted without a distance control
-  beside it. That distance is a strong baseline is an established result, not a finding of this
-  work (see `docs/similar_tools.md`).
-
-- **Gene-level ORA favours the baseline.** LinkPeaks yields 17 enriched GO BP terms against 5 for
-  `full_lambda_0_1`.
-
-- **Nothing is cell-type-specific.** Coactivity pools all cells, TF weights use global mean
-  expression, and SCENT ran with a synthetic `all_cells` label. A link active in one small
-  population is diluted.
-
-- **The TF/motif score is peak-level only.** It has no gene or cell-type dependence, so it cannot
-  express TF-to-target specificity. Its contribution is small and inconsistent.
-
-- **Scores are not portable across datasets.** The TF/motif score is rescaled to [0, 1] using the
-  minimum and maximum observed in this dataset, so 0.8 means "high relative to the other peaks
-  here", not a fixed quantity. A single outlier peak shifts every other score.
-
-- **λ and α are hand-set, not fitted.** No held-out selection was performed. Seven of the eleven
-  committed modes are compared against SCENT; `coactivity_distance`, `full_lambda_0_2`,
-  `full_moddist_lambda_0_2` and `distance_mod_only_lambda_0_1` have no external comparison at all,
-  and any statement about them rests on internal diagnostics only.
-
-- **λ = 0.3 is a sensitivity setting, not a better model.** `full_lambda_0_1` (λ = 0.1) is the
-  conservative primary setting, chosen a priori as a guard against proximity domination. `full`
-  (λ = 0.3) shows higher raw SCENT support but no within-bin advantage, so its gain is consistent
-  with shifting the ranking into SCENT's tested window rather than discriminating better.
-
-- **SCENT results are not bit-reproducible.** Its bootstrap p-values are stochastic and its
-  workers are forked, so `seed: 42` does not fully determine per-pair output. Re-running changes
-  roughly 0.3% of support calls and shifts distance-matched odds ratios in the third decimal. See
-  the reproduction check under Data availability.
-
-- **One dataset, one tissue, one sample.** 5,000 pairs over 1,390 genes, drawn from the top of a
-  LinkPeaks ranking rather than sampled at random.
-
-- **The two halves of the pipeline are not perfectly aligned.** The reranker used all cells; SCENT
-  used 1,000. TSS conventions and peak ID formats differ. See
-  [`docs/input_output_reference.md`](docs/input_output_reference.md) §9.
----
-
 ## Future standalone method
 
-The broader scientific goal is a standalone single-cell multiome peak–gene prioritization
-method that generates its own candidates and produces cell-type-specific, tiered, calibrated
-output usable for experimental follow-up. **That is next-phase work and is not implemented in
-this repository.**
+The broader scientific goal is a standalone single-cell multiome peak–gene prioritization method
+that generates its own candidates and produces cell-type-specific, tiered, calibrated output
+usable for experimental follow-up. **That is next-phase work and is not implemented in this
+repository.**
 
 Two findings from this benchmark shape it:
 
 - **A de novo cis-window candidate universe already exists here.** The 22
   `results/pbmc/scent_chr_sweep_*/chr*/scent_candidates_chr*.csv` files hold 117,811 pairs over
   9,891 genes and 46,936 peaks, generated by this repository's own code from expressed genes,
-  accessible peaks, same chromosome and TSS ±100 kb — independent of LinkPeaks, overlapping it
-  by only 36.5%.
+  accessible peaks, same chromosome and TSS ±100 kb — independent of LinkPeaks, overlapping it by
+  only 36.5%.
 - **The bottleneck is the evaluation axis, not the score.** Every result here is limited by what
   SCENT can test. More parameter tuning cannot improve the evidence.
 
@@ -510,68 +517,52 @@ Plan, prerequisites and go/no-go criteria:
 
 ---
 
-## Documentation
-
-| Document | Contents |
-|---|---|
-| [`docs/method_report.md`](docs/method_report.md) | Formal method description with formulas and line references |
-| [`docs/results_report.md`](docs/results_report.md) | Full results, what can and cannot be claimed |
-| [`docs/input_output_reference.md`](docs/input_output_reference.md) | Every input, config field, output column, and interface hazard |
-| [`docs/similar_tools.md`](docs/similar_tools.md) | Honest positioning against 11 existing methods |
-| [`docs/future_standalone_v0.md`](docs/future_standalone_v0.md) | Next-phase plan |
-
----
-
 ## Data availability
 
-Raw input data is not included. Dataset provenance, download URLs, file sizes and SHA256
-checksums are recorded in `config/default.yaml`.
+Raw input data is not included. Dataset provenance, download URLs, file sizes and SHA256 checksums
+are recorded in `config/default.yaml`.
 
 Large outputs — the eleven `*_ranked_links.csv` files, per-chromosome SCENT output, and the
 combined validation table — are excluded from version control and archived separately at
-[10.5281/zenodo.22032568](https://doi.org/10.5281/zenodo.22032568) (CC BY 4.0), together with
-the JASPAR2022 motif database. `scripts/download_inputs.sh` fetches the JASPAR file from that
-deposit automatically and verifies it against `resources/jaspar/JASPAR2022.sqlite.sha256`.
+[10.5281/zenodo.22032568](https://doi.org/10.5281/zenodo.22032568) (CC BY 4.0), together with the
+JASPAR2022 motif database. `scripts/download_inputs.sh` fetches the JASPAR file from that deposit
+automatically and verifies it against `resources/jaspar/JASPAR2022.sqlite.sha256`.
 
 **Note on tracked results.** `results/pbmc/scent_validation/` and
-`results/pbmc/scent_validation_min_distance/` are committed to Git so that the
-figures referenced in `docs/` render on GitHub. Snakemake `.done` sentinels are
-**not** committed, so a fresh clone contains results but no sentinels — the
-workflow will therefore recompute everything and overwrite the committed files.
-That is intentional and is how the reproduction check works: after a full run,
+`results/pbmc/scent_validation_min_distance/` are committed to Git so that the figures referenced
+in `docs/` render on GitHub. Snakemake `.done` sentinels are **not** committed, so a fresh clone
+contains results but no sentinels — the workflow will therefore recompute everything and overwrite
+the committed files. That is intentional and is how the reproduction check works: after a full run,
 `git diff` shows whether the recomputed results match the committed ones.
 
-**Reproduction check.** The full pipeline was re-run from a clean clone of this
-repository using the published container image
-(`ghcr.io/inkasimo/multiome-link-ranking:v0.1.0`). LinkPeaks output reproduced
-exactly — 16,824 links before filtering, 15,806 after, 5,000 candidates over
-1,390 genes — as did the SCENT tested set (52,482 rows across 22 autosomes) and
-every top-N supported fraction reported above. SCENT's bootstrap p-values are
-stochastic and its workers are forked, so the seed does not fully determine
-per-pair results: the re-run gave 4,742 support rows against 4,758 originally,
-a difference of 16 pairs (0.3%). Distance-matched odds ratios differ in the
-third decimal. No conclusion in this repository depends on that variation.
+**Reproduction check.** The full pipeline was re-run from a clean clone of this repository using
+the published container image (`ghcr.io/inkasimo/multiome-link-ranking:v0.1.0`). LinkPeaks output
+reproduced exactly — 16,824 links before filtering, 15,806 after, 5,000 candidates over 1,390
+genes — as did the SCENT tested set (52,482 rows across 22 autosomes) and every top-N supported
+fraction reported above. SCENT's bootstrap p-values are stochastic and its workers are forked, so
+the seed does not fully determine per-pair results: the re-run gave 4,742 support rows against
+4,758 originally, a difference of 16 pairs (0.3%). Distance-matched odds ratios differ in the third
+decimal. No conclusion in this repository depends on that variation.
 
 ## Citation
 
 Please cite this repository using `CITATION.cff` and the archived Zenodo DOI:
-[10.5281/zenodo.22032459](https://doi.org/10.5281/zenodo.22032459) resolves to the latest
-version; [10.5281/zenodo.22032460](https://doi.org/10.5281/zenodo.22032460) pins v0.1.0.
-Supplementary data has its own DOI,
-[10.5281/zenodo.22032568](https://doi.org/10.5281/zenodo.22032568).
+[10.5281/zenodo.22032459](https://doi.org/10.5281/zenodo.22032459) resolves to the latest version;
+[10.5281/zenodo.22032460](https://doi.org/10.5281/zenodo.22032460) pins v0.1.0. Supplementary data
+has its own DOI, [10.5281/zenodo.22032568](https://doi.org/10.5281/zenodo.22032568).
 
-This workflow also depends on external software and resources. Cite the relevant upstream
-projects when using or reusing the workflow: `Signac` / `LinkPeaks`, `Seurat`, `SCENT`
-(`immunogenomics/SCENT` v1.0.1, commit `e80b5ba6b445f972c7fe28fb41e24ef4f5b2e373`),
-`JASPAR2022`, `motifmatchr`, `TFBSTools`, `EnsDb.Hsapiens.v86`,
-`BSgenome.Hsapiens.UCSC.hg38`, `clusterProfiler` and `Snakemake`.
+This workflow also depends on external software and resources. Cite the relevant upstream projects
+when using or reusing the workflow: `Signac` / `LinkPeaks`, `Seurat`, `SCENT`
+(`immunogenomics/SCENT` v1.0.1, commit `e80b5ba6b445f972c7fe28fb41e24ef4f5b2e373`), `JASPAR2022`,
+`motifmatchr`, `TFBSTools`, `EnsDb.Hsapiens.v86`, `BSgenome.Hsapiens.UCSC.hg38`, `clusterProfiler`
+and `Snakemake`.
 
-The supplementary Zenodo deposit includes `resources/jaspar/JASPAR2022.sqlite` for reproducibility.
-The JASPAR database is licensed under Creative Commons Attribution 4.0 International; cite
-the JASPAR 2022 Nucleic Acids Research database paper and retain attribution when reusing
-the file.
+The supplementary Zenodo deposit includes `resources/jaspar/JASPAR2022.sqlite` for
+reproducibility. The JASPAR database is licensed under Creative Commons Attribution 4.0
+International; cite the JASPAR 2022 Nucleic Acids Research database paper and retain attribution
+when reusing the file.
 
 ## License
 
-Code: MIT (see `LICENSE`). Documentation (`docs/`, `README.md`) and results
-(`results/`) are released under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+Code: MIT (see `LICENSE`). Documentation (`docs/`, `README.md`) and results (`results/`) are
+released under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
