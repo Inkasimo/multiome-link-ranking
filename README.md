@@ -9,7 +9,7 @@ A reproducible benchmark for single-cell multiome peak–gene link scoring, show
 ranking improvements can be driven by promoter proximity rather than regulatory signal.
 
 `Docker` · `Snakemake` · `R / Seurat / Signac` · 12k-cell PBMC multiome · 11 ranking models ·
-genome-wide external comparison · Zenodo-archived · reproduced from a clean clone
+genome-wide cross-method comparison · Zenodo-archived · reproduced from a clean clone
 
 ---
 
